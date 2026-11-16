@@ -1,0 +1,12 @@
+# Material de referencia y artefactos locales
+*.pdf
+*.zip
+
+# Compilación
+*.o
+*.obj
+bin/
+
+# Editor / sistema
+.DS_Store
+*.swp
