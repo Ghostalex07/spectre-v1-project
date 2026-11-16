@@ -5,7 +5,7 @@ predicción de saltos y canales laterales en caché**.
 
 El plan de ejecución completo está en [`PLAN.md`](PLAN.md): fases, experimentos
 E1/E2/E3, protocolo de medida, cronograma, riesgos y estructura de la defensa
-final.
+final. Las instrucciones para agentes de IA están en [`AGENTS.md`](AGENTS.md).
 
 ## Estado
 
