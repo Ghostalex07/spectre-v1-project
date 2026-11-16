@@ -93,7 +93,7 @@ al menos en una máquina antes de invertir tiempo en el harness.
   lscpu
   grep -m1 'model name' /proc/cpuinfo
   grep -m1 'cpu family' /proc/cpuinfo
-  grep -m1 '^model' /proc/cpuinfo
+  grep -m1 '^model[[:space:]]*:' /proc/cpuinfo
   grep -m1 'stepping' /proc/cpuinfo
   grep -m1 'microcode' /proc/cpuinfo
   systemd-detect-virt
