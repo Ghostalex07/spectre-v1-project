@@ -2,6 +2,11 @@
 *.pdf
 *.zip
 
+# Referencias versionadas (excepción a las reglas anteriores)
+!references/
+!references/*.pdf
+!references/*.zip
+
 # Compilación
 *.o
 *.obj

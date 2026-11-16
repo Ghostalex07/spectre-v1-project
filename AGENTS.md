@@ -17,8 +17,9 @@ archivo entero antes de tocar nada.
 
 1. **No cambies la visibilidad del repositorio.** No lo hagas público, no crees
    forks públicos, no añadas colaboradores ni cambies los remotos.
-2. **No borres ni modifiques el material de referencia:** `*.pdf`,
-   `spectre.c.zip` y `spectre.txt`. Son de solo lectura y no se versionan.
+2. **No borres ni modifiques el material de referencia.** Las copias versionadas
+   están en `references/` y son de solo lectura; los originales de la carpeta
+   local no se tocan.
 3. **No reescribas la historia de Git.** Prohibido `git push --force`,
    `git reset --hard`, `git clean -fdx`, `git rebase` sobre `main`, borrar ramas
    o tags.

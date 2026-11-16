@@ -7,6 +7,11 @@ El plan de ejecución completo está en [`PLAN.md`](PLAN.md): fases, experimento
 E1/E2/E3, protocolo de medida, cronograma, riesgos y estructura de la defensa
 final. Las instrucciones para agentes de IA están en [`AGENTS.md`](AGENTS.md).
 
+## Referencias
+
+El material de consulta está en [`references/`](references/README.md): PoC
+original, análisis de Kocher, propuesta P0928R1 y paper de USENIX Security 2025.
+
 ## Estado
 
 - [x] Propuesta definida.
