@@ -28,6 +28,7 @@ está ahí, abre un issue con el comando, la salida y tu `machine_id`.
 | `README.md` | Resumen y inicio rápido |
 | `CONTRIBUTING.md` | Flujo de trabajo, roles y definición de “hecho” |
 | `docs/onboarding.md` | Primeros pasos de Fase 0 |
+| `docs/campaign.md` | Campaña final: qué hace cada integrante en su máquina |
 | `docs/manual.md` | Este manual |
 | `docs/metrics.md` | Definiciones de métricas y esquemas CSV |
 | `docs/thresholds.md` | Umbral de cada máquina y `margin_min` |
@@ -117,7 +118,8 @@ Abre ese `spectre.c` y elimina la llamada `_mm_lfence()` de `victim_function`.
 Compila y revisa el ensamblador:
 
 ```bash
-gcc -O2 -o /tmp/spectre-poc/spectre "$POC"
+gcc -O2 -fno-if-conversion -fno-if-conversion2 \
+  -o /tmp/spectre-poc/spectre "$POC"
 objdump -d -Mintel /tmp/spectre-poc/spectre | awk '/<victim_function>:/,/^$/'
 ```
 
@@ -159,9 +161,9 @@ python3 analysis/plot_e1.py --machine-id <machine_id>
 ```
 
 El script imprime mediana, p5 y p95 de cada modo, y sugiere un umbral en el
-valle. **No uses 80 por defecto**: es específico de algunos Intel. En el Ryzen de
-referencia, 80 funciona porque `hit` está en ~46 ciclos y `miss` por encima de
-~230; en otra máquina el valle puede estar en otro sitio.
+valle. **No copies el 80 de otra máquina**: en el Ryzen de referencia funciona
+porque `hit` está en ~46 ciclos y `miss` por encima de ~230, pero cada CPU
+necesita su propio valle. Calibra siempre con tu E1.
 
 Anota el umbral en [`docs/thresholds.md`](thresholds.md). E2 y E3 deben usar ese
 valor para esa máquina.
@@ -250,13 +252,15 @@ Para ver cómo influye el predictor:
 
 ```bash
 for t in 2 4 5 6 8 10; do
-  TRAIN=$t THRESHOLD=<T> ./scripts/run_e2.sh <machine_id> baseline <T> 1000 "$t" 10 1
+  mid="${machine_id}_train${t}"
+  TRAIN=$t THRESHOLD=<T> ./scripts/run_e2.sh "$mid" baseline <T> 1000 "$t" 10 1
 done
 ```
 
-Los CSV se guardan en `data/<machine_id>/`; para no mezclarlos, usa un
-`machine_id` con sufijo (`<machine_id>_train$t`) o mueve los archivos después.
-Lo importante es reportar la tasa por `train`, no solo el mejor valor.
+Cada valor de `train` usa un `machine_id` auxiliar y escribe en su propio
+`data/<machine_id>_train<t>/`, así no sobrescribe la campaña principal. Estos
+CSV son un diagnóstico del predictor, no la campaña final. Lo importante es
+reportar la tasa por `train`, no solo el mejor valor.
 
 ### Interpretación
 
@@ -349,8 +353,9 @@ python3 analysis/plot_e3.py --machine-id <machine_id>
 ```
 
 Las figuras van a `figures/`. Los scripts imprimen tablas con tasas, intervalos
-de Wilson, `unclear` y sobrecoste. No edites las figuras a mano: si cambias el
-análisis, vuelve a generarlas.
+de Wilson, `unclear` y sobrecoste. `plot_e2.py` excluye por defecto los CSV
+`-O0` para no mezclarlos con la campaña principal. No edites las figuras a
+mano: si cambias el análisis, vuelve a generarlas.
 
 Si añades una máquina, repite los tres comandos con su `machine_id`. Para
 comparar máquinas, usa los CSV y agrupa por `machine_id`; no mezcles VM con
@@ -459,7 +464,7 @@ Con 300 intentos y 1M iteraciones los números son orientativos.
 Campaña final de la misma máquina (`ryzen5pro5675u_final`, 50 runs y 30 reps):
 
 ```text
-E2: baseline 2000/2000 bytes; lfence 0/2000; mask 0/2000
+E2: baseline 2000/2000 byte-intentos (40/40 por run); lfence 0/2000; mask 0/2000
 E3: baseline 3.34 ciclos/iteración
     lfence  13.40 ciclos/iteración  (~4.01x, +300.6 %)
     mask     3.39 ciclos/iteración  (~1.01x, +1.3 %)

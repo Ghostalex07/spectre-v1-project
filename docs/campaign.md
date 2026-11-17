@@ -49,8 +49,8 @@ Rellena tu fila en [`machines.md`](machines.md) con:
 - Kernel, GCC y si es nativo o VM.
 - Estado de `spectre_v1`.
 
-Si `systemd-detect-virt` no devuelve `none`, es una VM: se puede probar, pero se
-excluye de la comparación principal.
+Si `systemd-detect-virt` no devuelve `none`, es una VM o un contenedor: se puede
+probar, pero se excluye de la comparación principal.
 
 ## 2. Calibra el umbral con E1
 
@@ -123,14 +123,15 @@ Las figuras se guardan en `figures/`. `plot_e2.py` excluye por defecto los CSV
 
 ## 6. Sube los datos al repo
 
-Crea una rama y añade solo lo que corresponda:
+Genera primero las figuras de la sección 5. Después crea una rama y añade solo
+lo que corresponda:
 
 ```bash
 git switch -c campaign/<machine_id>
 
 git add data/<machine_id> \
         docs/machines.md docs/thresholds.md \
-        figures/*<machine_id>*
+        figures/*_<machine_id>*.png
 
 git commit -m "data: add campaign for <machine_id>"
 git push -u origin campaign/<machine_id>

@@ -20,9 +20,10 @@
 1. [`../README.md`](../README.md) — qué es el proyecto y cómo empezar.
 2. [`../PLAN.md`](../PLAN.md) — plan, fases y protocolo.
 3. [`onboarding.md`](onboarding.md) — qué hacer el primer día.
-4. [`manual.md`](manual.md) — cómo ejecutar todo.
-5. [`metrics.md`](metrics.md) y [`thresholds.md`](thresholds.md) — cómo medir.
-6. [`report-guide.md`](report-guide.md) y [`defense-guide.md`](defense-guide.md)
+4. [`campaign.md`](campaign.md) — qué ejecuta cada integrante en su máquina.
+5. [`manual.md`](manual.md) — cómo ejecutar todo.
+6. [`metrics.md`](metrics.md) y [`thresholds.md`](thresholds.md) — cómo medir.
+7. [`report-guide.md`](report-guide.md) y [`defense-guide.md`](defense-guide.md)
    — cómo presentar.
 
 ## Regla
