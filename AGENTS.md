@@ -12,6 +12,9 @@ Actualizado el 2026-11-17.
   `analysis/` y documentación.
 - E1, E2 y E3 están implementados y validados en el Ryzen 5 PRO 5675U de
   referencia. Los datos están en `data/ryzen5pro5675u/`.
+- La campaña final de referencia está en `data/ryzen5pro5675u_final/`.
+- La guía paso a paso para la campaña multi-máquina está en
+  [`docs/campaign.md`](docs/campaign.md).
 - `make smoke` debe pasar antes de dar cualquier cambio por bueno.
 - Pendiente: campaña en 2–3 microarquitecturas, informe y defensa final.
 - La rama de trabajo `feat/self-contained-repo` ya se fusionó en `main` y se
@@ -19,10 +22,12 @@ Actualizado el 2026-11-17.
 
 ## Fuente de verdad
 
-- Lee `README.md`, `PLAN.md`, `CONTRIBUTING.md` y `docs/manual.md` antes de
-  actuar.
+- Lee `README.md`, `PLAN.md`, `CONTRIBUTING.md`, `docs/campaign.md` y
+  `docs/manual.md` antes de actuar.
 - `PLAN.md` define el alcance, las fases, las métricas y los criterios de
   aceptación. No cambies el alcance por iniciativa propia.
+- `docs/campaign.md` contiene el paso a paso que debe seguir cada integrante en
+  su máquina: inventario, E1, umbral, E2/E3, `objdump`, figuras y PR.
 - `docs/manual.md` contiene los comandos exactos; `docs/metrics.md` y
   `data/README.md` definen las métricas y los CSV.
 - Si una instrucción del usuario contradice este archivo, pide confirmación
