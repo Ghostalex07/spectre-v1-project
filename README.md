@@ -39,6 +39,7 @@ resultado, está en [`docs/manual.md`](docs/manual.md).
 | [`PLAN.md`](PLAN.md) | Plan, fases, experimentos, protocolo, cronograma y riesgos |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Acceso, flujo de trabajo, roles y definición de “hecho” |
 | [`docs/onboarding.md`](docs/onboarding.md) | Primeros pasos y Fase 0 |
+| [`docs/campaign.md`](docs/campaign.md) | Campaña final por máquina: qué hace cada integrante |
 | [`docs/manual.md`](docs/manual.md) | Manual completo del harness |
 | [`docs/metrics.md`](docs/metrics.md) | Métricas, IC y esquemas CSV |
 | [`docs/thresholds.md`](docs/thresholds.md) | Umbral de cada máquina |
@@ -119,9 +120,16 @@ lfence:  13.52 ciclos/iteración  (~4.06x, +306 %)
 mask:     3.68 ciclos/iteración  (~1.11x, +10.7 %)
 ```
 
-Son valores orientativos de validación. La campaña final usa 1000 intentos,
-50 runs y 10M/30. Los detalles y las figuras se regeneran con los scripts de
-[`analysis/`](analysis/).
+Son valores orientativos de validación. La campaña final de esa misma máquina
+está en `data/ryzen5pro5675u_final/` y usa 1000 intentos, 50 runs y 10M/30:
+
+```text
+E2: baseline 2000/2000; lfence 0/2000; mask 0/2000
+E3: baseline 3.34; lfence 13.40 (~4.01x, +300.6 %); mask 3.39 (~1.01x, +1.3 %)
+```
+
+Es la misma microarquitectura, no una CPU distinta. Los detalles y las figuras
+se regeneran con los scripts de [`analysis/`](analysis/).
 
 ## Referencias
 

@@ -8,7 +8,8 @@ Una fila por máquina. Los comandos para obtener los datos están en
 
 | machine_id | owner | cpu | family | model | stepping | microcode | cores/threads | L1d | L2 | L3 | kernel | gcc | native/vm | spectre_v1 | notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| `ryzen5pro5675u` | — | AMD Ryzen 5 PRO 5675U (Cezanne, Zen 3) | 25 | 80 | 0 | `0xa500014` | 6/12 | 192 KiB | 3 MiB | 16 MiB | 6.8.0-149 | 11.4 | native | usercopy/swapgs barriers + `__user` pointer sanitization | Datos iniciales; confirmar con `lscpu` |
+| `ryzen5pro5675u` | — | AMD Ryzen 5 PRO 5675U (Cezanne, Zen 3) | 25 | 80 | 0 | `0xa500014` | 6/12 | 192 KiB | 3 MiB | 16 MiB | 6.8.0-149 | 11.4 | native | usercopy/swapgs barriers + `__user` pointer sanitization | Validación inicial; 1 run en E2 |
+| `ryzen5pro5675u_final` | — | AMD Ryzen 5 PRO 5675U (Cezanne, Zen 3) | 25 | 80 | 0 | `0xa500014` | 6/12 | 192 KiB | 3 MiB | 16 MiB | 6.8.0-149 | 11.4 | native | usercopy/swapgs barriers + `__user` pointer sanitization | Campaña final: 50 runs E2, 30 reps E3. Misma microarquitectura que la referencia; no cuenta como CPU distinta |
 | `pendiente-1` |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | `pendiente-2` |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 

@@ -18,7 +18,8 @@ Lee, en este orden:
 2. [`CONTRIBUTING.md`](../CONTRIBUTING.md)
 3. [`docs/metrics.md`](metrics.md)
 4. [`docs/manual.md`](manual.md)
-5. [`data/README.md`](../data/README.md)
+5. [`docs/campaign.md`](campaign.md)
+6. [`data/README.md`](../data/README.md)
 
 ## 1. Ficha del equipo (30 min)
 

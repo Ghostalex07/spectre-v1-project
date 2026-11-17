@@ -5,6 +5,7 @@
 | Documento | Para qué sirve |
 |---|---|
 | [`onboarding.md`](onboarding.md) | Primeros pasos, Fase 0 y prueba de viabilidad |
+| [`campaign.md`](campaign.md) | Campaña final: qué ejecuta cada integrante en su máquina |
 | [`manual.md`](manual.md) | Manual completo: compilar, medir, analizar y reproducir |
 | [`metrics.md`](metrics.md) | Definiciones de métricas y esquemas CSV |
 | [`thresholds.md`](thresholds.md) | Umbral de cada máquina y `margin_min` |

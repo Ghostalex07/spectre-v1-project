@@ -454,8 +454,19 @@ lfence:  13.52 ciclos/iteración  (~4.06x, +306 %)
 mask:     3.68 ciclos/iteración  (~1.11x, +10.7 %)
 ```
 
-Con 300 intentos y 1M iteraciones los números son orientativos. La campaña
-final debe usar 1000 intentos, 50 runs y 10M/30.
+Con 300 intentos y 1M iteraciones los números son orientativos.
+
+Campaña final de la misma máquina (`ryzen5pro5675u_final`, 50 runs y 30 reps):
+
+```text
+E2: baseline 2000/2000 bytes; lfence 0/2000; mask 0/2000
+E3: baseline 3.34 ciclos/iteración
+    lfence  13.40 ciclos/iteración  (~4.01x, +300.6 %)
+    mask     3.39 ciclos/iteración  (~1.01x, +1.3 %)
+```
+
+Es la misma microarquitectura que la referencia; no sustituye a una segunda CPU
+en la comparación.
 
 ## 16. Seguridad y alcance
 

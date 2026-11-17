@@ -39,11 +39,20 @@ validar el harness, no la campaña final:
 - E2: 40 bytes, 300 intentos, `train=5`, **1 run**.
 - E3: 1.000.000 iteraciones, 3 repeticiones.
 
-El archivo `e2_ryzen5pro5675u_baseline_O0.csv` es un control `-O0` de 1 byte;
-no se mezcla con la campaña `-O2` en las figuras. Sirve para probar los scripts
-de análisis y comparar con tus resultados. La campaña final debe usar los
-valores del protocolo (10.000 muestras, 50 runs, 10M iteraciones y 30
-repeticiones) y quedar identificada como tal.
+`data/ryzen5pro5675u_final/` contiene la **campaña final** de esa misma máquina,
+con el protocolo completo:
+
+- E1: 10.000 muestras por modo, buffer de 64 MiB.
+- E2: 40 bytes, 1000 intentos, `train=5`, **50 runs**.
+- E3: 10.000.000 iteraciones, **30 repeticiones**.
+
+Es la misma microarquitectura que `ryzen5pro5675u`, así que sirve como campaña
+completa de referencia, pero **no cuenta como una CPU distinta** para el
+objetivo de 2–3 microarquitecturas. El archivo
+`e2_ryzen5pro5675u_baseline_O0.csv` es un control `-O0` de 1 byte; no se mezcla
+con la campaña `-O2` en las figuras. La campaña final de cada compañero debe
+usar los valores del protocolo y quedar identificada con su propio
+`machine_id`.
 
 ## Esquemas CSV
 

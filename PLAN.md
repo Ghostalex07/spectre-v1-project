@@ -11,12 +11,15 @@ Actualizado el 2026-11-17.
 - [x] Fase 1: harness, `Makefile`, scripts, análisis y documentación.
 - [x] E1/E2/E3 validados en el Ryzen 5 PRO 5675U de referencia.
 - [x] `make smoke` pasa.
+- [x] Campaña final de referencia en el Ryzen (`ryzen5pro5675u_final`, 50 runs y 30 reps).
 - [ ] Campaña multi-máquina con 2–3 microarquitecturas.
 - [ ] Informe y defensa final.
 
-Los datos de referencia están en `data/ryzen5pro5675u/` y son una ejecución de
-validación (1 run en E2), no la campaña final. El manual de ejecución está en
-[`docs/manual.md`](docs/manual.md).
+Los datos de validación están en `data/ryzen5pro5675u/` (1 run en E2) y la
+campaña final de esa misma CPU en `data/ryzen5pro5675u_final/` (50 runs en E2,
+30 reps en E3). No son dos microarquitecturas distintas. El manual de ejecución
+está en [`docs/manual.md`](docs/manual.md) y la campaña por máquina en
+[`docs/campaign.md`](docs/campaign.md).
 
 ## 1. Ficha del proyecto
 

@@ -31,6 +31,7 @@ algunos Intel; en cada equipo hay que medir E1 y elegir el valle del histograma.
 | machine_id | fecha | hit mediana | hit p5 | hit p95 | miss mediana | miss p5 | miss p95 | umbral T | notas |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---|
 | `ryzen5pro5675u` | 2026-11-17 | 46 | 23 | 46 | 276 | 230 | 690 | **80** | Ryzen 5 PRO 5675U, Zen 3; 10.000 muestras, buffer 64 MiB. El análisis sugiere 138; se usa 80, que también separa los modos. Otra ejecución con 5000 muestras y 32 MiB dio miss mediana 437. |
+| `ryzen5pro5675u_final` | 2026-11-17 | 46 | 23 | 46 | 276 | 230 | 345 | **80** | Misma CPU; campaña final con 50 runs en E2 y 30 reps en E3. El análisis sugiere 138; se usa 80. |
 
 ### Plantilla para añadir una máquina
 
