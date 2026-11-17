@@ -12,6 +12,10 @@
 *.obj
 bin/
 
+# Python
+__pycache__/
+*.pyc
+
 # Editor / sistema
 .DS_Store
 *.swp

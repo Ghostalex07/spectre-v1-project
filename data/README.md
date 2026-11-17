@@ -1,7 +1,7 @@
 # Datos
 
 Los datos crudos y los CSV viven aquí. La política es simple: **se conservan, no
-se editan a mano y se pueden regenerar las figuras desde ellos**.
+se editan a mano y las figuras se pueden regenerar desde ellos**.
 
 ## Estructura
 
@@ -11,21 +11,53 @@ data/
     env_<machine_id>.txt
     poc_<machine_id>.txt
     e1_<machine_id>.csv
-    e2_<machine_id>_O2.csv
-    e2_<machine_id>_O0.csv
-    e3_<machine_id>_O2.csv
+    e2_<machine_id>_baseline.csv
+    e2_<machine_id>_lfence.csv
+    e2_<machine_id>_mask.csv
+    e2_<machine_id>_baseline_O0.csv   # control opcional
+    e3_<machine_id>_baseline.csv
+    e3_<machine_id>_lfence.csv
+    e3_<machine_id>_mask.csv
   derived/
 ```
 
 - `machine_id` debe coincidir con la fila de [`docs/machines.md`](../docs/machines.md).
-- `env_*.txt`: salida de `lscpu`, kernel, GCC, microcódigo y mitigaciones.
+- `env_*.txt`: salida de `lscpu`, kernel, GCC, microcódigo, mitigaciones y
+  gobernador.
 - `poc_*.txt`: salida de la prueba de viabilidad de Fase 0.
 - `e1_*.csv`: latencias de caché.
-- `e2_*.csv`: recuperación del secreto.
-- `e3_*.csv`: eficacia y sobrecoste de las variantes.
+- `e2_*.csv`: recuperación del secreto por variante.
+- `e3_*.csv`: sobrecoste por variante.
 - `derived/`: tablas agregadas generadas por `analysis/`; no se editan a mano.
 
-## Esquema CSV
+## Datos de referencia incluidos
+
+`data/ryzen5pro5675u/` contiene una **ejecución de referencia** hecha para
+validar el harness, no la campaña final:
+
+- E1: 10.000 muestras por modo, buffer de 64 MiB.
+- E2: 40 bytes, 300 intentos, `train=5`, **1 run**.
+- E3: 1.000.000 iteraciones, 3 repeticiones.
+
+El archivo `e2_ryzen5pro5675u_baseline_O0.csv` es un control `-O0` de 1 byte;
+no se mezcla con la campaña `-O2` en las figuras. Sirve para probar los scripts
+de análisis y comparar con tus resultados. La campaña final debe usar los
+valores del protocolo (10.000 muestras, 50 runs, 10M iteraciones y 30
+repeticiones) y quedar identificada como tal.
+
+## Esquemas CSV
+
+### E1
+
+```text
+machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,mode,sample,cycles
+```
+
+- `mode`: `hit` o `miss`.
+- `sample`: índice de muestra.
+- `cycles`: latencia medida con `rdtscp`.
+
+### E2 y eficacia de E3
 
 ```text
 machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,threshold,train,run,byte,guess,score1,score2,success,cycles
@@ -33,12 +65,38 @@ machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,threshol
 
 - `variant`: `baseline`, `lfence` o `mask`.
 - `success`: 1 si `guess` coincide con el byte secreto, 0 si no.
-- `cycles`: solo en las filas de sobrecoste de E3; vacío en el resto.
+- `cycles`: vacío en E2.
 - `byte`: 0–39 para el secreto de 40 bytes.
 - `guess`: 0–255.
 - `train`: número de aciertos de entrenamiento por ataque.
-- `score1`, `score2`: puntuaciones medias por intento, en ciclos.
+- `score1`, `score2`: **conteos de aciertos** (0..attempts), no ciclos.
 - `threshold`: umbral de E1 de esa máquina.
+
+### E3 — sobrecoste
+
+```text
+machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,iterations,run,cycles_per_iteration,total_cycles
+```
+
+- `variant`: `baseline`, `lfence` o `mask`.
+- `iterations`: iteraciones del bucle de coste.
+- `run`: repetición (0..reps-1).
+- `cycles_per_iteration`: `total_cycles / iterations`.
+- `total_cycles`: ciclos totales del bucle.
+
+## Nombres
+
+```text
+e1_ryzen5pro5675u.csv
+e2_ryzen5pro5675u_baseline.csv
+e2_ryzen5pro5675u_lfence.csv
+e2_ryzen5pro5675u_mask.csv
+e3_ryzen5pro5675u_baseline.csv
+```
+
+El `machine_id` va en minúsculas y sin espacios. Si hay varias configuraciones
+del mismo equipo, añade un sufijo claro (`_turbo`, `_noturbo`, etc.) y explícalo
+en `docs/machines.md`.
 
 ## Reglas
 
@@ -53,15 +111,4 @@ machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,threshol
 - Si un CSV supera los 5 MB, pregunta antes de commitearlo.
 - Los datos deben ser reproducibles: mismo código, mismas flags y el comando
   usado documentado en el PR o en `env_*.txt`.
-
-## Nombres
-
-```text
-e2_ryzen5pro5675u_O2.csv
-e3_ryzen5pro5675u_O2.csv
-e1_intel_i7_1165g7.csv
-```
-
-El `machine_id` va en minúsculas y sin espacios. Si hay varias configuraciones
-del mismo equipo, añade un sufijo claro (`_turbo`, `_noturbo`, etc.) y explícalo
-en `docs/machines.md`.
+- Los CSV se generan con los scripts; no se teclean a mano.

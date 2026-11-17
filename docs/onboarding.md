@@ -17,7 +17,8 @@ Lee, en este orden:
 1. [`PLAN.md`](../PLAN.md)
 2. [`CONTRIBUTING.md`](../CONTRIBUTING.md)
 3. [`docs/metrics.md`](metrics.md)
-4. [`data/README.md`](../data/README.md)
+4. [`docs/manual.md`](manual.md)
+5. [`data/README.md`](../data/README.md)
 
 ## 1. Ficha del equipo (30 min)
 
@@ -38,8 +39,7 @@ gcc --version | head -n1
 Crea la carpeta de tu equipo y guarda el entorno:
 
 ```bash
-mkdir -p data/<machine_id>
-lscpu > data/<machine_id>/env_<machine_id>.txt
+./scripts/collect_env.sh <machine_id>
 ```
 
 Rellena tu fila en [`docs/machines.md`](machines.md). Usa un `machine_id` corto,
@@ -48,6 +48,17 @@ en minúsculas y sin espacios (`ryzen5pro5675u`, `intel_i7_1165g7`, etc.).
 **Si `systemd-detect-virt` no devuelve `none`, es una VM.** Se puede usar para
 probar, pero no entra en la comparación principal.
 
+## 1.5. Comprueba el harness (5 min)
+
+```bash
+make
+make smoke
+```
+
+`make smoke` compila E1/E2/E3 y valida las cabeceras CSV con ejecuciones
+pequeñas. Si falla, no sigas: consulta
+[`troubleshooting.md`](troubleshooting.md).
+
 ## 2. Prueba de viabilidad del PoC (1–2 h)
 
 El objetivo es comprobar si tu máquina filtra. **No** es la campaña de medidas.
@@ -55,24 +66,25 @@ El objetivo es comprobar si tu máquina filtra. **No** es la campaña de medidas
 ```bash
 mkdir -p /tmp/spectre-poc
 unzip -o references/spectre.c.zip -d /tmp/spectre-poc
-find /tmp/spectre-poc -name spectre.c
-grep -n "_mm_lfence" /tmp/spectre-poc/spectre.c
+POC="$(find /tmp/spectre-poc -name spectre.c | head -n1)"
+echo "$POC"
+grep -n "_mm_lfence" "$POC"
 ```
 
-Abre `spectre.c` y elimina la llamada `_mm_lfence()` que está **dentro de
+Abre ese `spectre.c` y elimina la llamada `_mm_lfence()` que está **dentro de
 `victim_function`**. Esa llamada convierte el PoC en la versión mitigada; para la
 base de E2 no debe estar.
 
 Compila:
 
 ```bash
-gcc -O2 -o /tmp/spectre-poc/spectre /tmp/spectre-poc/spectre.c
+gcc -O2 -o /tmp/spectre-poc/spectre "$POC"
 ```
 
 Comprueba el ensamblador:
 
 ```bash
-objdump -d /tmp/spectre-poc/spectre | grep -A30 -B5 "<victim_function>"
+objdump -d -Mintel /tmp/spectre-poc/spectre | awk '/<victim_function>:/,/^$/'
 ```
 
 Debe quedar un salto condicional real antes del acceso (por ejemplo `cmp` +
@@ -136,6 +148,7 @@ alternativo de `PLAN.md` y se declara la limitación.
 ## 5. Checklist de la primera semana
 
 - [ ] Repositorio clonado y `PLAN.md` leído.
+- [ ] `make` y `make smoke` pasan.
 - [ ] Fila en `docs/machines.md`.
 - [ ] `env_<machine_id>.txt` guardado.
 - [ ] PoC base (sin `_mm_lfence()`) compilado y ejecutado.
@@ -149,11 +162,15 @@ alternativo de `PLAN.md` y se declara la limitación.
 |---|---|
 | `PLAN.md` | Plan completo, fases, protocolo, CSV y riesgos |
 | `docs/onboarding.md` | Este documento |
+| `docs/manual.md` | Manual completo del harness |
 | `docs/machines.md` | Ficha de cada equipo |
 | `docs/metrics.md` | Definiciones de métricas y análisis |
+| `docs/troubleshooting.md` | Errores típicos |
 | `data/README.md` | Esquema y política de datos |
 | `references/` | Paper, PoC y material de consulta |
-| `src/`, `scripts/`, `analysis/` | Se crean en la Fase 1 |
+| `src/` | E1, E2, E3 y cabeceras comunes |
+| `scripts/` | Envoltorios reproducibles |
+| `analysis/` | Figuras y agregados |
 | `report/`, `slides/` | Informe y defensa |
 
 ## 7. Qué no hacer

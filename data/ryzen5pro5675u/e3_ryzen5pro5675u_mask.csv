@@ -1,0 +1,4 @@
+machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,iterations,run,cycles_per_iteration,total_cycles
+"ryzen5pro5675u","AMD Ryzen 5 PRO 5675U with Radeon Graphics","25","80","0","0xa500014","6.8.0-149-generic","11.4.0","-O2 -std=c11 -Wall -Wextra -Wno-unused-parameter",mask,1000000,0,3.683,3683128
+"ryzen5pro5675u","AMD Ryzen 5 PRO 5675U with Radeon Graphics","25","80","0","0xa500014","6.8.0-149-generic","11.4.0","-O2 -std=c11 -Wall -Wextra -Wno-unused-parameter",mask,1000000,1,3.404,3404000
+"ryzen5pro5675u","AMD Ryzen 5 PRO 5675U with Radeon Graphics","25","80","0","0xa500014","6.8.0-149-generic","11.4.0","-O2 -std=c11 -Wall -Wextra -Wno-unused-parameter",mask,1000000,2,3.810,3810410

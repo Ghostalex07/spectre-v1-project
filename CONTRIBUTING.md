@@ -7,7 +7,9 @@ Antes de tocar nada, lee:
 
 - [`PLAN.md`](PLAN.md): alcance, fases, experimentos y criterios de aceptación.
 - [`docs/onboarding.md`](docs/onboarding.md): primeros pasos y Fase 0.
+- [`docs/manual.md`](docs/manual.md): manual completo del harness.
 - [`docs/metrics.md`](docs/metrics.md): cómo se mide y cómo se reporta.
+- [`docs/troubleshooting.md`](docs/troubleshooting.md): errores típicos.
 - [`AGENTS.md`](AGENTS.md): reglas para agentes de IA (a los humanos también os
   sirve de contexto).
 
@@ -34,8 +36,22 @@ guardes en el repositorio.
 - Linux x86-64 **nativo** para las medidas principales. Una VM se documenta y se
   excluye de la comparación.
 - `gcc`, `make`, `python3`, `unzip`, `taskset` y `objdump`.
+- `matplotlib` para las figuras:
+  ```bash
+  python3 -m pip install -r analysis/requirements.txt
+  ```
 - Opcional: `perf` para inspección.
 - No introduzcas dependencias nuevas sin justificarlo en el PR.
+
+## Primer comando
+
+```bash
+make
+make smoke
+```
+
+Si `make smoke` pasa, el harness está sano. Después sigue
+[`docs/manual.md`](docs/manual.md) para medir en tu máquina.
 
 ## Flujo de trabajo
 
@@ -70,8 +86,10 @@ mergea. No hagas `push --force`, `reset --hard` ni reescribas ramas compartidas.
 
 Un cambio está terminado cuando:
 
-- `make` compila sin errores.
-- Hay una ejecución de humo que genera una línea CSV válida.
+- `make` compila sin errores y sin warnings nuevos.
+- `make smoke` pasa.
+- Los scripts de shell pasan `bash -n`.
+- Los scripts de Python pasan `python3 -m py_compile`.
 - Si se tocó la función vulnerable, se revisó el ensamblador con `objdump -d`.
 - El CSV sigue el esquema de [`data/README.md`](data/README.md).
 - La casilla correspondiente de `PLAN.md` se actualiza **solo con evidencia**.

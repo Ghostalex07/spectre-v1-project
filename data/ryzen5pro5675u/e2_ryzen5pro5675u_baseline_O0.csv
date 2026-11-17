@@ -1,0 +1,2 @@
+machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,threshold,train,run,byte,guess,score1,score2,success,cycles
+"ryzen5pro5675u","AMD Ryzen 5 PRO 5675U with Radeon Graphics","25","80","0","0xa500014","6.8.0-149-generic","11.4.0","-O0 -std=c11 -Wall -Wextra -Wno-unused-parameter -fno-if-conversion -fno-if-conversion2",baseline,80,5,0,0,83,300,2,1,

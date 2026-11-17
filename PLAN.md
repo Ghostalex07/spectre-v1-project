@@ -4,6 +4,20 @@ Proyecto de Arquitectura Avanzada. Este documento describe cómo llevar el
 proyecto desde la propuesta hasta la defensa final: qué se construye, en qué
 orden, con qué controles experimentales y qué se entrega.
 
+## 0. Estado de implementación
+
+Actualizado el 2026-11-17.
+
+- [x] Fase 1: harness, `Makefile`, scripts, análisis y documentación.
+- [x] E1/E2/E3 validados en el Ryzen 5 PRO 5675U de referencia.
+- [x] `make smoke` pasa.
+- [ ] Campaña multi-máquina con 2–3 microarquitecturas.
+- [ ] Informe y defensa final.
+
+Los datos de referencia están en `data/ryzen5pro5675u/` y son una ejecución de
+validación (1 run en E2), no la campaña final. El manual de ejecución está en
+[`docs/manual.md`](docs/manual.md).
+
 ## 1. Ficha del proyecto
 
 **Título:** Spectre V1: ejecución especulativa, predicción de saltos y canales
