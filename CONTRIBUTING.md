@@ -49,6 +49,7 @@ guardes en el repositorio.
 ```bash
 make
 make smoke
+make test
 ```
 
 Si `make smoke` pasa, el harness está sano. Después sigue
@@ -89,6 +90,7 @@ Un cambio está terminado cuando:
 
 - `make` compila sin errores y sin warnings nuevos.
 - `make smoke` pasa.
+- `make test` pasa.
 - Los scripts de shell pasan `bash -n`.
 - Los scripts de Python pasan `python3 -m py_compile`.
 - Si se tocó la función vulnerable, se revisó el ensamblador con `objdump -d`.

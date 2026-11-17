@@ -29,6 +29,8 @@ data/
 - `e2_*.csv`: recuperación del secreto por variante.
 - `e3_*.csv`: sobrecoste por variante.
 - `derived/`: tablas agregadas generadas por `analysis/`; no se editan a mano.
+  `compare_machines.csv` es la tabla comparativa que genera
+  `analysis/compare_machines.py`.
 
 ## Datos de referencia incluidos
 

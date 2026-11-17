@@ -16,6 +16,7 @@ cd spectre-v1-project
 
 make
 make smoke
+make test
 
 ./scripts/collect_env.sh <machine_id>
 ./scripts/run_e1.sh <machine_id> 10000 64
@@ -76,11 +77,15 @@ spectre-v1-project/
     demo.sh
   analysis/
     common.py
+    compare_machines.py
     plot_e1.py
     plot_e2.py
     plot_e3.py
     requirements.txt
+  tests/
+    test_compare_machines.py
   data/<machine_id>/
+  data/derived/
   figures/
   docs/
   report/

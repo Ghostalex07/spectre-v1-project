@@ -15,6 +15,7 @@ cd spectre-v1-project
 
 make
 make smoke
+make test
 ```
 
 Si no usas SSH, clona con HTTPS:
@@ -176,6 +177,7 @@ Una máquina sin fuga es un resultado comparativo del trabajo.
 ## 10. Checklist final
 
 - [ ] `make smoke` pasa.
+- [ ] `make test` pasa.
 - [ ] `data/<machine_id>/env_<machine_id>.txt` existe.
 - [ ] Fila añadida a `docs/machines.md`.
 - [ ] Umbral añadido a `docs/thresholds.md`.

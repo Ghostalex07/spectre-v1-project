@@ -42,7 +42,7 @@ está ahí, abre un issue con el comando, la salida y tu `machine_id`.
 | `src/e2_spectre.c` | Experimento E2 |
 | `src/e3_mitigations.c` | Experimento E3 (sobrecoste) |
 | `scripts/` | Envoltorios reproducibles para ejecutar cada experimento |
-| `analysis/` | Figuras y agregados a partir de los CSV |
+| `analysis/` | Figuras, comparación entre máquinas y agregados a partir de los CSV |
 | `data/<machine_id>/` | Datos crudos por máquina |
 | `figures/` | Figuras generadas |
 | `references/` | Paper, PoC y material de consulta |
@@ -55,6 +55,7 @@ cd spectre-v1-project
 
 make
 make smoke
+make test
 
 ./scripts/collect_env.sh <machine_id>
 ./scripts/run_e1.sh <machine_id> 10000 64
@@ -350,6 +351,7 @@ los valores del protocolo y se identifica como tal.
 python3 analysis/plot_e1.py --machine-id <machine_id>
 python3 analysis/plot_e2.py --machine-id <machine_id>
 python3 analysis/plot_e3.py --machine-id <machine_id>
+python3 analysis/compare_machines.py
 ```
 
 Las figuras van a `figures/`. Los scripts imprimen tablas con tasas, intervalos
@@ -357,9 +359,11 @@ de Wilson, `unclear` y sobrecoste. `plot_e2.py` excluye por defecto los CSV
 `-O0` para no mezclarlos con la campaña principal. No edites las figuras a
 mano: si cambias el análisis, vuelve a generarlas.
 
-Si añades una máquina, repite los tres comandos con su `machine_id`. Para
-comparar máquinas, usa los CSV y agrupa por `machine_id`; no mezcles VM con
-nativo en la comparación principal.
+`compare_machines.py` recorre `data/<machine_id>/`, escribe la tabla agregada
+`data/derived/compare_machines.csv` y genera `figures/compare_success.png`,
+`figures/compare_overhead.png` y `figures/compare_scatter.png`. Si solo hay una
+microarquitectura, la comparación sirve para validar el pipeline, no para
+afirmar diversidad de CPUs.
 
 ## 10. Datos
 
@@ -378,6 +382,7 @@ Antes de decir “he medido”:
 
 - [ ] `make` compila sin errores.
 - [ ] `make smoke` pasa.
+- [ ] `make test` pasa.
 - [ ] `env_<machine_id>.txt` guardado.
 - [ ] Fila en `docs/machines.md`.
 - [ ] Umbral de E1 anotado en `docs/thresholds.md`.
