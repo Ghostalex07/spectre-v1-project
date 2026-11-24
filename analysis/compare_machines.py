@@ -5,7 +5,9 @@ Recorre `data/<machine_id>/`, agrega los CSV de cada equipo y genera:
 
 - una tabla por pantalla con E1 y sobrecoste E3;
 - `data/derived/compare_machines.csv` con los valores agregados;
-- `figures/compare_overhead.png` y, con `--with-e2`, las figuras de E2.
+- `figures/compare_overhead.png` y, con `--with-e2`, las figuras de E2;
+- la comparativa extendida de mesetas E1 y barrido E3 mediante
+  `analysis/compare_extended.py`.
 
 No inventa datos: si una máquina no tiene una variante, la omite.
 """
@@ -537,6 +539,13 @@ def main() -> None:
     if args.with_e2:
         plot_success(summaries, out_dir / "compare_success.png")
         plot_scatter(summaries, out_dir / "compare_scatter.png")
+
+    # Comparativa extendida: mesetas de E1 jerárquico y barrido de E3. Se
+    # mantiene en un módulo aparte para no mezclar las tablas históricas con
+    # los CSV de sesión nuevos.
+    from compare_extended import build_extended_outputs
+
+    build_extended_outputs(Path(args.data_dir), out_dir)
 
 
 if __name__ == "__main__":

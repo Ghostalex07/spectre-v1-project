@@ -96,8 +96,12 @@ pendiente de confirmación con el profesor (ver [`e2-anexo.md`](e2-anexo.md)).
 - ¿Se cumple la hipótesis de coste?
 - ¿LFENCE costó más que la máscara? ¿Cuánto?
 - ¿El sobrecoste depende de la microarquitectura? ¿Cómo se ve en los datos?
-- En AMD, ¿LFENCE serializa el despacho solo si el sistema ha activado el bit
-  correspondiente por Spectre? ¿Cómo afecta eso a la comparación con Intel?
+- En AMD, LFENCE no era históricamente serializante de dispatch por defecto;
+  Linux activa ese comportamiento mediante un bit de un MSR cuando aplica la
+  mitigación de Spectre. Por tanto, el coste de LFENCE puede depender del
+  fabricante y de la configuración del sistema, no solo de la microarquitectura.
+  Es un buen punto de discusión sobre compromisos de diseño.
+  **PENDIENTE: añadir referencia exacta de AMD y del kernel Linux.**
 - ¿Qué genera `-mspeculative-load-hardening` de Clang frente al enmascarado
   manual inspirado en `array_index_nospec`?
 - ¿Qué explica el modelo y qué no puede explicar?

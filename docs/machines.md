@@ -6,12 +6,12 @@ Una fila por máquina. Los comandos para obtener los datos están en
 
 ## Tabla
 
-| machine_id | owner | cpu | family | model | stepping | microcode | cores/threads | L1d | L2 | L3 | kernel | gcc | native/vm | spectre_v1 | notes |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| `ryzen5pro5675u` | — | AMD Ryzen 5 PRO 5675U (Cezanne, Zen 3) | 25 | 80 | 0 | `0xa500014` | 6/12 | 192 KiB | 3 MiB | 16 MiB | 6.8.0-149 | 11.4 | native | usercopy/swapgs barriers + `__user` pointer sanitization | Validación inicial; 1 run en E2 |
-| `ryzen5pro5675u_final` | — | AMD Ryzen 5 PRO 5675U (Cezanne, Zen 3) | 25 | 80 | 0 | `0xa500014` | 6/12 | 192 KiB | 3 MiB | 16 MiB | 6.8.0-149 | 11.4 | native | usercopy/swapgs barriers + `__user` pointer sanitization | Campaña final: 50 runs E2, 30 reps E3. Misma microarquitectura que la referencia; no cuenta como CPU distinta |
-| `pendiente-1` |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| `pendiente-2` |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| machine_id | fabricante | familia/generación | microarquitectura | modelo | stepping | microcódigo | cachés (L1d / L2 / L3) | kernel | compilador | mitigaciones activas | sesiones realizadas | owner | native/vm | notes |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `ryzen5pro5675u` | AMD | Family 25 (0x19) / Zen 3 | Cezanne | Ryzen 5 PRO 5675U | 0 | `0xa500014` | 192 KiB / 3 MiB / 16 MiB | 6.8.0-149 | GCC 11.4 | `spectre_v1`: usercopy/swapgs barriers + `__user` pointer sanitization | PENDIENTE: datos antiguos en la raíz, sin `session_id` | — | native | Validación inicial; 1 run en E2 |
+| `ryzen5pro5675u_final` | AMD | Family 25 (0x19) / Zen 3 | Cezanne | Ryzen 5 PRO 5675U | 0 | `0xa500014` | 192 KiB / 3 MiB / 16 MiB | 6.8.0-149 | GCC 11.4 | `spectre_v1`: usercopy/swapgs barriers + `__user` pointer sanitization | PENDIENTE: datos antiguos en la raíz, sin `session_id` | — | native | Campaña final: 50 runs E2, 30 reps E3. Misma microarquitectura que la referencia; no cuenta como CPU distinta |
+| `pendiente-1` | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE |
+| `pendiente-2` | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE |
 
 No borres la fila de ejemplo: sustituye `pendiente-1` y `pendiente-2` por los
 equipos reales. Si un equipo se descarta, déjalo en la tabla con `descartado` en
@@ -32,10 +32,21 @@ gcc --version | head -n1
 ```
 
 - `machine_id`: minúsculas, sin espacios (`ryzen5pro5675u`, `intel_i7_1165g7`).
+- `fabricante`: AMD, Intel u otro; no lo deduzcas solo del nombre comercial.
+- `familia/generación`: familia de CPU y generación conocida; si no se puede
+  confirmar, `PENDIENTE`.
+- `microarquitectura`: nombre de la microarquitectura (por ejemplo, Zen 3,
+  Cezanne); si no se puede confirmar, `PENDIENTE`.
 - `family`, `model` y `stepping`: en decimal; si el comando los da en
   hexadecimal, conviértelos y anota la correspondencia.
+- `cachés`: tamaños L1d / L2 / L3 tal como los reporta `lscpu`; no los calcules.
+- `mitigaciones activas`: copia literal de
+  `/sys/devices/system/cpu/vulnerabilities/spectre_v1` y del resto de ficheros
+  de mitigaciones que se registren en la ficha de entorno.
+- `sesiones realizadas`: lista de `session_id` con datos en
+  `data/<machine_id>/<session_id>/`; si solo hay datos antiguos en la raíz,
+  indícalo como `PENDIENTE`.
 - `native/vm`: `native` si `systemd-detect-virt` devuelve `none`; si no, `vm`.
-- `spectre_v1`: copia literal de `/sys/devices/system/cpu/vulnerabilities/spectre_v1`.
 - `notes`: incidencias, frecuencia, gobernador, si se usó para la comparación
   principal o solo como prueba.
 

@@ -142,7 +142,7 @@ principal.
 
 **¿Cómo se reproduce?**
 Clonando el repo, ejecutando `make`, `make smoke`, `make test` y
-`RUN_E2=0 ./scripts/run_all.sh <machine_id> <T>` con el umbral de la máquina.
+`./scripts/run_all.sh <machine_id> <T>` con el umbral de la máquina.
 E2 se reproduce conceptualmente con `analysis/simulate_spectre.py`; la
 validación en hardware es opcional. Los CSV y las figuras se regeneran desde
 los scripts.

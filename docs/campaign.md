@@ -5,9 +5,10 @@ repetir el harness ni reescribir documentación: se clona el repo, se ejecuta el
 protocolo y se suben los datos.
 
 > **Foco experimental (feedback del profesor):** E1 (caracterización de caché) y
-> E3 (impacto de mitigaciones en rendimiento) son obligatorios. E2 en hardware
-> es **opcional**; el mecanismo se cubre con análisis documental y
-> [`simulation.md`](simulation.md). Si tu CPU no filtra, no es un problema.
+> E3 (impacto de mitigaciones en rendimiento) son los experimentos. E2 no forma
+> parte de la campaña: el mecanismo se cubre con análisis documental y
+> [`simulation.md`](simulation.md). La PoC en hardware solo podría ir como anexo,
+> pendiente de confirmar con el profesor.
 
 > **Regla de oro:** el umbral de una máquina no sirve para otra. No copies el 80
 > del Ryzen de referencia. Calibra el tuyo con E1.
@@ -122,13 +123,19 @@ concluyentes.
 
 ## 3. Lanza la campaña principal (E1 + E3)
 
+Haz **al menos dos sesiones en arranques distintos** de la misma máquina. Así
+puedes separar la variabilidad entre sesiones de la variabilidad dentro de una
+sesión.
+
 ```bash
-THRESHOLD=<T> RUN_E2=0 ./scripts/run_all.sh <machine_id> <T>
+SESSION_ID="$(date +%Y%m%d-%H%M%S)" THRESHOLD=<T> \
+  ./scripts/run_all.sh <machine_id> <T>
 ```
 
-Antes de medir, comprueba que el gobernador es `performance` y que el turbo está
-documentado. El script fija el proceso con `taskset`, pero no cambia la
-configuración del sistema.
+Repite el comando tras reiniciar, con otro `SESSION_ID`. Antes de medir,
+comprueba que el gobernador es `performance` y que el turbo está documentado. El
+script fija el proceso con `taskset`, pero no cambia la configuración del
+sistema.
 
 `run_all.sh` usa el protocolo final por defecto:
 
@@ -137,38 +144,30 @@ configuración del sistema.
 - E1 calibración: 10.000 muestras por modo, buffer de 64 MiB.
 - E1 jerárquico: barrido 4 KiB–256 MiB, 30 repeticiones.
 - E1 temporizador: 100.000 muestras × 3 repeticiones.
-- E2: **omitido** con `RUN_E2=0`; es opcional.
-- E3: 10M iteraciones, 30 repeticiones.
-- Variantes: `baseline`, `lfence` y `mask`.
-- Orden de E3 aleatorizado por defecto (`E3_ORDER=random`) y registrado en
-  `data/<machine_id>/e3_order_<machine_id>.txt`; usa `E3_ORDER=fixed` si
-  necesitas reproducir un orden concreto.
-- Warm-up: el binario de E3 ejecuta 1.000 llamadas de calentamiento antes de
-  medir; no se incluyen en los ciclos.
+- E2: **omitido** por defecto; la PoC no forma parte de la campaña.
+- E3: barrido de sensibilidad con perfil `default` (W, previsibilidad y tamaño
+  de array configurables), variantes `baseline`, `lfence` y `mask` intercaladas
+  por bloques.
+- Warm-up: el binario de E3 ejecuta llamadas de calentamiento antes de medir; no
+  se incluyen en los ciclos.
 
-Los CSV de E1 quedan en `data/<machine_id>/<session_id>/`; los de E3 siguen en
-`data/<machine_id>/`. Si quieres un ensayo corto:
+Los CSV de E1 y E3 del barrido quedan en
+`data/<machine_id>/<session_id>/`. Si quieres un ensayo corto:
 
 ```bash
-PROFILE=smoke THRESHOLD=<T> RUN_E2=0 ./scripts/run_all.sh <machine_id> <T>
+PROFILE=smoke SESSION_ID=smoke-$(date +%H%M%S) THRESHOLD=<T> \
+  ./scripts/run_all.sh <machine_id> <T>
 ```
 
-No presentes el perfil smoke como campaña final.
+No presentes el perfil smoke como campaña final. El modo `E3_MODE=legacy`
+conserva el bucle antiguo para comparar con los datos históricos.
 
-### Validación opcional de E2 en hardware
+### E2 en hardware: fuera de la campaña
 
-Si quieres comprobar la fuga en tu máquina, ejecuta además:
-
-```bash
-RUN_E2=1 THRESHOLD=<T> ./scripts/run_all.sh <machine_id> <T>
-```
-
-E2 usa 1000 intentos, 50 runs, 40 bytes y `train=5`. Si no recupera el secreto,
-se documenta como “no observado” y no se maquilla. Para el control `-O0`:
-
-```bash
-RUN_E2=1 RUN_O0=1 THRESHOLD=<T> ./scripts/run_all.sh <machine_id> <T>
-```
+La PoC de E2 **no forma parte de esta campaña** ni de los resultados. Se
+conserva el código del periodo de validación, pero su posible inclusión como
+anexo está pendiente de confirmar con el profesor. No la ejecutes para generar
+datos de campaña; el mecanismo se cubre con el modelo conceptual.
 
 ## 4. Revisa el ensamblador
 
@@ -190,8 +189,6 @@ Qué debe salir:
 
 Si la máscara se compila a un salto, no uses esos datos: avisa y se corrige.
 
-Si además ejecutas E2 en hardware, repite la revisión con `bin/e2_*`.
-
 ## 5. Genera las figuras
 
 Obligatorias (E1 y E3):
@@ -199,18 +196,18 @@ Obligatorias (E1 y E3):
 ```bash
 python3 analysis/plot_e1.py --machine-id <machine_id>
 python3 analysis/plot_e1_hierarchy.py --machine-id <machine_id>
-python3 analysis/plot_e3.py --machine-id <machine_id>
+python3 analysis/plot_e3_sweep.py --machine-id <machine_id>
 ```
 
-Opcional (si ejecutaste E2 en hardware):
+O, si prefieres regenerar todo desde los datos:
 
 ```bash
-python3 analysis/plot_e2.py --machine-id <machine_id>
+make figures
+make validate
 ```
 
-Las figuras se guardan en `figures/`. `plot_e2.py` excluye por defecto los CSV
-`-O0` para no mezclarlos con la campaña principal. `plot_e3.py` funciona aunque
-no haya E2: en ese caso solo genera la figura de sobrecoste.
+Las figuras se guardan en `figures/`. `plot_e3_sweep.py` lee el barrido nuevo e
+ignora los CSV antiguos; `plot_e3.py` sigue disponible para los datos históricos.
 
 ## 6. Sube los datos al repo
 
@@ -274,16 +271,16 @@ superior, no una prueba de imposibilidad.
 
 - [ ] `make smoke` pasa.
 - [ ] `make test` pasa.
-- [ ] `data/<machine_id>/env_<machine_id>.txt` existe.
+- [ ] `data/<machine_id>/<session_id>/env_<machine_id>.txt` existe en cada sesión.
 - [ ] Fila añadida a `docs/machines.md`.
 - [ ] Umbral añadido a `docs/thresholds.md`.
 - [ ] E1 tiene 10.000 muestras por modo.
 - [ ] E1 jerárquico tiene el barrido completo y 30 repeticiones.
 - [ ] E1 temporizador se midió y se comparó con la meseta L1d.
 - [ ] Tabla de mesetas generada y revisada.
-- [ ] E3 tiene 30 repeticiones.
-- [ ] `objdump` revisado en las tres variantes de E3.
-- [ ] Figuras de E1/E3 generadas.
-- [ ] E2 ejecutado (opcional) o marcado como “no ejecutado”.
+- [ ] E3 tiene el barrido completo (`PROFILE=default`) y bloques suficientes.
+- [ ] `make asm` ejecutado y verificado en las tres variantes de E3.
+- [ ] Figuras de E1/E3 generadas con `make figures`.
+- [ ] Al menos dos sesiones en arranques distintos.
 - [ ] PR abierto contra `main`.
 - [ ] `git status` no muestra archivos raros.

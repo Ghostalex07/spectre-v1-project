@@ -1,5 +1,19 @@
 # Plan de cambios
 
+## Estado final de la reorientación
+
+- Tarea 1 (E2 fuera de resultados): commit `ea2ab14`.
+- Tarea 2 (E1 jerárquico y coste del temporizador): commit `279c338`.
+- Tarea 3 (barrido E3 y verificación del ensamblador): commit `e40079c`.
+- Tarea 4 (estadística, validación y regeneración): commit `3fce127`.
+- Tarea 5 (limitaciones, fichas y comparativa extendida): `analysis/compare_extended.py`,
+  `docs/machines.md`, `docs/limitations.md`, `docs/report-guide.md` y
+  `analysis/compare_machines.py` actualizados.
+- Campaña real multi-máquina: **PENDIENTE**. No hay cifras nuevas de campaña
+  inventadas en la documentación.
+- Anexo E2 en hardware: **PENDIENTE DE CONFIRMAR CON EL PROFESOR**.
+
+
 Documento de trabajo para reorientar el repositorio según el feedback del
 profesor. Se actualiza al final con lo realmente hecho.
 

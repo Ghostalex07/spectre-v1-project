@@ -131,7 +131,37 @@ sobreinterpretar los resultados.
 - Si el sobrecoste de una variante cae dentro del ruido, dilo: no fuerces una
   diferencia que los datos no sostienen.
 
-## 9. Ética y seguridad
+## 9. Limitaciones específicas de las métricas
+
+- **TSC frente a ciclos reales.** `rdtscp` cuenta ciclos de referencia a
+  frecuencia constante, no ciclos reales del núcleo. Como no se puede fijar la
+  frecuencia ni desactivar el turbo sin privilegios, los valores absolutos en
+  “ciclos” dependen de la frecuencia efectiva. Por eso las comparaciones
+  relativas dentro de un mismo bloque intercalado son más robustas que los
+  valores absolutos.
+- **Coste del temporizador.** Las latencias de E1 incluyen el coste de `rdtscp`
+  y de las barreras. Se publica aparte y no se resta silenciosamente; cualquier
+  valor “corregido” debe presentarse junto al bruto y explicar la corrección.
+- **TLB en conjuntos grandes.** Para tamaños de trabajo grandes, la latencia
+  medida incluye fallos de TLB y recorridos de tabla de páginas; el escalón de
+  DRAM no es “latencia de DRAM pura”.
+- **Microbenchmark de E3.** El bucle de E3 mide un patrón muy concreto con
+  índices preparados y trabajo dependiente acotado. Sus sobrecostes son cotas
+  para ese bucle, no el coste de LFENCE o de la máscara en una aplicación real.
+- **Modelo E2.** El modelo conceptual demuestra la lógica del mecanismo (estado
+  arquitectónico restaurado frente a huella microarquitectónica persistente, y
+  cómo LFENCE y el enmascarado la cortan), no su eficacia ni su magnitud en
+  hardware real.
+- **Ausencia de comportamiento observable.** Como recuerda el profesor, la
+  ausencia de un comportamiento observable no implica que no pueda producirse.
+  Un `0/N` es una cota superior en esas condiciones, no una prueba de
+  imposibilidad.
+- **Diferencias entre máquinas.** Pueden deberse a microcódigo, kernel,
+  compilador, mitigaciones activas o configuración del sistema, no solo a la
+  microarquitectura. Por eso se registra la ficha de entorno y se reporta junto
+  a los resultados.
+
+## 10. Ética y seguridad
 
 - Todas las pruebas se ejecutan en máquinas propias o del grupo, en un entorno
   controlado y sin `sudo`.

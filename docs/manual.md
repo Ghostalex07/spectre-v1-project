@@ -47,7 +47,7 @@ está ahí, abre un issue con el comando, la salida y tu `machine_id`.
 | `src/e1_cache.c` | E1 de calibración (hit/miss) |
 | `src/e1_hierarchy.c` | E1 jerárquico (pointer chasing y mesetas) |
 | `src/e1_timer.c` | Coste del temporizador `rdtscp` |
-| `src/e2_spectre.c` | Experimento E2 (opcional, hardware) |
+| `src/e2_spectre.c` | PoC histórica de E2; no forma parte de la experimentación |
 | `src/e3_mitigations.c` | Experimento E3 (sobrecoste) |
 | `scripts/` | Envoltorios reproducibles para ejecutar cada experimento |
 | `analysis/` | Figuras, comparación, simulación conceptual y agregados |
@@ -80,19 +80,16 @@ Mira el histograma y el “umbral sugerido”. Anótalo en
 [`docs/thresholds.md`](thresholds.md). Después, para la campaña principal:
 
 ```bash
-THRESHOLD=<T> RUN_E2=0 ./scripts/run_all.sh <machine_id> <T>
-python3 analysis/plot_e1.py --machine-id <machine_id>
-python3 analysis/plot_e3.py --machine-id <machine_id>
+SESSION_ID="$(date +%Y%m%d-%H%M%S)" THRESHOLD=<T> \
+  ./scripts/run_all.sh <machine_id> <T>
+python3 analysis/plot_e1.py --machine-id <machine_id> --session-id <session_id>
+python3 analysis/plot_e3_sweep.py --machine-id <machine_id> --session-id <session_id>
 ```
 
-`run_all.sh` ejecuta el entorno, E1 y las tres variantes de E3. E2 en hardware
-está **omitido por defecto** (`RUN_E2=0`) porque el mecanismo se cubre con el
-modelo conceptual. Si quieres validarlo en tu CPU:
-
-```bash
-RUN_E2=1 THRESHOLD=<T> ./scripts/run_all.sh <machine_id> <T>
-python3 analysis/plot_e2.py --machine-id <machine_id>
-```
+`run_all.sh` ejecuta el entorno, E1 (calibración, jerarquía y temporizador) y el
+barrido de E3. E2 en hardware **no forma parte de la campaña**; el mecanismo se
+cubre con el modelo conceptual y la PoC queda como posible anexo pendiente de
+confirmar con el profesor.
 
 Tarda varios minutos; no lo lances en una VM para los resultados principales.
 
@@ -443,7 +440,8 @@ Si falla, no se usan esos datos: se documenta y se corrige.
 Si ya tienes el umbral, la campaña principal es E1 + E3:
 
 ```bash
-THRESHOLD=<T> RUN_E2=0 ./scripts/run_all.sh <machine_id> <T>
+SESSION_ID="$(date +%Y%m%d-%H%M%S)" THRESHOLD=<T> \
+  ./scripts/run_all.sh <machine_id> <T>
 ```
 
 Hace, en orden:
@@ -452,39 +450,28 @@ Hace, en orden:
 2. `run_e1.sh` (10.000 muestras, 64 MiB)
 3. `run_e1_hierarchy.sh` (barrido 4 KiB–256 MiB, 30 reps)
 4. `run_e1_timer.sh` (100.000 muestras × 3 reps)
-5. E3 `baseline`, `lfence`, `mask` (10M iteraciones, 30 reps), en orden
-   aleatorizado por defecto y registrado en `e3_order_<machine_id>.txt`
-6. E2 solo si `RUN_E2=1` (1000 intentos, train 5, 50 runs, 40 bytes)
+5. E3 barrido de sensibilidad (`PROFILE=default`), con variantes
+   `baseline`, `lfence` y `mask` intercaladas por bloques
+6. E2 **no se ejecuta**: la PoC no forma parte de la campaña
 
-La ficha de entorno, E1 de calibración, E1 jerárquico y el temporizador se
-guardan en `data/<machine_id>/<session_id>/`. Si no defines `SESSION_ID`,
-`run_all.sh` crea una con la fecha UTC. Los datos de E3 siguen en
-`data/<machine_id>/` para no romper los análisis existentes.
+La ficha de entorno, E1 de calibración, E1 jerárquico, el temporizador y el CSV
+del barrido E3 se guardan en `data/<machine_id>/<session_id>/`. Si no defines
+`SESSION_ID`, `run_all.sh` crea una con la fecha UTC. Haz al menos dos sesiones
+en arranques distintos.
+
+Duración orientativa: el perfil `smoke` termina en segundos; el perfil `default`
+puede tardar decenas de minutos por sesión, según la CPU y el número de
+repeticiones.
 
 Perfil rápido de prueba (no es campaña final):
 
 ```bash
-PROFILE=smoke THRESHOLD=<T> RUN_E2=0 ./scripts/run_all.sh <machine_id> <T>
+PROFILE=smoke THRESHOLD=<T> ./scripts/run_all.sh <machine_id> <T>
 ```
 
 El perfil smoke reduce tamaños, hops, repeticiones y muestras del temporizador.
-No presentes esos valores como campaña final.
-
-Control `-O0` opcional de E2:
-
-```bash
-RUN_E2=1 RUN_O0=1 THRESHOLD=<T> ./scripts/run_all.sh <machine_id> <T>
-```
-
-Para una campaña más rápida de prueba, reduce los valores:
-
-```bash
-RUN_E2=0 ITERATIONS=1000000 REPS=3 \
-  THRESHOLD=<T> ./scripts/run_all.sh <machine_id> <T>
-```
-
-No presentes esos valores reducidos como campaña final. La campaña final usa
-los valores del protocolo y se identifica como tal.
+No presentes esos valores como campaña final. El modo `E3_MODE=legacy` conserva
+el bucle antiguo para comparar con datos históricos.
 
 ## 9. Análisis y figuras
 
@@ -500,18 +487,21 @@ python3 analysis/simulate_spectre.py \
   --out data/simulation/spectre_model.csv \
   --figure figures/simulation_spectre.png
 
-# Opcional: si ejecutaste E2 en hardware
-python3 analysis/plot_e2.py --machine-id <machine_id>
+# E1 jerárquico y coste del temporizador
+python3 analysis/plot_e1_hierarchy.py --machine-id <machine_id>
+python3 analysis/plot_e1.py --machine-id <machine_id>
+
+# E3 barrido de sensibilidad
+python3 analysis/plot_e3_sweep.py --machine-id <machine_id>
 
 # Comparación entre máquinas
 python3 analysis/compare_machines.py
 ```
 
-Las figuras van a `figures/`. Los scripts imprimen tablas con tasas, intervalos
-de Wilson, `unclear` y sobrecoste. `plot_e2.py` excluye por defecto los CSV
-`-O0` para no mezclarlos con la campaña principal. `plot_e3.py` funciona sin
-E2: en ese caso solo genera la figura de sobrecoste. No edites las figuras a
-mano: si cambias el análisis, vuelve a generarlas.
+Las figuras van a `figures/`. `plot_e1_hierarchy.py` genera la curva de
+latencia por tamaño, las bandas y la tabla de mesetas. `plot_e3_sweep.py` genera
+las curvas de sobrecoste frente a W y la tabla con IC por bloques. No edites las
+figuras a mano: si cambias el análisis, vuelve a generarlas con `make figures`.
 
 `compare_machines.py` recorre `data/<machine_id>/`, escribe la tabla agregada
 `data/derived/compare_machines.csv` (incluye IC95 bootstrap de las medianas en
@@ -527,7 +517,8 @@ make summary
 
 Eso deja `report/results_summary.md` con tablas de equipos, E1 y E3 listas para
 copiar al informe. E2 se añade solo con `make summary-e2` (o
-`python3 analysis/summarize_results.py --include-e2`) y es material de anexo. El
+`python3 analysis/summarize_results.py --include-e2-hardware`) y es material de
+anexo. El
 resumen es descriptivo: la discusión y los límites van en el texto. Si solo hay
 una microarquitectura, la comparación sirve para validar el pipeline, no para
 afirmar diversidad de CPUs.
@@ -562,7 +553,8 @@ Antes de decir “he medido”:
 - [ ] Tabla de mesetas (`data/derived/e1_hierarchy_plateaus.csv`) revisada.
 - [ ] E2 con `attempts` fijo y `threshold` documentado (solo si se ejecuta).
 - [ ] Ensamblador de `baseline`, `lfence` y `mask` revisado en E3.
-- [ ] E3 con 10M iteraciones y 30 reps (campaña final).
+- [ ] E1 jerárquico con al menos dos sesiones y mesetas calculadas.
+- [ ] E3 con el barrido de sensibilidad (`PROFILE=default`) y `make asm` OK.
 - [ ] Modelo conceptual generado (`data/simulation/spectre_model.csv`).
 - [ ] Figuras de E1/E3 y simulación generadas desde los datos.
 - [ ] `git status` sin archivos no intencionados.
@@ -573,13 +565,13 @@ Antes de decir “he medido”:
 1. Ejecuta `./scripts/collect_env.sh <machine_id>`.
 2. Rellena `docs/machines.md`.
 3. Ejecuta E1 y elige el umbral; anótalo en `docs/thresholds.md`.
-4. Ejecuta `RUN_E2=0 ./scripts/run_all.sh <machine_id> <T>` con ese umbral
-   (añade `RUN_E2=1` solo si vas a validar E2 en hardware).
-5. Genera las figuras.
+4. Ejecuta `./scripts/run_all.sh <machine_id> <T>` con ese umbral, al menos en
+   dos sesiones y arranques distintos.
+5. Genera las figuras con `make figures`.
 6. Añade una nota si es VM, contenedor, portátil con turbo variable o una
    configuración especial.
-7. Abre un PR con los CSV, la ficha y las figuras. No mezcles datos de varias
-   máquinas en un solo CSV.
+7. Abre un PR con los CSV, la ficha, los `session_id` y las figuras. No mezcles
+   datos de varias máquinas en un solo CSV.
 
 ## 13. Resultados negativos
 
@@ -632,13 +624,9 @@ lfence:    0/40 bytes correctos (modelo)
 mask:      0/40 bytes correctos (modelo)
 ```
 
-E2 en hardware (opcional; 300 intentos, train 5, 1 run, 40 bytes, threshold 80):
-
-```text
-baseline: 40/40 bytes correctos
-lfence:    0/40
-mask:      0/40
-```
+La PoC de E2 en hardware no forma parte de los resultados principales. Su
+posible inclusión como anexo está pendiente de confirmar con el profesor; ver
+[`e2-anexo.md`](e2-anexo.md).
 
 E3 (1M iteraciones, 3 reps):
 

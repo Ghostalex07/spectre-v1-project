@@ -391,11 +391,11 @@ machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,threshol
 
 | Semana | Foco | Entregable |
 |---|---|---|
-| 1 | Inventario, repo, E1 | `machines.md`, umbrales, CSV E1 |
-| 2 | E2 documental y simulación conceptual | `simulation.md`, modelo, figura |
-| 3 | E3: variantes, ensamblador y sobrecoste | CSV E3, `objdump` |
-| 4 | Campaña E1/E3 en 2–3 microarquitecturas | CSV por máquina |
-| 5 | Análisis comparativo y borrador | figuras, tabla y draft |
+| 1 | Inventario, repo, E1 calibración | `machines.md`, umbrales, CSV E1 |
+| 2 | E1 jerárquico y coste del temporizador | CSV de mesetas, figura y tabla |
+| 3 | E3: barrido de sensibilidad y ensamblador | CSV E3 nuevo, `docs/asm/`, `make asm` |
+| 4 | Campaña en 2–3 microarquitecturas, al menos dos sesiones | CSV por máquina y sesión |
+| 5 | Análisis comparativo, E2 documental y borrador | figuras, tablas y draft |
 | 6 | Informe, slides y ensayo | PDF, defensa, demo |
 
 Si la fecha aprieta, priorizar E1/E3 y la simulación conceptual. La validación
