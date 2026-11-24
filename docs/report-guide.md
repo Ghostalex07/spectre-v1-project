@@ -81,6 +81,9 @@ se puede concluir.
 - Explica los casos raros: `guess=1` en máscara es el acceso constante a
   `array1[0]`, no una fuga del secreto.
 - Si una máquina no filtra, no la escondas: es parte del resultado comparativo.
+- Para arrancar las tablas, ejecuta `make summary` y usa
+  `report/results_summary.md`; después redacta la interpretación, no solo los
+  números.
 
 ## Discusión: preguntas que debes responder
 
@@ -90,7 +93,8 @@ se puede concluir.
 - ¿Qué explica el modelo y qué no puede explicar?
 - ¿Hubo máquinas sin fuga en E2? ¿Qué se puede y qué no se puede concluir?
 - ¿Qué limitaciones tiene el experimento? (mismo proceso, secreto sintético,
-  umbral por máquina, ruido, VM, número de equipos, modelo simplificado).
+  umbral por máquina, ruido, VM, número de equipos, modelo simplificado). La
+  lista cerrada está en [`docs/limitations.md`](limitations.md).
 - ¿Qué harías con más tiempo? (más microarquitecturas, más variantes, energía,
   otras mitigaciones, etc.). No lo presentes como resultado.
 

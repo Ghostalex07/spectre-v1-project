@@ -63,6 +63,7 @@ python3 analysis/simulate_spectre.py --attempts 200 --train 5 \
 | [`docs/glossary.md`](docs/glossary.md) | Glosario |
 | [`docs/report-guide.md`](docs/report-guide.md) | Guía del informe |
 | [`docs/defense-guide.md`](docs/defense-guide.md) | Guía de la defensa y demo |
+| [`docs/limitations.md`](docs/limitations.md) | Alcance, límites y qué no se puede afirmar |
 | [`references/`](references/README.md) | Paper, PoC y material de consulta |
 
 ## Estructura
@@ -96,10 +97,13 @@ spectre-v1-project/
     plot_e2.py
     plot_e3.py
     simulate_spectre.py
+    summarize_results.py
     requirements.txt
   tests/
     test_compare_machines.py
     test_simulate_spectre.py
+    test_stats.py
+    test_summarize_results.py
   data/<machine_id>/
   data/derived/
   data/simulation/
@@ -118,6 +122,7 @@ spectre-v1-project/
 - [x] E1/E2/E3 validados en el Ryzen 5 PRO 5675U de referencia.
 - [x] Modelo conceptual de E2 (`analysis/simulate_spectre.py`).
 - [x] Enfoque reorientado: E1/E3 empíricos; E2 documental y simulación.
+- [x] Resumen de resultados con IC bootstrap (`make summary`).
 - [ ] Campaña multi-máquina de E1/E3.
 - [ ] Informe y defensa final.
 

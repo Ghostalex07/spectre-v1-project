@@ -112,6 +112,40 @@ def bootstrap_ci(
     return lower, upper
 
 
+def median_ci(
+    values: Iterable[float],
+    n_boot: int = 10_000,
+    seed: int = 12345,
+    alpha: float = 0.05,
+) -> tuple[float, float]:
+    """IC bootstrap de la mediana."""
+    return bootstrap_ci(
+        values,
+        statistic=statistics.median,
+        n_boot=n_boot,
+        seed=seed,
+        alpha=alpha,
+    )
+
+
+def percentile_ci(
+    values: Iterable[float],
+    pct: float,
+    n_boot: int = 10_000,
+    seed: int = 12345,
+    alpha: float = 0.05,
+) -> tuple[float, float]:
+    """IC bootstrap de un percentil concreto."""
+    values = list(values)
+    return bootstrap_ci(
+        values,
+        statistic=lambda sample: percentile(sample, pct),
+        n_boot=n_boot,
+        seed=seed,
+        alpha=alpha,
+    )
+
+
 def machine_dir(machine_id: str) -> Path:
     directory = DATA_DIR / machine_id
     if not directory.is_dir():

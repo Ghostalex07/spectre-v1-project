@@ -9,6 +9,7 @@ from common import (
     FIGURES_DIR,
     e1_path,
     median,
+    median_ci,
     p5,
     p95,
     percentile,
@@ -52,22 +53,39 @@ def main() -> None:
         raise SystemExit(f"No hay muestras hit/miss en {path}")
 
     threshold = suggest_threshold(hit, miss)
+    hit_ci = median_ci(hit)
+    miss_ci = median_ci(miss)
     print(f"CSV: {path}")
     print(
-        f"hit:  n={len(hit):5d} mediana={median(hit):8.2f} p5={p5(hit):8.2f} p95={p95(hit):8.2f}"
+        f"hit:  n={len(hit):5d} mediana={median(hit):8.2f} p5={p5(hit):8.2f} p95={p95(hit):8.2f} "
+        f"IC95 mediana=[{hit_ci[0]:.2f}, {hit_ci[1]:.2f}]"
     )
     print(
-        f"miss: n={len(miss):5d} mediana={median(miss):8.2f} p5={p5(miss):8.2f} p95={p95(miss):8.2f}"
+        f"miss: n={len(miss):5d} mediana={median(miss):8.2f} p5={p5(miss):8.2f} p95={p95(miss):8.2f} "
+        f"IC95 mediana=[{miss_ci[0]:.2f}, {miss_ci[1]:.2f}]"
     )
     print(f"umbral sugerido: {threshold} ciclos (valle entre los dos modos)")
+    print(
+        "p5-p95 describe la dispersión; el IC bootstrap describe la precisión de la mediana."
+    )
     print("Guárdalo en docs/thresholds.md y úsalo en E2/E3 para esta máquina.")
 
     plt = require_matplotlib()
     fig, ax = plt.subplots(figsize=(8, 4.5))
     if hit:
-        ax.hist(hit, bins=args.bins, alpha=0.65, label=f"hit (n={len(hit)})")
+        ax.hist(
+            hit, bins=args.bins, alpha=0.65, color="C0", label=f"hit (n={len(hit)})"
+        )
+        ax.axvspan(
+            hit_ci[0], hit_ci[1], color="C0", alpha=0.12, label="IC95 mediana hit"
+        )
     if miss:
-        ax.hist(miss, bins=args.bins, alpha=0.65, label=f"miss (n={len(miss)})")
+        ax.hist(
+            miss, bins=args.bins, alpha=0.65, color="C1", label=f"miss (n={len(miss)})"
+        )
+        ax.axvspan(
+            miss_ci[0], miss_ci[1], color="C1", alpha=0.12, label="IC95 mediana miss"
+        )
     ax.axvline(
         threshold,
         color="black",

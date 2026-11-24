@@ -36,7 +36,11 @@ data/
   `analysis/simulate_spectre.py`; no es una medida de hardware.
 - `derived/`: tablas agregadas generadas por `analysis/`; no se editan a mano.
   `compare_machines.csv` es la tabla comparativa que genera
-  `analysis/compare_machines.py`.
+  `analysis/compare_machines.py`. Incluye `hit_median_low/high`,
+  `miss_median_low/high` y `e3_<variant>_median_low/high` con el IC95 bootstrap
+  de cada mediana, además de los percentiles p5/p95 descriptivos. Para E2 añade
+  `e2_<variant>_rate_low/high` (Wilson), `e2_<variant>_unclear_rate` y
+  `e2_<variant>_median_margin`.
 
 ## Datos de referencia incluidos
 

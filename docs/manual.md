@@ -166,8 +166,9 @@ Genera el histograma:
 python3 analysis/plot_e1.py --machine-id <machine_id>
 ```
 
-El script imprime mediana, p5 y p95 de cada modo, y sugiere un umbral en el
-valle. **No copies el 80 de otra máquina**: en el Ryzen de referencia funciona
+El script imprime mediana, IC95 bootstrap de la mediana, p5 y p95 de cada modo,
+y sugiere un umbral en el valle. El IC indica la precisión de la mediana; p5–p95
+indica la dispersión de las muestras. **No copies el 80 de otra máquina**: en el Ryzen de referencia funciona
 porque `hit` está en ~46 ciclos y `miss` por encima de ~230, pero cada CPU
 necesita su propio valle. Calibra siempre con tu E1.
 
@@ -312,7 +313,8 @@ python3 analysis/plot_e3.py --machine-id <machine_id>
 
 Genera:
 
-- `figures/e3_<machine>_overhead.png`: mediana y rango p5–p95 por variante.
+- `figures/e3_<machine>_overhead.png`: mediana e IC95 bootstrap por variante;
+  los percentiles p5–p95 se imprimen en la tabla como medida de dispersión.
 - `figures/e3_<machine>_scatter.png`: eficacia (E2) frente a sobrecoste (E3).
 
 Métricas:
@@ -381,8 +383,20 @@ E2: en ese caso solo genera la figura de sobrecoste. No edites las figuras a
 mano: si cambias el análisis, vuelve a generarlas.
 
 `compare_machines.py` recorre `data/<machine_id>/`, escribe la tabla agregada
-`data/derived/compare_machines.csv` y genera `figures/compare_success.png`,
-`figures/compare_overhead.png` y `figures/compare_scatter.png`. Si solo hay una
+`data/derived/compare_machines.csv` (incluye IC95 bootstrap de las medianas en
+columnas `*_median_low/high` y los IC de Wilson de E2) y genera
+`figures/compare_success.png`, `figures/compare_overhead.png` y
+`figures/compare_scatter.png`.
+
+Para regenerar la tabla y el resumen del informe de una vez:
+
+```bash
+make summary
+```
+
+Eso deja `report/results_summary.md` con tablas de equipos, E1, E2 y E3 listas
+para copiar al informe. El resumen es descriptivo: la discusión y los límites
+van en el texto. Si solo hay una
 microarquitectura, la comparación sirve para validar el pipeline, no para
 afirmar diversidad de CPUs.
 

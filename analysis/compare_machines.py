@@ -24,6 +24,7 @@ from common import (
     fmt_num,
     fmt_pct,
     median,
+    median_ci,
     p5,
     p95,
     percentile,
@@ -76,6 +77,8 @@ def load_e1(directory: Path, machine_id: str) -> dict:
         raise SystemExit(f"No hay muestras hit/miss en {path}")
 
     first = rows[0] if rows else {}
+    hit_low, hit_high = median_ci(hit)
+    miss_low, miss_high = median_ci(miss)
     return {
         "path": str(path),
         "cpu": first.get("cpu", machine_id),
@@ -88,10 +91,14 @@ def load_e1(directory: Path, machine_id: str) -> dict:
         "flags": first.get("flags", ""),
         "hit_n": len(hit),
         "hit_median": median(hit),
+        "hit_median_low": hit_low,
+        "hit_median_high": hit_high,
         "hit_p5": p5(hit),
         "hit_p95": p95(hit),
         "miss_n": len(miss),
         "miss_median": median(miss),
+        "miss_median_low": miss_low,
+        "miss_median_high": miss_high,
         "miss_p5": p5(miss),
         "miss_p95": p95(miss),
         "suggested_threshold": suggest_threshold(hit, miss),
@@ -152,15 +159,22 @@ def load_e3(directory: Path, machine_id: str) -> dict:
         if not values:
             continue
         med = median(values)
+        low, high = median_ci(values)
         absolute = med - baseline if baseline else float("nan")
         pct = 100 * absolute / baseline if baseline else float("nan")
         summary[variant] = {
             "n": len(values),
             "median": med,
+            "median_low": low,
+            "median_high": high,
             "p5": p5(values),
             "p95": p95(values),
             "abs": absolute,
             "pct": pct,
+            "pct_low": 100 * (low - baseline) / baseline if baseline else float("nan"),
+            "pct_high": 100 * (high - baseline) / baseline
+            if baseline
+            else float("nan"),
             "slowdown": med / baseline if baseline else float("nan"),
         }
     return summary
@@ -193,9 +207,22 @@ def comparison_row(summary: dict) -> dict[str, str]:
         item = e2.get(variant)
         return "" if not item else _num(item["rate"])
 
+    def e2_field(variant: str, key: str) -> str:
+        item = e2.get(variant)
+        return "" if not item else _num(item[key])
+
     def e3_pct(variant: str) -> str:
         item = e3.get(variant)
         return "" if not item else _num(item["pct"])
+
+    def e3_median(variant: str) -> str:
+        item = e3.get(variant)
+        return "" if not item else _num(item["median"])
+
+    def e3_median_ci(variant: str, bound: str) -> str:
+        item = e3.get(variant)
+        key = f"median_{bound}"
+        return "" if not item else _num(item[key])
 
     return {
         "machine_id": summary["machine_id"],
@@ -208,15 +235,39 @@ def comparison_row(summary: dict) -> dict[str, str]:
         "gcc": e1["gcc"],
         "threshold": str(e1["suggested_threshold"]),
         "hit_median": _num(e1["hit_median"]),
+        "hit_median_low": _num(e1["hit_median_low"]),
+        "hit_median_high": _num(e1["hit_median_high"]),
         "hit_p5": _num(e1["hit_p5"]),
         "hit_p95": _num(e1["hit_p95"]),
         "miss_median": _num(e1["miss_median"]),
+        "miss_median_low": _num(e1["miss_median_low"]),
+        "miss_median_high": _num(e1["miss_median_high"]),
         "miss_p5": _num(e1["miss_p5"]),
         "miss_p95": _num(e1["miss_p95"]),
         "e2_baseline_rate": e2_rate("baseline"),
+        "e2_baseline_rate_low": e2_field("baseline", "low"),
+        "e2_baseline_rate_high": e2_field("baseline", "high"),
+        "e2_baseline_unclear_rate": e2_field("baseline", "unclear_rate"),
+        "e2_baseline_median_margin": e2_field("baseline", "median_margin"),
         "e2_lfence_rate": e2_rate("lfence"),
+        "e2_lfence_rate_low": e2_field("lfence", "low"),
+        "e2_lfence_rate_high": e2_field("lfence", "high"),
+        "e2_lfence_unclear_rate": e2_field("lfence", "unclear_rate"),
+        "e2_lfence_median_margin": e2_field("lfence", "median_margin"),
         "e2_mask_rate": e2_rate("mask"),
-        "e3_baseline_cycles": _num(e3.get("baseline", {}).get("median", float("nan"))),
+        "e2_mask_rate_low": e2_field("mask", "low"),
+        "e2_mask_rate_high": e2_field("mask", "high"),
+        "e2_mask_unclear_rate": e2_field("mask", "unclear_rate"),
+        "e2_mask_median_margin": e2_field("mask", "median_margin"),
+        "e3_baseline_cycles": e3_median("baseline"),
+        "e3_baseline_median_low": e3_median_ci("baseline", "low"),
+        "e3_baseline_median_high": e3_median_ci("baseline", "high"),
+        "e3_lfence_cycles": e3_median("lfence"),
+        "e3_lfence_median_low": e3_median_ci("lfence", "low"),
+        "e3_lfence_median_high": e3_median_ci("lfence", "high"),
+        "e3_mask_cycles": e3_median("mask"),
+        "e3_mask_median_low": e3_median_ci("mask", "low"),
+        "e3_mask_median_high": e3_median_ci("mask", "high"),
         "e3_lfence_pct": e3_pct("lfence"),
         "e3_mask_pct": e3_pct("mask"),
     }
@@ -228,7 +279,7 @@ def write_table(summaries: list[dict], path: Path) -> None:
     rows = [comparison_row(summary) for summary in summaries]
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]), lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -330,14 +381,25 @@ def plot_overhead(summaries: list[dict], out: Path) -> None:
     fig, ax = plt.subplots(figsize=(max(8, 2.4 * len(machines)), 4.8))
     for offset, variant in zip((-width / 2, width / 2), ("lfence", "mask")):
         values = []
+        errors_low = []
+        errors_high = []
         for summary in summaries:
             item = summary["e3"].get(variant)
-            values.append(float("nan") if not item else item["pct"])
+            if not item:
+                values.append(float("nan"))
+                errors_low.append(0.0)
+                errors_high.append(0.0)
+                continue
+            values.append(item["pct"])
+            errors_low.append(max(0.0, item["pct"] - item["pct_low"]))
+            errors_high.append(max(0.0, item["pct_high"] - item["pct"]))
         positions = [x + offset for x in xs]
         ax.bar(
             positions,
             values,
             width=width,
+            yerr=[errors_low, errors_high],
+            capsize=3,
             label=variant,
             color=colors[variant],
         )
@@ -382,6 +444,12 @@ def plot_scatter(summaries: list[dict], out: Path) -> None:
                 continue
             y = 100 * e2["rate"]
             low, high = 100 * e2["low"], 100 * e2["high"]
+            xerr = None
+            if e3:
+                xerr = [
+                    [max(0.0, x - e3["pct_low"])],
+                    [max(0.0, e3["pct_high"] - x)],
+                ]
             ax.scatter(
                 [x],
                 [y],
@@ -393,6 +461,7 @@ def plot_scatter(summaries: list[dict], out: Path) -> None:
             ax.errorbar(
                 [x],
                 [y],
+                xerr=xerr,
                 yerr=[[max(0, y - low)], [max(0, high - y)]],
                 fmt="none",
                 capsize=3,

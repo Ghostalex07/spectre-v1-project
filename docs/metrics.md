@@ -90,6 +90,24 @@ Notas:
 Intervalo de confianza del 95 % para proporciones: **Wilson**. Para medianas:
 **bootstrap** con 10.000 remuestreos (percentiles 2,5 y 97,5).
 
+#### Dispersión frente a precisión
+
+No son lo mismo y se reportan por separado:
+
+- **p5–p95** describe la dispersión de las muestras individuales. En E1 sirve
+  para ver si los modos `hit` y `miss` están separados y dónde cae el umbral.
+- **IC95 bootstrap de la mediana** describe la precisión de la mediana
+  estimada. Es lo que se usa en las barras de E3 y en las columnas `*_median_low`
+  y `*_median_high` de `data/derived/compare_machines.csv`.
+
+Una distribución puede tener mucha dispersión (p5–p95 ancho) y una mediana muy
+precisa (IC estrecho) si hay muchas muestras. Por eso las figuras de barras
+llevan IC y los histogramas de E1 muestran ambas cosas.
+
+`data/derived/compare_machines.csv` exporta los IC de Wilson de E2
+(`e2_<variant>_rate_low/high`), la tasa `unclear`, el margen mediano y los IC
+bootstrap de E1/E3, para que el informe no dependa de leer las figuras.
+
 `R >= 50` si se ejecuta E2 en hardware. No se concluye con una sola ejecución.
 La ejecución de referencia del repositorio usa `R=1` y sirve solo para validar
 el harness, no para afirmar una tasa poblacional.
@@ -110,7 +128,8 @@ Para cada variante (`baseline`, `lfence`, `mask`):
 - Medir el bucle de sobrecoste: 10 millones de iteraciones, mezcla de índices
   válidos, 30 repeticiones.
 - `ciclos/iteración = ciclos_totales / iteraciones`.
-- Reportar mediana y p95 de `ciclos/iteración` sobre las 30 repeticiones.
+- Reportar mediana, IC95 bootstrap de la mediana, p5 y p95 de
+  `ciclos/iteración` sobre las 30 repeticiones.
 
 Métricas de coste:
 

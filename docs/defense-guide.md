@@ -136,7 +136,8 @@ y las mitigaciones LFENCE y máscara.
 **¿Qué validez tienen los resultados?**
 Son medidas locales, con un número fijo de intentos, repeticiones, IC de Wilson
 y bootstrap. No son un estudio exhaustivo de todas las microarquitecturas. Las
-limitaciones se declaran.
+limitaciones se declaran y están cerradas en
+[`docs/limitations.md`](limitations.md).
 
 **¿Qué pasa con Meltdown y Spectre V2?**
 Están fuera del alcance. Se mencionan solo como contexto.

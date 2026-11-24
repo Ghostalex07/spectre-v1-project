@@ -13,6 +13,7 @@ from common import (
     fmt_num,
     fmt_pct,
     median,
+    median_ci,
     p5,
     p95,
     read_rows,
@@ -59,14 +60,18 @@ def main() -> None:
     baseline = median(overhead.get("baseline", []))
 
     print(
-        f"{'variant':10} {'n':>4} {'mediana':>10} {'p5':>9} {'p95':>9} {'coste abs':>10} {'coste %':>9} {'slowdown':>9} {'eficacia':>9}"
+        f"{'variant':10} {'n':>4} {'mediana':>10} {'IC95':>22} {'p5':>9} {'p95':>9} "
+        f"{'coste abs':>10} {'coste %':>9} {'slowdown':>9} {'eficacia':>9}"
     )
     stats = {}
     for variant in variants:
         values = overhead[variant]
         med = median(values)
+        low, high = median_ci(values)
         stats[variant] = {
             "median": med,
+            "low": low,
+            "high": high,
             "p5": p5(values),
             "p95": p95(values),
             "abs": med - baseline,
@@ -78,7 +83,8 @@ def main() -> None:
         if eff and eff["total"]:
             eff_text = fmt_pct(eff["successes"] / eff["total"])
         print(
-            f"{variant:10} {len(values):4d} {med:10.3f} {p5(values):9.3f} {p95(values):9.3f} "
+            f"{variant:10} {len(values):4d} {med:10.3f} [{low:8.3f}, {high:8.3f}] "
+            f"{stats[variant]['p5']:9.3f} {stats[variant]['p95']:9.3f} "
             f"{stats[variant]['abs']:10.3f} {stats[variant]['pct']:8.1f}% "
             f"{stats[variant]['slowdown']:9.2f} {eff_text:>9}"
         )
@@ -91,8 +97,8 @@ def main() -> None:
     fig, ax = plt.subplots(figsize=(7, 4.5))
     xs = list(range(len(variants)))
     medians = [stats[v]["median"] for v in variants]
-    lower = [stats[v]["median"] - stats[v]["p5"] for v in variants]
-    upper = [stats[v]["p95"] - stats[v]["median"] for v in variants]
+    lower = [stats[v]["median"] - stats[v]["low"] for v in variants]
+    upper = [stats[v]["high"] - stats[v]["median"] for v in variants]
     ax.bar(
         xs,
         medians,
@@ -102,7 +108,7 @@ def main() -> None:
     )
     ax.set_xticks(xs)
     ax.set_xticklabels(variants)
-    ax.set_ylabel("ciclos por iteración (mediana, rango p5-p95)")
+    ax.set_ylabel("ciclos por iteración (mediana, IC95 bootstrap)")
     ax.set_title(f"E3 — sobrecoste ({args.machine_id})")
     ax.grid(axis="y", alpha=0.25)
     fig.tight_layout()
@@ -120,10 +126,16 @@ def main() -> None:
             rate = eff["successes"] / eff["total"]
             low, high = wilson_ci(eff["successes"], eff["total"])
             x = stats[variant]["pct"]
+            if baseline:
+                x_low = 100 * (stats[variant]["low"] - baseline) / baseline
+                x_high = 100 * (stats[variant]["high"] - baseline) / baseline
+            else:
+                x_low = x_high = x
             ax.scatter([x], [100 * rate], s=70, label=variant)
             ax.errorbar(
                 [x],
                 [100 * rate],
+                xerr=[[max(0.0, x - x_low)], [max(0.0, x_high - x)]],
                 yerr=[[100 * (rate - low)], [100 * (high - rate)]],
                 fmt="none",
                 capsize=3,
