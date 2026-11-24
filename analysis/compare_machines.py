@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Comparación multi-máquina de E1, E2 y E3.
+"""Comparación multi-máquina de E1 y E3 (E2 solo como anexo opcional).
 
 Recorre `data/<machine_id>/`, agrega los CSV de cada equipo y genera:
 
-- una tabla Markdown por pantalla;
+- una tabla por pantalla con E1 y sobrecoste E3;
 - `data/derived/compare_machines.csv` con los valores agregados;
-- figuras comparativas en `figures/`.
+- `figures/compare_overhead.png` y, con `--with-e2`, las figuras de E2.
 
 No inventa datos: si una máquina no tiene una variante, la omite.
 """
@@ -284,12 +284,19 @@ def write_table(summaries: list[dict], path: Path) -> None:
         writer.writerows(rows)
 
 
-def print_table(summaries: list[dict]) -> None:
-    print(
-        f"{'machine_id':24} {'CPU':32} {'E1_T':>5} "
-        f"{'base':>8} {'lfence':>8} {'mask':>8} "
-        f"{'E3 base':>9} {'lfence%':>9} {'mask%':>9}"
-    )
+def print_table(summaries: list[dict], with_e2: bool = False) -> None:
+    if with_e2:
+        header = (
+            f"{'machine_id':24} {'CPU':32} {'E1_T':>5} "
+            f"{'base':>8} {'lfence':>8} {'mask':>8} "
+            f"{'E3 base':>9} {'lfence%':>9} {'mask%':>9}"
+        )
+    else:
+        header = (
+            f"{'machine_id':24} {'CPU':32} {'E1_T':>5} "
+            f"{'E3 base':>9} {'lfence%':>9} {'mask%':>9}"
+        )
+    print(header)
     for summary in summaries:
         e1 = summary["e1"]
         e2 = summary["e2"]
@@ -303,11 +310,15 @@ def print_table(summaries: list[dict]) -> None:
             item = e3.get(variant)
             return "n/a" if not item else f"{item['pct']:+.1f}%"
 
-        print(
+        prefix = (
             f"{summary['machine_id']:24} {e1['cpu'][:32]:32} "
             f"{e1['suggested_threshold']:5d} "
-            f"{rate('baseline'):>8} {rate('lfence'):>8} {rate('mask'):>8} "
-            f"{fmt_num(e3.get('baseline', {}).get('median', float('nan')), 2):>9} "
+        )
+        if with_e2:
+            prefix += f"{rate('baseline'):>8} {rate('lfence'):>8} {rate('mask'):>8} "
+        print(
+            prefix
+            + f"{fmt_num(e3.get('baseline', {}).get('median', float('nan')), 2):>9} "
             f"{pct('lfence'):>9} {pct('mask'):>9}"
         )
 
@@ -499,6 +510,11 @@ def main() -> None:
         default=DEFAULT_MARGIN_MIN,
         help="margen mínimo (score1-score2) para considerar claro un byte",
     )
+    parser.add_argument(
+        "--with-e2",
+        action="store_true",
+        help="incluye tablas/figuras de E2 (anexo opcional, no resultado principal)",
+    )
     args = parser.parse_args()
 
     machines = discover_machines(args.data_dir)
@@ -509,7 +525,7 @@ def main() -> None:
         summarize_machine(args.data_dir, machine, args.margin_min)
         for machine in machines
     ]
-    print_table(summaries)
+    print_table(summaries, args.with_e2)
 
     table_path = Path(args.table)
     write_table(summaries, table_path)
@@ -517,9 +533,10 @@ def main() -> None:
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    plot_success(summaries, out_dir / "compare_success.png")
     plot_overhead(summaries, out_dir / "compare_overhead.png")
-    plot_scatter(summaries, out_dir / "compare_scatter.png")
+    if args.with_e2:
+        plot_success(summaries, out_dir / "compare_success.png")
+        plot_scatter(summaries, out_dir / "compare_scatter.png")
 
 
 if __name__ == "__main__":

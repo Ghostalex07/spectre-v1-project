@@ -22,9 +22,11 @@ como anexo.
 5. **Metodología** (3–4 páginas): equipos, protocolo, E1/E3 como experimentos
    principales, E2 documental y modelo conceptual, métricas, controles y validez.
 6. **Resultados E1** (2–3 páginas): caracterización de caché y umbrales.
-7. **Resultados E2** (2–3 páginas): análisis documental, línea temporal y
-   simulación conceptual; validación opcional en hardware como anexo.
+7. **Mecanismo E2** (2–3 páginas): análisis documental, línea temporal y
+   simulación conceptual; no es un resultado experimental. La validación
+   opcional en hardware va como anexo separado.
 8. **Resultados E3** (3–4 páginas): sobrecoste y comparación entre máquinas.
+   No se presenta una tasa de recuperación como resultado principal.
 9. **Discusión** (2–3 páginas): hipótesis de coste, diferencias
    microarquitectónicas, límites de la evidencia y ausencia de comportamiento
    observable.
@@ -56,16 +58,22 @@ se puede concluir.
 - **Modelo de amenaza:** mismo proceso, secreto de prueba, atacante que puede
   medir tiempos. No es un ataque remoto ni cross-process.
 - **Aislamiento:** Linux nativo, `taskset`, SMT sibling idle, gobernador
-  registrado, mismas flags.
-- **E1:** cómo se mide `hit`/`miss`, cuántas muestras, cómo se elige el umbral.
-- **E2:** análisis documental y modelo conceptual; supuestos, límites y
-  validación opcional en hardware con número fijo de intentos y umbral.
+  registrado, turbo documentado, warm-up descartado y orden de variantes
+  aleatorizado o alternado. Mismas flags.
+- **E1:** cómo se mide `hit`/`miss`, cuántas muestras, cómo se elige el umbral
+  en el valle del histograma.
+- **E2:** análisis documental y modelo conceptual; supuestos y límites. La
+  validación en hardware solo va al anexo, con número fijo de intentos y umbral.
 - **E3:** iteraciones, repeticiones, definición de ciclos/iteración y
-  comparación contra baseline.
-- **Estadística:** tasa global, IC de Wilson, bootstrap para medianas, `unclear`
-  y límite superior para `0/N`.
+  comparación contra baseline. **Solo sobrecoste**: la eficacia se argumenta con
+  el ensamblador y el modelo, no con una tasa de recuperación.
+- **Estadística:** mediana, p5, p95 e IQR; IC bootstrap para medianas; IC de
+  Wilson para proporciones; `unclear` y cota superior para `0/N`. No usar media y
+  desviación típica como métrica principal.
+- **Reproducibilidad:** scripts, CSV crudos, flags, GCC, kernel, microcódigo y
+  `/sys/devices/system/cpu/vulnerabilities/spectre_v1` de cada equipo.
 - **Validez:** VM excluidas, resultados negativos incluidos, cambios de umbral
-  documentados.
+  documentados y conclusiones limitadas a las condiciones medidas.
 
 ## Resultados: cómo escribirlos
 
@@ -90,6 +98,10 @@ se puede concluir.
 - ¿Se cumple la hipótesis de coste?
 - ¿LFENCE costó más que la máscara? ¿Cuánto?
 - ¿El sobrecoste depende de la microarquitectura? ¿Cómo se ve en los datos?
+- En AMD, ¿LFENCE serializa el despacho solo si el sistema ha activado el bit
+  correspondiente por Spectre? ¿Cómo afecta eso a la comparación con Intel?
+- ¿Qué genera `-mspeculative-load-hardening` de Clang frente al enmascarado
+  manual inspirado en `array_index_nospec`?
 - ¿Qué explica el modelo y qué no puede explicar?
 - ¿Hubo máquinas sin fuga en E2? ¿Qué se puede y qué no se puede concluir?
 - ¿Qué limitaciones tiene el experimento? (mismo proceso, secreto sintético,

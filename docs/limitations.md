@@ -33,8 +33,10 @@ sobreinterpretar los resultados.
 ## 3. Mitigaciones estudiadas
 
 - Solo se comparan **LFENCE** y **enmascarado de índices**.
-- No se evalúan `array_index_nospec`, retpoline, IBRS/IBPB, STIBP, honeypots,
-  mitigaciones del compilador ni las que aplica el kernel de Linux.
+- No se evalúan `array_index_nospec`, retpoline, IBRS/IBPB, STIBP, honeypots ni
+  las mitigaciones que aplica el kernel de Linux.
+- `-mspeculative-load-hardening` de Clang se menciona como comparación
+  conceptual con el enmascarado manual; no forma parte de la campaña medida.
 - LFENCE se coloca después de la comprobación de límites y antes del acceso
   vulnerable. Otras colocaciones pueden tener otro coste y otra eficacia.
 - El enmascarado se implementa con una máscara dependiente de datos. Si el
@@ -91,7 +93,20 @@ sobreinterpretar los resultados.
   mitigaciones en las máquinas medidas, no una auditoría de seguridad de un
   producto.
 
-## 8. Ética y seguridad
+## 8. Cómo formular las conclusiones
+
+- No escribas “este procesador no es vulnerable”. Escribe “en este microcódigo,
+  este kernel y este tamaño de muestra no se observó la fuga”.
+- No escribas “esta mitigación no tiene coste”. Escribe “el sobrecoste medido
+  fue X, con IC Y, en este bucle y estas condiciones”.
+- La ausencia de un comportamiento observable no demuestra que no pueda
+  producirse. Es una cota superior bajo las condiciones del experimento.
+- E2 en hardware, si se ejecuta, es una observación de anexo. No es la base de
+  la conclusión de E3 ni demuestra eficacia universal.
+- Si el sobrecoste de una variante cae dentro del ruido, dilo: no fuerces una
+  diferencia que los datos no sostienen.
+
+## 9. Ética y seguridad
 
 - Todas las pruebas se ejecutan en máquinas propias o del grupo, en un entorno
   controlado y sin `sudo`.

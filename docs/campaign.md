@@ -83,12 +83,21 @@ No sigas si `hit` y `miss` se solapan completamente: mira
 THRESHOLD=<T> RUN_E2=0 ./scripts/run_all.sh <machine_id> <T>
 ```
 
+Antes de medir, comprueba que el gobernador es `performance` y que el turbo está
+documentado. El script fija el proceso con `taskset`, pero no cambia la
+configuración del sistema.
+
 `run_all.sh` usa el protocolo final por defecto:
 
 - E1: 10.000 muestras por modo, buffer de 64 MiB.
 - E2: **omitido** con `RUN_E2=0`; es opcional.
 - E3: 10M iteraciones, 30 repeticiones.
 - Variantes: `baseline`, `lfence` y `mask`.
+- Orden de E3 aleatorizado por defecto (`E3_ORDER=random`) y registrado en
+  `data/<machine_id>/e3_order_<machine_id>.txt`; usa `E3_ORDER=fixed` si
+  necesitas reproducir un orden concreto.
+- Warm-up: el binario de E3 ejecuta 1.000 llamadas de calentamiento antes de
+  medir; no se incluyen en los ciclos.
 
 Los CSV quedan en `data/<machine_id>/`.
 

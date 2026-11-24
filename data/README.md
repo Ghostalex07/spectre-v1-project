@@ -32,6 +32,8 @@ data/
   de hardware; la explicación del mecanismo va en el modelo y en el análisis
   documental.
 - `e3_*.csv`: sobrecoste por variante.
+- `e3_order_<machine_id>.txt`: orden aleatorizado de las variantes de E3, para
+  que la secuencia de medición quede registrada.
 - `simulation/spectre_model.csv`: salida del modelo conceptual de
   `analysis/simulate_spectre.py`; no es una medida de hardware.
 - `derived/`: tablas agregadas generadas por `analysis/`; no se editan a mano.

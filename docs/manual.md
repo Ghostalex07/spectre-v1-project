@@ -315,7 +315,8 @@ Genera:
 
 - `figures/e3_<machine>_overhead.png`: mediana e IC95 bootstrap por variante;
   los percentiles p5–p95 se imprimen en la tabla como medida de dispersión.
-- `figures/e3_<machine>_scatter.png`: eficacia (E2) frente a sobrecoste (E3).
+- `figures/e3_<machine>_scatter.png`: **solo si se pasa `--with-efficacy`**.
+  Es un anexo opcional que mezcla E2 y E3; no es una figura principal.
 
 Métricas:
 
@@ -337,7 +338,8 @@ Hace, en orden:
 
 1. `collect_env.sh`
 2. `run_e1.sh` (10.000 muestras, 64 MiB)
-3. E3 `baseline`, `lfence`, `mask` (10M iteraciones, 30 reps)
+3. E3 `baseline`, `lfence`, `mask` (10M iteraciones, 30 reps), en orden
+   aleatorizado por defecto y registrado en `e3_order_<machine_id>.txt`
 4. E2 solo si `RUN_E2=1` (1000 intentos, train 5, 50 runs, 40 bytes)
 
 Control `-O0` opcional de E2:
@@ -384,9 +386,9 @@ mano: si cambias el análisis, vuelve a generarlas.
 
 `compare_machines.py` recorre `data/<machine_id>/`, escribe la tabla agregada
 `data/derived/compare_machines.csv` (incluye IC95 bootstrap de las medianas en
-columnas `*_median_low/high` y los IC de Wilson de E2) y genera
-`figures/compare_success.png`, `figures/compare_overhead.png` y
-`figures/compare_scatter.png`.
+columnas `*_median_low/high` y los IC de Wilson de E2). Por defecto genera solo
+`figures/compare_overhead.png`; con `--with-e2` añade `compare_success.png` y
+`compare_scatter.png` como material de anexo.
 
 Para regenerar la tabla y el resumen del informe de una vez:
 
@@ -394,10 +396,11 @@ Para regenerar la tabla y el resumen del informe de una vez:
 make summary
 ```
 
-Eso deja `report/results_summary.md` con tablas de equipos, E1, E2 y E3 listas
-para copiar al informe. El resumen es descriptivo: la discusión y los límites
-van en el texto. Si solo hay una
-microarquitectura, la comparación sirve para validar el pipeline, no para
+Eso deja `report/results_summary.md` con tablas de equipos, E1 y E3 listas para
+copiar al informe. E2 se añade solo con `make summary-e2` (o
+`python3 analysis/summarize_results.py --include-e2`) y es material de anexo. El
+resumen es descriptivo: la discusión y los límites van en el texto. Si solo hay
+una microarquitectura, la comparación sirve para validar el pipeline, no para
 afirmar diversidad de CPUs.
 
 ## 10. Datos

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Genera un resumen Markdown de resultados a partir de compare_machines.csv."""
+"""Genera un resumen Markdown de E1/E3 a partir de compare_machines.csv.
+
+E2 es material de anexo opcional y solo se incluye con `--include-e2`.
+"""
 
 from __future__ import annotations
 
@@ -65,7 +68,9 @@ def _cpu_label(row: dict[str, str]) -> str:
     return row.get("cpu", "?") or "?"
 
 
-def render_summary(rows: list[dict[str, str]], title: str) -> str:
+def render_summary(
+    rows: list[dict[str, str]], title: str, include_e2: bool = False
+) -> str:
     lines = [
         f"# {title}",
         "",
@@ -141,22 +146,29 @@ def render_summary(rows: list[dict[str, str]], title: str) -> str:
         "otro equipo. El IC95 es el bootstrap de la mediana; p5–p95 queda en el CSV",
         "como medida de dispersión.",
         "",
-        "## E2 — recuperación del secreto",
-        "",
-        "| máquina | baseline | LFENCE | máscara |",
-        "|---|---:|---:|---:|",
     ]
-    for row in rows:
-        lines.append(
-            f"| `{_machine_label(row)}` | {_rate_ci(row, 'baseline')} | "
-            f"{_rate_ci(row, 'lfence')} | {_rate_ci(row, 'mask')} |"
-        )
+    if include_e2:
+        lines += [
+            "## E2 — recuperación del secreto (anexo opcional)",
+            "",
+            "| máquina | baseline | LFENCE | máscara |",
+            "|---|---:|---:|---:|",
+        ]
+        for row in rows:
+            lines.append(
+                f"| `{_machine_label(row)}` | {_rate_ci(row, 'baseline')} | "
+                f"{_rate_ci(row, 'lfence')} | {_rate_ci(row, 'mask')} |"
+            )
+        lines += [
+            "",
+            "E2 no es un resultado principal: es una observación de hardware",
+            "opcional. Entre paréntesis se muestra la tasa y el IC95 de Wilson. Un",
+            "`0/N` es una cota superior, no una prueba de imposibilidad. `unclear` y",
+            "el margen primero/segundo están en el CSV para separar los fallos claros",
+            "del ruido.",
+            "",
+        ]
     lines += [
-        "",
-        "Entre paréntesis se muestra la tasa y el IC95 de Wilson. Un `0/N` es una",
-        "cota superior, no una prueba de imposibilidad. `unclear` y el margen",
-        "primero/segundo están en el CSV para separar los fallos claros del ruido.",
-        "",
         "## E3 — sobrecoste",
         "",
         "| máquina | baseline (ciclos/iter) | LFENCE (ciclos/iter) | LFENCE coste | máscara (ciclos/iter) | máscara coste |",
@@ -181,21 +193,29 @@ def render_summary(rows: list[dict[str, str]], title: str) -> str:
         "",
     ]
     for row in rows:
-        base = _num(row, "e2_baseline_rate")
-        lfence = _num(row, "e2_lfence_rate")
-        mask = _num(row, "e2_mask_rate")
         lfence_pct = _num(row, "e3_lfence_pct")
         mask_pct = _num(row, "e3_mask_pct")
-        lines.append(
-            f"- `{_machine_label(row)}`: baseline {_pct(base)}, LFENCE {_pct(lfence)}, "
-            f"máscara {_pct(mask)}; sobrecoste LFENCE {_pct_points(lfence_pct)}, "
-            f"máscara {_pct_points(mask_pct)}."
-        )
+        if include_e2:
+            base = _num(row, "e2_baseline_rate")
+            lfence = _num(row, "e2_lfence_rate")
+            mask = _num(row, "e2_mask_rate")
+            lines.append(
+                f"- `{_machine_label(row)}`: baseline {_pct(base)}, LFENCE {_pct(lfence)}, "
+                f"máscara {_pct(mask)}; sobrecoste LFENCE {_pct_points(lfence_pct)}, "
+                f"máscara {_pct_points(mask_pct)}."
+            )
+        else:
+            lines.append(
+                f"- `{_machine_label(row)}`: sobrecoste LFENCE "
+                f"{_pct_points(lfence_pct)}, máscara {_pct_points(mask_pct)}."
+            )
     lines += [
         "",
-        "Estas frases son descriptivas. La discusión de significancia, causas",
-        "microarquitectónicas y resultados negativos va en el informe, con los",
-        "intervalos y el tamaño de muestra delante.",
+        "Estas frases son descriptivas. La eficacia de seguridad se argumenta con",
+        "el ensamblador, el modelo y la literatura, no con una tasa de recuperación.",
+        "La discusión de significancia, causas microarquitectónicas y resultados",
+        "negativos va en el informe, con los intervalos y el tamaño de muestra",
+        "delante.",
         "",
         "## Reproducir",
         "",
@@ -232,6 +252,11 @@ def main() -> None:
         default="Resumen de resultados — Spectre V1",
         help="Título del documento",
     )
+    parser.add_argument(
+        "--include-e2",
+        action="store_true",
+        help="incluye la tabla E2 de anexo opcional (no es resultado principal)",
+    )
     args = parser.parse_args()
 
     compare_path = Path(args.compare_csv)
@@ -243,7 +268,7 @@ def main() -> None:
     if not rows:
         raise SystemExit(f"{compare_path} no tiene filas")
 
-    text = render_summary(rows, args.title)
+    text = render_summary(rows, args.title, include_e2=args.include_e2)
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(text, encoding="utf-8")

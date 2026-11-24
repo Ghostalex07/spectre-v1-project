@@ -31,8 +31,9 @@ laterales en caché.
 
 **Pregunta de investigación:** ¿Cómo provocan la predicción de saltos y la
 ejecución especulativa una filtración de información observable a través de la
-caché, y qué eficacia y coste en rendimiento tienen las mitigaciones de Spectre
-V1 en distintos procesadores?
+caché, y qué **sobrecoste** tienen las mitigaciones de Spectre V1 en distintas
+microarquitecturas? La eficacia de seguridad se argumenta con el modelo, el
+ensamblador y la literatura; no se mide como experimento práctico principal.
 
 **Objetivo general:** explicar cómo la ejecución especulativa, un mecanismo de
 optimización legítimo, puede utilizarse para inferir información a través de la
@@ -47,8 +48,8 @@ caché, y medir el coste de las principales mitigaciones.
    reporta como anexo, no como condición del proyecto.
 3. Caracterizar experimentalmente la caché (E1) y evaluar el **sobrecoste** de
    LFENCE y del enmascarado de índices en distintas microarquitecturas (E3).
-   La eficacia de seguridad se discute a partir del modelo, la literatura y, si
-   existe, la validación opcional en hardware.
+   La eficacia de seguridad se argumenta a partir del modelo, el ensamblador y
+   la literatura; la validación opcional en hardware queda como anexo.
 
 **Alcance:** pipeline, ejecución fuera de orden, predicción de saltos,
 recuperación ante fallos, jerarquía de caché y diferencia entre estado
@@ -62,23 +63,26 @@ secreto de prueba, y las mitigaciones LFENCE y enmascarado de índices.
 - **E2 — mecanismo de explotación:** análisis documental (paper, PoC,
   ensamblador, línea temporal) y **simulación conceptual** con
   `analysis/simulate_spectre.py`. No depende de que una CPU concreta filtre.
-- **E3 — impacto de las mitigaciones:** experimentación principal. Ciclos por
-  iteración y sobrecoste de `baseline`, `lfence` y `mask` en cada
-  microarquitectura.
-- **E2 en hardware:** opcional. Si se ejecuta, se presenta como validación
-  adicional y se interpreta con sus límites; no se usa para afirmar que una
-  mitigación es universalmente infalible.
+- **E3 — impacto de las mitigaciones:** experimentación principal. Solo
+  **sobrecoste**: ciclos por iteración de `baseline`, `lfence` y `mask` en cada
+  microarquitectura. La eficacia se explica con el ensamblador y el modelo, no
+  con una tasa de recuperación.
+- **E2 en hardware:** opcional y fuera de los resultados principales. Si se
+  ejecuta, va en un anexo como observación limitada; no se usa para afirmar que
+  una mitigación es universalmente infalible ni para construir el scatter
+  principal de E3.
 
 **Fuera de alcance:** otras variantes de Spectre, Meltdown y ataques entre
 procesos o contra el kernel. Las mitigaciones hardware se mencionan solo como
 contexto.
 
 **Hipótesis:** LFENCE tendrá un sobrecoste mayor que el enmascarado de índices,
-con diferencias ligadas a la microarquitectura. El modelo conceptual y la
-literatura permiten anticipar que ambas mitigaciones bloquean la fuga en el
-caso base; la validación en hardware, si se hace, se reporta como evidencia
-limitada y no como prueba universal. Un resultado de “no observado” no demuestra
-imposibilidad.
+con diferencias ligadas a la microarquitectura. Esta es la hipótesis que se
+contrasta experimentalmente en E3. La eficacia de seguridad no se contrasta con
+una tasa de recuperación: se argumenta con el ensamblador (barrera o dependencia
+de datos), el modelo conceptual y la literatura. Un resultado de “no observado”
+no demuestra imposibilidad, y una mitigación barata no implica que sea gratuita
+en todos los contextos.
 
 ## 2. Entregables
 
@@ -248,8 +252,11 @@ Tareas:
 - [ ] Reportar ciclos absolutos y porcentaje relativo frente a la base.
 - [ ] Comparar 2–3 microarquitecturas; si solo hay una, aplicar el plan
   alternativo y declararlo como limitación.
-- [ ] (Opcional) Si se ejecutó E2 en hardware, cruzar su eficacia observada con
-  el sobrecoste, dejando claro que es evidencia limitada.
+- [ ] Justificar la eficacia con el ensamblador de cada variante: en `lfence`,
+  la barrera; en `mask`, la dependencia de datos que impide un índice fuera de
+  rango. No usar una tasa de recuperación como resultado principal de E3.
+- [ ] (Anexo opcional) Si se ejecutó E2 en hardware, comentar la observación sin
+  mezclarla con la conclusión de sobrecoste.
 
 **Verificación:** el sobrecoste es medible y comparable entre variantes y
 máquinas. No se afirma que una mitigación sea universalmente infalible: un
@@ -263,9 +270,9 @@ imposibilidad.
 - [ ] Generar figuras:
   - histogramas de E1;
   - sobrecoste de E3 por variante y máquina;
-  - comparación entre microarquitecturas;
+  - comparación de sobrecoste entre microarquitecturas;
   - simulación conceptual de E2;
-  - (opcional) eficacia de E2 en hardware.
+  - (anexo opcional) observación de E2 en hardware, separada de E3.
 - [ ] Calcular intervalos de confianza por bootstrap y cotas superiores para
   resultados `0/N`.
 - [ ] Discutir: ¿se cumple la hipótesis de coste? ¿LFENCE costó más que la
@@ -289,9 +296,10 @@ modelo y literatura.
 5. Metodología: equipos, controles, E1/E3 como experimentación principal, E2
    documental y modelo conceptual, métricas y validez.
 6. Resultados E1: caracterización de caché y umbrales por máquina.
-7. Resultados E2: análisis documental y simulación conceptual; validación
-   opcional en hardware como anexo.
-8. Resultados E3: sobrecoste de mitigaciones y comparación entre máquinas.
+7. Mecanismo E2: análisis documental y simulación conceptual; no es un
+   resultado experimental. La validación opcional en hardware va como anexo.
+8. Resultados E3: sobrecoste de mitigaciones y comparación entre máquinas; sin
+   tasa de recuperación como resultado principal.
 9. Discusión: hipótesis de coste, diferencias microarquitectónicas, límites de
    la evidencia y ausencia de comportamiento observable.
 10. Conclusiones y trabajo futuro.
@@ -326,21 +334,43 @@ respuestas preparadas para las preguntas previsibles.
 
 ## 5. Protocolo experimental
 
+### 5.1. Control del ruido
+
 - Ejecutar en Linux nativo. Evitar VM en los resultados principales; si no queda
   otra, documentarlo y excluirlo de la comparación.
 - Fijar el proceso a un núcleo físico con `taskset`; dejar el sibling SMT idle.
-- Gobernador `performance`; registrar frecuencia y si hay turbo.
-- Umbral calibrado por máquina con E1.
-- Número fijo de intentos para comparar variantes; la parada temprana se reporta
-  aparte.
-- Verificar el ensamblador de cada variante con `objdump -d`.
-- Repeticiones suficientes, mediana/p95 e intervalos de confianza; no concluir con
-  una sola ejecución.
-- Mismo código y flags en todas las máquinas; compilar localmente.
-- E1/E3 son la experimentación principal; E2 en hardware es opcional.
-- Separar evidencia empírica, modelo conceptual y literatura en la discusión.
+- Gobernador `performance`; registrar frecuencia, turbo y si se ha podido
+  desactivar. Si no se puede, queda documentado como factor de ruido.
+- Descartar las iteraciones de calentamiento antes de medir.
+- Aleatorizar o alternar el orden de las variantes (`baseline`, `lfence`,
+  `mask`) entre repeticiones para que la deriva térmica no favorezca siempre a
+  la misma.
+- No mezclar ejecuciones `-O0` con la campaña principal `-O2`.
+
+### 5.2. Estadística
+
+- Las latencias tienen colas largas por interrupciones y migraciones. Usar
+  **mediana, p5, p95 e IQR**; no usar media y desviación típica como métrica
+  principal.
+- Para el sobrecoste relativo, reportar mediana e **IC95 bootstrap**.
+- En E1, elegir el umbral en el valle del histograma entre los modos `hit` y
+  `miss`, y documentarlo por máquina. No copiar el 80 del PoC original.
+- Reportar el tamaño de muestra y no concluir con una sola ejecución.
 - Para `0/N`, reportar la cota superior y decir “no observado”, no “imposible”.
-- Documentar resultados negativos: una máquina sin fuga es un resultado.
+
+### 5.3. Reproducibilidad
+
+- Mismo código y flags en todas las máquinas; compilar localmente.
+- Publicar scripts, CSV crudos, flags, versión de GCC, kernel y microcódigo.
+- Guardar por equipo el contenido de
+  `/sys/devices/system/cpu/vulnerabilities/spectre_v1`, `lscpu` y la ficha de
+  CPU en `docs/machines.md`.
+- Verificar el ensamblador de cada variante con `objdump -d`.
+- E1/E3 son la experimentación principal; E2 en hardware es opcional y va en
+  anexo.
+- Separar evidencia empírica, modelo conceptual y literatura en la discusión.
+- Documentar resultados negativos: una máquina sin fuga es un resultado, no un
+  fallo que se oculta.
 
 ## 6. Esquema CSV
 
@@ -371,7 +401,8 @@ ensamblador, los intervalos de confianza ni la discusión de limitaciones.
 
 | Riesgo | Mitigación |
 |---|---|
-| Ninguna máquina filtra en E2 hardware | No es bloqueante: E2 se cubre con modelo y literatura; documentar el resultado |
+| Ninguna máquina filtra en E2 hardware | No es bloqueante ni forma parte de los resultados principales: E2 se cubre con modelo y literatura; si se ejecuta, va en anexo |
+| El sobrecoste cae dentro del ruido | Aumentar repeticiones, aleatorizar el orden, reportar IC bootstrap y no afirmar diferencias que no se distingan del ruido |
 | Solo hay una microarquitectura | Comparar configuraciones/compiladores y declarar la limitación; buscar una máquina prestada |
 | El compilador elimina la vulnerabilidad | `objdump -d`, `-O0` como control, `noinline`, `volatile` |
 | El enmascarado se optimiza a un salto | Usar dependencia de datos o `cmp`/`sbb` en ensamblador y verificar |

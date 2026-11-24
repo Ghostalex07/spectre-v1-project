@@ -42,7 +42,9 @@ Una idea por diapositiva, figuras grandes y una demo corta.
 
 ## Demo
 
-La demo de hardware es **opcional**. Si la tienes, debe durar menos de 2
+La demo de hardware es **opcional y anecdótica**. No es un resultado principal
+ni demuestra eficacia universal; sirve para visualizar el mecanismo. Si la
+tienes, debe durar menos de 2
 minutos:
 
 ```bash
@@ -109,16 +111,24 @@ la máscara solo transforma el índice y elimina el salto, así que el coste es
 mucho menor en este bucle. Los números exactos dependen de la microarquitectura.
 
 **¿La máscara elimina la fuga?**
-En nuestras medidas **no se observó** fuga: el índice fuera de rango se convierte
-en 0 y el acceso constante a `array1[0]` no revela el secreto. `guess=1` con
-`score1` alto es el acceso constante, no una fuga. Un `0/N` es una cota
-superior, no una prueba de imposibilidad.
+El argumento principal es de código: el índice fuera de rango se convierte en 0
+y el acceso constante a `array1[0]` no revela el secreto. Si se ejecutó E2 en
+hardware y no se observó fuga, es una observación de anexo, no una prueba
+universal. `guess=1` con `score1` alto es el acceso constante, no una fuga. Un
+`0/N` es una cota superior, no una prueba de imposibilidad.
 
 **¿Por qué la variante LFENCE no recupera nada?**
-En nuestras medidas no recuperó: la barrera impide que la carga posterior se
-ejecute especulativamente antes de que se resuelva la comprobación. Si en tu
-máquina recupera algo, revisa el ensamblador: puede que el compilador haya
-movido o eliminado la barrera. No generalices el resultado a todas las CPUs.
+El argumento principal es el ensamblador: la barrera impide que la carga
+posterior se ejecute especulativamente antes de que se resuelva la comprobación.
+Si en tu máquina recupera algo, revisa el ensamblador: puede que el compilador
+haya movido o eliminado la barrera. La observación de E2, si existe, va al
+anexo. No generalices el resultado a todas las CPUs.
+
+**¿Por qué en AMD LFENCE puede no serializar igual que en Intel?**
+En AMD, que LFENCE serialice el despacho depende de un bit de configuración que
+el sistema operativo activa por Spectre. Es un compromiso rendimiento/seguridad
+del diseño. Por eso se registra el estado de mitigaciones del equipo y no se
+generaliza el coste de una marca a otra.
 
 **¿Y si el compilador convierte el `if` en `cmov`?**
 Entonces la versión base puede dejar de filtrar. Compilamos con

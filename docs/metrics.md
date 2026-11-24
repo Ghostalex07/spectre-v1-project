@@ -36,7 +36,8 @@ romper”.
 Para cada máquina y modo (acceso caliente / acceso frío):
 
 - Tomar 10.000 muestras con `clflush` + `rdtscp`.
-- Reportar mediana, p5, p95 e histograma.
+- Reportar mediana, p5, p95, IQR e histograma. La media y la desviación típica
+  no son la métrica principal: las latencias tienen colas largas.
 - Elegir el umbral `T` en el valle entre los dos modos.
 - Comprobar la clasificación: `hit` si `latencia <= T`, `miss` si no.
 - Reportar aciertos y falsos positivos/negativos de la clasificación.

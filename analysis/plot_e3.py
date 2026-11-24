@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""E3: sobrecoste de las mitigaciones y scatter eficacia/sobrecoste."""
+"""E3: sobrecoste de las mitigaciones.
+
+El scatter eficacia/sobrecoste es opcional (`--with-efficacy`) y solo debe
+usarse como anexo si se ejecutó la validación E2 en hardware.
+"""
 
 from __future__ import annotations
 
@@ -52,17 +56,25 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--machine-id", required=True)
     parser.add_argument("--out-prefix", default="")
+    parser.add_argument(
+        "--with-efficacy",
+        action="store_true",
+        help="incluye el scatter eficacia/sobrecoste (solo anexo E2 opcional)",
+    )
     args = parser.parse_args()
 
     overhead = load_e3(args.machine_id)
-    efficacy = load_efficacy(args.machine_id)
+    efficacy = load_efficacy(args.machine_id) if args.with_efficacy else {}
     variants = sorted(overhead)
     baseline = median(overhead.get("baseline", []))
 
-    print(
+    header = (
         f"{'variant':10} {'n':>4} {'mediana':>10} {'IC95':>22} {'p5':>9} {'p95':>9} "
-        f"{'coste abs':>10} {'coste %':>9} {'slowdown':>9} {'eficacia':>9}"
+        f"{'coste abs':>10} {'coste %':>9} {'slowdown':>9}"
     )
+    if efficacy:
+        header += f" {'eficacia':>9}"
+    print(header)
     stats = {}
     for variant in variants:
         values = overhead[variant]
@@ -78,16 +90,19 @@ def main() -> None:
             "pct": 100 * (med - baseline) / baseline if baseline else float("nan"),
             "slowdown": med / baseline if baseline else float("nan"),
         }
-        eff = efficacy.get(variant)
-        eff_text = "n/a"
-        if eff and eff["total"]:
-            eff_text = fmt_pct(eff["successes"] / eff["total"])
-        print(
+        line = (
             f"{variant:10} {len(values):4d} {med:10.3f} [{low:8.3f}, {high:8.3f}] "
             f"{stats[variant]['p5']:9.3f} {stats[variant]['p95']:9.3f} "
             f"{stats[variant]['abs']:10.3f} {stats[variant]['pct']:8.1f}% "
-            f"{stats[variant]['slowdown']:9.2f} {eff_text:>9}"
+            f"{stats[variant]['slowdown']:9.2f}"
         )
+        if efficacy:
+            eff = efficacy.get(variant)
+            eff_text = "n/a"
+            if eff and eff["total"]:
+                eff_text = fmt_pct(eff["successes"] / eff["total"])
+            line += f" {eff_text:>9}"
+        print(line)
 
     plt = require_matplotlib()
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)

@@ -55,13 +55,20 @@ def sample_row(**overrides: str) -> dict[str, str]:
 
 class SummarizeResultsTest(unittest.TestCase):
     def test_renders_machine_and_metrics(self) -> None:
-        text = summarize_results.render_summary([sample_row()], "Resumen de prueba")
+        text = summarize_results.render_summary(
+            [sample_row()], "Resumen de prueba", include_e2=True
+        )
         self.assertIn("# Resumen de prueba", text)
         self.assertIn("`cpu_a`", text)
         self.assertIn("138", text)
         self.assertIn("1.000 [0.995, 1.000]", text)
         self.assertIn("+300.0%", text)
         self.assertIn("+1.3%", text)
+
+    def test_e2_is_omitted_by_default(self) -> None:
+        text = summarize_results.render_summary([sample_row()], "Resumen")
+        self.assertNotIn("## E2", text)
+        self.assertIn("## E3", text)
 
     def test_single_machine_warns_about_coverage(self) -> None:
         text = summarize_results.render_summary([sample_row()], "Resumen")

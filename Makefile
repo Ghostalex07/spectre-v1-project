@@ -19,7 +19,7 @@ E3_TARGETS := $(BIN)/e3_baseline $(BIN)/e3_lfence $(BIN)/e3_mask
 E2_O0_CFLAGS := -O0 -std=c11 -Wall -Wextra -Wno-unused-parameter -fno-if-conversion -fno-if-conversion2
 E2_O0_FLAGS_DEF := -DCOMPILE_FLAGS='"$(E2_O0_CFLAGS)"'
 
-.PHONY: all clean smoke test simulate summary
+.PHONY: all clean smoke test simulate summary summary-e2
 
 all: $(BIN)/e1_cache $(E2_TARGETS) $(E2_O0_TARGETS) $(E3_TARGETS)
 
@@ -73,3 +73,7 @@ simulate:
 summary:
 	python3 analysis/compare_machines.py
 	python3 analysis/summarize_results.py
+
+summary-e2:
+	python3 analysis/compare_machines.py --with-e2
+	python3 analysis/summarize_results.py --include-e2

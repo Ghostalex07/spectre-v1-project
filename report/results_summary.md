@@ -28,17 +28,6 @@ El umbral es el valle entre los dos modos de esta máquina. No se copia de
 otro equipo. El IC95 es el bootstrap de la mediana; p5–p95 queda en el CSV
 como medida de dispersión.
 
-## E2 — recuperación del secreto
-
-| máquina | baseline | LFENCE | máscara |
-|---|---:|---:|---:|
-| `ryzen5pro5675u` | 1.000 [0.912, 1.000] | 0.000 [0.000, 0.088] | 0.000 [0.000, 0.088] |
-| `ryzen5pro5675u_final` | 1.000 [0.998, 1.000] | 0.000 [0.000, 0.002] | 0.000 [0.000, 0.002] |
-
-Entre paréntesis se muestra la tasa y el IC95 de Wilson. Un `0/N` es una
-cota superior, no una prueba de imposibilidad. `unclear` y el margen
-primero/segundo están en el CSV para separar los fallos claros del ruido.
-
 ## E3 — sobrecoste
 
 | máquina | baseline (ciclos/iter) | LFENCE (ciclos/iter) | LFENCE coste | máscara (ciclos/iter) | máscara coste |
@@ -51,12 +40,14 @@ la misma máquina y los mismos flags. El IC95 se calcula por bootstrap.
 
 ## Lectura rápida
 
-- `ryzen5pro5675u`: baseline 100.0%, LFENCE 0.0%, máscara 0.0%; sobrecoste LFENCE +306.3%, máscara +10.7%.
-- `ryzen5pro5675u_final`: baseline 100.0%, LFENCE 0.0%, máscara 0.0%; sobrecoste LFENCE +300.6%, máscara +1.3%.
+- `ryzen5pro5675u`: sobrecoste LFENCE +306.3%, máscara +10.7%.
+- `ryzen5pro5675u_final`: sobrecoste LFENCE +300.6%, máscara +1.3%.
 
-Estas frases son descriptivas. La discusión de significancia, causas
-microarquitectónicas y resultados negativos va en el informe, con los
-intervalos y el tamaño de muestra delante.
+Estas frases son descriptivas. La eficacia de seguridad se argumenta con
+el ensamblador, el modelo y la literatura, no con una tasa de recuperación.
+La discusión de significancia, causas microarquitectónicas y resultados
+negativos va en el informe, con los intervalos y el tamaño de muestra
+delante.
 
 ## Reproducir
 

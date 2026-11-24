@@ -2,7 +2,7 @@
 # Campaña completa en una máquina: entorno, E1, E2 opcional y E3.
 # Uso: THRESHOLD=80 RUN_E2=0 ./scripts/run_all.sh <machine_id> [threshold]
 # Variables: RUN_E2=0|1 (por defecto 0), ATTEMPTS, TRAIN, RUNS, BYTES,
-# ITERATIONS, REPS, RUN_O0=1, PIN_CPU.
+# ITERATIONS, REPS, RUN_O0=1, PIN_CPU, E3_ORDER=random|fixed.
 #
 # Foco experimental: E1 y E3 son obligatorios. E2 en hardware es opcional;
 # el mecanismo se cubre con análisis documental y simulación conceptual.
@@ -33,7 +33,15 @@ else
   echo "[run_all] E2 hardware omitido (RUN_E2=0; opcional)."
 fi
 
-for variant in baseline lfence mask; do
+E3_VARIANTS=(baseline lfence mask)
+if [ "${E3_ORDER:-random}" = "random" ] && command -v shuf >/dev/null 2>&1; then
+  mapfile -t E3_VARIANTS < <(printf '%s\n' "${E3_VARIANTS[@]}" | shuf)
+fi
+ORDER_FILE="$(machine_dir "$MACHINE_ID")/e3_order_${MACHINE_ID}.txt"
+printf '%s\n' "${E3_VARIANTS[@]}" > "$ORDER_FILE"
+echo "[run_all] orden E3: ${E3_VARIANTS[*]} (registrado en $ORDER_FILE)"
+
+for variant in "${E3_VARIANTS[@]}"; do
   "$ROOT/scripts/run_e3.sh" "$MACHINE_ID" "$variant"
 done
 
