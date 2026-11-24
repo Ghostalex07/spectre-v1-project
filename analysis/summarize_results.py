@@ -69,7 +69,7 @@ def _cpu_label(row: dict[str, str]) -> str:
 
 
 def render_summary(
-    rows: list[dict[str, str]], title: str, include_e2: bool = False
+    rows: list[dict[str, str]], title: str, include_e2_hardware: bool = False
 ) -> str:
     lines = [
         f"# {title}",
@@ -147,7 +147,7 @@ def render_summary(
         "como medida de dispersión.",
         "",
     ]
-    if include_e2:
+    if include_e2_hardware:
         lines += [
             "## E2 — recuperación del secreto (anexo opcional)",
             "",
@@ -195,7 +195,7 @@ def render_summary(
     for row in rows:
         lfence_pct = _num(row, "e3_lfence_pct")
         mask_pct = _num(row, "e3_mask_pct")
-        if include_e2:
+        if include_e2_hardware:
             base = _num(row, "e2_baseline_rate")
             lfence = _num(row, "e2_lfence_rate")
             mask = _num(row, "e2_mask_rate")
@@ -253,7 +253,8 @@ def main() -> None:
         help="Título del documento",
     )
     parser.add_argument(
-        "--include-e2",
+        "--include-e2-hardware",
+        dest="include_e2_hardware",
         action="store_true",
         help="incluye la tabla E2 de anexo opcional (no es resultado principal)",
     )
@@ -268,7 +269,7 @@ def main() -> None:
     if not rows:
         raise SystemExit(f"{compare_path} no tiene filas")
 
-    text = render_summary(rows, args.title, include_e2=args.include_e2)
+    text = render_summary(rows, args.title, include_e2_hardware=args.include_e2_hardware)
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(text, encoding="utf-8")

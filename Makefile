@@ -76,4 +76,4 @@ summary:
 
 summary-e2:
 	python3 analysis/compare_machines.py --with-e2
-	python3 analysis/summarize_results.py --include-e2
+	python3 analysis/summarize_results.py --include-e2-hardware

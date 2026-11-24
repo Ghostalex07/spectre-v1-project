@@ -32,8 +32,8 @@ como anexo.
    observable.
 10. **Conclusiones y trabajo futuro** (1–2 páginas).
 11. **Referencias**.
-12. **Anexos**: código, datos crudos, fichas de equipos, comandos y validación
-    opcional de E2 en hardware.
+12. **Anexos**: código, datos crudos, fichas de equipos y comandos. El posible
+    anexo de la PoC E2 en hardware queda pendiente de confirmar con el profesor.
 
 ## Figuras y tablas mínimas
 
@@ -47,11 +47,10 @@ como anexo.
 | Tabla E3 | Mediana/p95 de ciclos, sobrecoste absoluto/porcentual | `analysis/plot_e3.py` |
 | Figura E3 | Sobrecoste por variante | `analysis/plot_e3.py` |
 | Figura E3 | Comparación entre máquinas | `analysis/compare_machines.py` |
-| Anexo E2 | Recuperación opcional en hardware, con IC y `unclear` | `analysis/plot_e2.py` |
 
-No inventes una figura “bonita” que no salga de los CSV o del modelo. Si una
-máquina no filtra en E2, inclúyela en el anexo y explica qué se observó y qué no
-se puede concluir.
+No inventes una figura “bonita” que no salga de los CSV o del modelo. La PoC E2
+en hardware no forma parte de los resultados; su inclusión como anexo está
+pendiente de confirmación con el profesor (ver [`e2-anexo.md`](e2-anexo.md)).
 
 ## Metodología: qué debe quedar claro
 
@@ -80,10 +79,9 @@ se puede concluir.
 - Empieza por E1: “la caché muestra dos modos separados; el umbral elegido es
   T para esta máquina”.
 - Sigue por E3: “LFENCE cuesta X % más; la máscara, Y %”.
-- Presenta E2 como mecanismo: línea temporal, modelo y límites. Si hay hardware,
-  va al anexo: “la versión base recuperó 40/40; LFENCE y máscara, 0/40”.
-- Da la incertidumbre: “40/40, IC 95 % [91,2 %, 100 %]” no es lo mismo que
-  “100 %”.
+- Presenta E2 como mecanismo: línea temporal, modelo y límites. La PoC en
+  hardware no es un resultado; no la uses para afirmar eficacia.
+- Da la incertidumbre: “N/N, IC 95 % [a, b]” no es lo mismo que “100 %”.
 - Separa eficacia de coste: una mitigación puede ser eficaz y cara; otra puede
   ser barata y no serlo.
 - Explica los casos raros: `guess=1` en máscara es el acceso constante a
@@ -103,7 +101,7 @@ se puede concluir.
 - ¿Qué genera `-mspeculative-load-hardening` de Clang frente al enmascarado
   manual inspirado en `array_index_nospec`?
 - ¿Qué explica el modelo y qué no puede explicar?
-- ¿Hubo máquinas sin fuga en E2? ¿Qué se puede y qué no se puede concluir?
+- ¿Se incluye finalmente el anexo E2 en hardware o se deja fuera?
 - ¿Qué limitaciones tiene el experimento? (mismo proceso, secreto sintético,
   umbral por máquina, ruido, VM, número de equipos, modelo simplificado). La
   lista cerrada está en [`docs/limitations.md`](limitations.md).
@@ -140,16 +138,13 @@ make
 make smoke
 make test
 
-RUN_E2=0 ./scripts/run_all.sh <machine_id> <threshold>
+./scripts/run_all.sh <machine_id> <threshold>
 
 python3 analysis/plot_e1.py --machine-id <machine_id>
 python3 analysis/plot_e3.py --machine-id <machine_id>
 python3 analysis/simulate_spectre.py --attempts 200 --train 5 \
   --out data/simulation/spectre_model.csv \
   --figure figures/simulation_spectre.png
-
-# Opcional: E2 en hardware
-python3 analysis/plot_e2.py --machine-id <machine_id>
 ```
 
 Las tablas de los scripts se pueden copiar al informe, pero revisa que las

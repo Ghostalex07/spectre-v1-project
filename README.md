@@ -10,8 +10,8 @@ a través de la caché y medir el **coste en rendimiento** de **LFENCE** y del
 El enfoque experimental, revisado tras el feedback del profesor, es:
 
 - **E1:** caracterización de la caché (experimento principal).
-- **E2:** análisis documental + simulación conceptual; la PoC en hardware es
-  **opcional** y va como anexo.
+- **E2:** análisis documental + modelo conceptual
+  (`analysis/simulate_spectre.py`). No es un experimento práctico.
 - **E3:** impacto de las mitigaciones en rendimiento (experimento principal).
 
 ## Cómo empezar
@@ -33,7 +33,7 @@ Elige el umbral en el valle del histograma, anótalo en
 [`docs/thresholds.md`](docs/thresholds.md) y ejecuta la campaña:
 
 ```bash
-THRESHOLD=<T> RUN_E2=0 ./scripts/run_all.sh <machine_id> <T>
+THRESHOLD=<T> ./scripts/run_all.sh <machine_id> <T>
 ```
 
 El manual completo, con todos los comandos y la interpretación de cada
@@ -56,6 +56,7 @@ python3 analysis/simulate_spectre.py --attempts 200 --train 5 \
 | [`docs/campaign.md`](docs/campaign.md) | Campaña final por máquina: qué hace cada integrante |
 | [`docs/manual.md`](docs/manual.md) | Manual completo del harness |
 | [`docs/simulation.md`](docs/simulation.md) | Modelo conceptual de E2 y sus límites |
+| [`docs/e2-anexo.md`](docs/e2-anexo.md) | Estado de la PoC de E2 como posible anexo |
 | [`docs/metrics.md`](docs/metrics.md) | Métricas, IC y esquemas CSV |
 | [`docs/thresholds.md`](docs/thresholds.md) | Umbral de cada máquina |
 | [`docs/machines.md`](docs/machines.md) | Ficha de cada equipo |
@@ -118,12 +119,13 @@ spectre-v1-project/
 
 - [x] Propuesta definida.
 - [x] Repositorio y documentación de colaboración.
-- [x] Harness E1/E2/E3 compilable y con `make smoke`.
-- [x] E1/E2/E3 validados en el Ryzen 5 PRO 5675U de referencia.
+- [x] Harness E1/E3 compilable y con `make smoke`.
+- [x] E1/E3 validados en el Ryzen 5 PRO 5675U de referencia.
 - [x] Modelo conceptual de E2 (`analysis/simulate_spectre.py`).
 - [x] Enfoque reorientado: E1/E3 empíricos; E2 documental y simulación.
 - [x] Resumen de resultados con IC bootstrap (`make summary`).
-- [ ] Campaña multi-máquina de E1/E3.
+- [ ] Campaña multi-máquina de E1 jerárquico y del barrido de E3.
+- [ ] Confirmar con el profesor el anexo de E2.
 - [ ] Informe y defensa final.
 
 La campaña de referencia del Ryzen está en `data/ryzen5pro5675u/` y es una
@@ -143,9 +145,10 @@ lfence:  13.52 ciclos/iteración  (~4.06x, +306 %)
 mask:     3.68 ciclos/iteración  (~1.11x, +10.7 %)
 ```
 
-### E2: modelo conceptual y validación opcional
+### E2: modelo conceptual
 
-El modelo conceptual recupera el secreto en `baseline` y no en `lfence`/`mask`:
+El modelo conceptual recupera el secreto en `baseline` y no en `lfence`/`mask`.
+Son resultados **del modelo**, no medidas de hardware:
 
 ```text
 baseline  40/40 bytes correctos (modelo)
@@ -153,20 +156,13 @@ lfence    0/40 bytes correctos (modelo)
 mask      0/40 bytes correctos (modelo)
 ```
 
-La validación **opcional** en el Ryzen, con umbral 80, 300 intentos,
-`train=5`, 1 run y 40 bytes:
+La PoC en hardware del periodo de validación no forma parte de la
+experimentación. Su posible inclusión como anexo está pendiente de confirmar con
+el profesor: [`docs/e2-anexo.md`](docs/e2-anexo.md).
+
+La campaña final de la misma microarquitectura usa 10M/30 en E3:
 
 ```text
-baseline: 40/40 bytes correctos
-lfence:    0/40
-mask:      0/40
-```
-
-Son valores orientativos de validación. La campaña final de esa misma máquina
-está en `data/ryzen5pro5675u_final/` y usa 1000 intentos, 50 runs y 10M/30:
-
-```text
-E2: baseline 2000/2000; lfence 0/2000; mask 0/2000
 E3: baseline 3.34; lfence 13.40 (~4.01x, +300.6 %); mask 3.39 (~1.01x, +1.3 %)
 ```
 

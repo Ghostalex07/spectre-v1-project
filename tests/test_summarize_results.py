@@ -56,7 +56,7 @@ def sample_row(**overrides: str) -> dict[str, str]:
 class SummarizeResultsTest(unittest.TestCase):
     def test_renders_machine_and_metrics(self) -> None:
         text = summarize_results.render_summary(
-            [sample_row()], "Resumen de prueba", include_e2=True
+            [sample_row()], "Resumen de prueba", include_e2_hardware=True
         )
         self.assertIn("# Resumen de prueba", text)
         self.assertIn("`cpu_a`", text)

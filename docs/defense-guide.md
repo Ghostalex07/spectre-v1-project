@@ -2,7 +2,8 @@
 
 Objetivo: explicar el mecanismo, mostrar la caracterización de caché y comparar
 el sobrecoste de las mitigaciones **sin leer el informe**. E2 se explica con
-análisis documental y simulación conceptual; la demo de hardware es opcional.
+análisis documental y simulación conceptual. La demo se apoya en E1, E3 y el
+modelo conceptual; la PoC de hardware no forma parte de la experimentación.
 Una idea por diapositiva, figuras grandes y una demo corta.
 
 ## Formato
@@ -42,49 +43,31 @@ Una idea por diapositiva, figuras grandes y una demo corta.
 
 ## Demo
 
-La demo de hardware es **opcional y anecdótica**. No es un resultado principal
-ni demuestra eficacia universal; sirve para visualizar el mecanismo. Si la
-tienes, debe durar menos de 2
-minutos:
+La demo se apoya en E1, E3 y el modelo conceptual. **No necesita ejecutar la
+PoC de hardware**: esa pieza queda fuera de la experimentación y su posible
+anexo está pendiente de confirmar con el profesor (ver
+[`e2-anexo.md`](e2-anexo.md)).
 
-```bash
-make
-THRESHOLD=<T> ./scripts/demo.sh <machine_id> 40
-```
-
-Salida esperada (Ryzen de referencia, threshold 80):
-
-```text
-== baseline ==
-  recuperado: 'Spectre V1 test secret 0123456789ABCDEF!'
-  aciertos:   40/40
-== lfence ==
-  recuperado: '...'
-  aciertos:   0/40
-== mask ==
-  recuperado: '...'
-  aciertos:   0/40
-```
-
-Si la máquina de la defensa no filtra, no improvises: explica que E2 en
-hardware es opcional y usa la simulación conceptual. Si tienes vídeo de
-respaldo, úsalo. Lleva también los CSV y las figuras en local.
+Lleva las figuras y los CSV en local por si falla la máquina de la defensa.
 
 ### Guion de la demo
 
-1. “Esta es la versión base; el programa solo debería poder leer 16 bytes.”
-2. Ejecuta baseline y muestra el secreto.
-3. “Esta es la misma función con LFENCE; el procesador ya no ejecuta el acceso
-   fuera de rango.”
-4. Ejecuta lfence y muestra 0/40.
-5. “Esta es la máscara; el índice fuera de rango se convierte en 0.”
-6. Ejecuta mask y muestra 0/40.
-7. “En esta máquina no se observó fuga con LFENCE ni con máscara, pero LFENCE
-   cuesta ~4× y la máscara ~1×.”
+1. **E1 — caracterización de caché.** Abre el histograma hit/miss y señala los
+   dos modos y el umbral elegido en el valle. Explica que el umbral es de esta
+   máquina y que el coste del temporizador está incluido en la medida.
+2. **E1 jerárquico, si hay datos.** Muestra la curva de latencia frente al
+   tamaño del conjunto de trabajo y los escalones de L1d, L2, L3 y memoria.
+3. **E3 — sobrecoste.** Muestra la figura de sobrecoste por variante y explica
+   que es una cota en un bucle microarquitectónico concreto, no el coste en una
+   aplicación real.
+4. **E2 — modelo conceptual.** Ejecuta o muestra
+   `analysis/simulate_spectre.py` y explica la lógica: el estado arquitectónico
+   se restaura, pero la huella en caché persiste; LFENCE y el enmascarado
+   cortan esa huella. Deja claro que el modelo no mide eficacia ni magnitud en
+   hardware real.
 
-No digas “la máscara es gratis” con una sola medida. Di “en esta máquina y con
-este bucle, el sobrecoste es aproximadamente el 1–2 %”. No presentes un `0/40`
-como prueba universal de seguridad.
+No presentes el modelo como una medición de hardware ni generalices el
+sobrecoste de un bucle a todas las aplicaciones.
 
 ## Preguntas previsibles
 
