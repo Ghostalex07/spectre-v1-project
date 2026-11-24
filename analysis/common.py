@@ -451,3 +451,36 @@ def fmt_pct(value: float, digits: int = 1) -> str:
 
 def fmt_num(value: float, digits: int = 2) -> str:
     return "n/a" if math.isnan(value) else f"{value:.{digits}f}"
+
+
+def iqr(values: Iterable[float]) -> float:
+    """Rango intercuartílico (Q3 - Q1)."""
+    values = list(values)
+    if not values:
+        return float("nan")
+    return percentile(values, 75) - percentile(values, 25)
+
+
+def median_ratio_ci(
+    numerator: Iterable[float],
+    denominator: Iterable[float],
+    n_boot: int = 10_000,
+    seed: int = 12345,
+    alpha: float = 0.05,
+) -> tuple[float, float, float]:
+    """IC bootstrap del cociente de medianas de dos muestras independientes."""
+    num = list(numerator)
+    den = list(denominator)
+    if not num or not den:
+        return float("nan"), float("nan"), float("nan")
+    observed = statistics.median(num) / statistics.median(den)
+    rng = random.Random(seed)
+    stats = []
+    for _ in range(n_boot):
+        sample_num = [num[rng.randrange(len(num))] for _ in range(len(num))]
+        sample_den = [den[rng.randrange(len(den))] for _ in range(len(den))]
+        stats.append(statistics.median(sample_num) / statistics.median(sample_den))
+    stats.sort()
+    low = stats[int((alpha / 2) * n_boot)]
+    high = stats[int((1 - alpha / 2) * n_boot) - 1]
+    return observed, low, high

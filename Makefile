@@ -21,7 +21,7 @@ ASM_DIR := docs/asm
 E2_O0_CFLAGS := -O0 -std=c11 -Wall -Wextra -Wno-unused-parameter -fno-if-conversion -fno-if-conversion2
 E2_O0_FLAGS_DEF := -DCOMPILE_FLAGS='"$(E2_O0_CFLAGS)"'
 
-.PHONY: all clean smoke test asm simulate summary summary-e2 print-cflags
+.PHONY: all clean smoke test asm simulate summary summary-e2 figures validate print-cflags
 
 all: $(BIN)/e1_cache $(BIN)/e1_hierarchy $(BIN)/e1_timer \
 	$(E2_TARGETS) $(E2_O0_TARGETS) $(E3_TARGETS) $(E3_SWEEP_TARGET)
@@ -103,3 +103,9 @@ summary:
 summary-e2:
 	python3 analysis/compare_machines.py --with-e2
 	python3 analysis/summarize_results.py --include-e2-hardware
+
+figures:
+	python3 analysis/regenerate.py
+
+validate:
+	python3 analysis/validate_data.py
