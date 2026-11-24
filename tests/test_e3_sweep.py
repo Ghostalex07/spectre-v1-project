@@ -77,6 +77,16 @@ class CsvDetectionTest(unittest.TestCase):
         self.assertTrue(common.is_e3_sweep_csv(self.sweep_path))
         self.assertFalse(common.is_e3_legacy_csv(self.sweep_path))
 
+    def test_load_sweep_accepts_explicit_path(self) -> None:
+        write_csv(
+            self.sweep_path,
+            list(common.E3_SWEEP_COLUMNS),
+            [sweep_row("baseline", 0, 0, 3.0)],
+        )
+        rows = sweep.load_sweep(self.machine, path=self.sweep_path)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["variant"], "baseline")
+
     def test_old_e3_csv_is_detected_and_not_parsed_as_sweep(self) -> None:
         old_path = self.data / self.machine / f"e3_{self.machine}_baseline.csv"
         write_csv(

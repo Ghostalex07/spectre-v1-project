@@ -55,12 +55,19 @@ TABLE_FIELDS = [
 ]
 
 
-def load_sweep(machine_id: str, session_id: str | None = None) -> list[dict[str, str]]:
+def load_sweep(
+    machine_id: str, session_id: str | None = None, path: Path | None = None
+) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
-    for path in e3_sweep_paths(machine_id, session_id=session_id):
-        if not is_e3_sweep_csv(path):
+    paths = (
+        [Path(path)]
+        if path is not None
+        else e3_sweep_paths(machine_id, session_id=session_id)
+    )
+    for csv_path in paths:
+        if not is_e3_sweep_csv(csv_path):
             continue
-        rows.extend(read_rows(path))
+        rows.extend(read_rows(csv_path))
     return rows
 
 
