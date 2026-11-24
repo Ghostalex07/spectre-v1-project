@@ -104,7 +104,9 @@ def bootstrap_ci(
     n = len(values)
     stats = []
     for _ in range(n_boot):
-        sample = [values[rng.randrange(n)] for _ in range(n)]
+        # `choices` remuestrea con reemplazo en C; equivalente al bucle
+        # `values[rng.randrange(n)]`, pero mucho más rápido con n grande.
+        sample = rng.choices(values, k=n)
         stats.append(statistic(sample))
     stats.sort()
     lower = stats[int((alpha / 2) * n_boot)]
