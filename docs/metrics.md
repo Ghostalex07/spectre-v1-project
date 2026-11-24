@@ -49,6 +49,65 @@ valle.
 
 El resultado se guarda en [`docs/thresholds.md`](thresholds.md).
 
+## E1 jerárquico — mesetas de la jerarquía de caché
+
+E1 jerárquico mide la latencia de **pointer chasing** frente al tamaño del
+working set. No sustituye a la calibración hit/miss: la complementa para ver
+dónde aparecen las mesetas de L1d, L2, L3 y memoria.
+
+Protocolo:
+
+- Buffer alineado a 64 B con nodos de una línea; cada nodo guarda el puntero al
+  siguiente.
+- Permutación **Sattolo**, que produce un único ciclo: se recorre todo el
+  working set sin repeticiones y sin que el prefetch encuentre un patrón
+  trivial. La semilla se guarda en el CSV.
+- Calentamiento completo del ciclo antes de cada medida.
+- `hops` cargas dependientes por repetición y `reps` repeticiones por tamaño.
+- Medida con `lfence` + `rdtscp` + `lfence`, la misma secuencia de barreras que
+  E1 de calibración.
+- Barrido por defecto: 4 KiB–256 MiB con puntos `2^k` y `1,5·2^k`.
+- `cycles_per_load = total_cycles / hops`.
+- `madvise(MADV_HUGEPAGE)` es opcional y se registra en la columna `hugepage`;
+  no requiere privilegios y no se fuerza si el sistema no lo admite.
+
+Para cada tamaño se reporta mediana, p5, p95, IQR e IC95 bootstrap de la
+mediana. La figura usa eje X logarítmico y bandas p5–p95 e IQR.
+
+### Criterio de mesetas
+
+Las capacidades se toman de la ficha `env_<machine_id>.txt`. `lscpu` da el total
+de instancias de L1d y L2; para un hilo se usa la capacidad **por instancia**.
+L3 se usa como capacidad total (habitualmente compartida).
+
+```text
+meseta L1d/L2/L3 = tamaños en [0,25·C, 0,75·C]
+meseta memoria   = tamaños >= 2·L3  (o el mayor medido si no hay L3)
+```
+
+El rango 25 %–75 % evita los extremos: por debajo del 25 % caben efectos de
+línea y del propio temporizador; por encima del 75 % empiezan las colisiones de
+conjunto y la transición al siguiente nivel. Si un nivel no tiene puntos en la
+ventana, se marca `sin-muestras`; si falta la ficha, `sin-ficha`. Nunca se
+rellena una cifra que los datos no contengan.
+
+La tabla de mesetas se exporta a
+`data/derived/e1_hierarchy_plateaus.csv` y
+`report/e1_hierarchy_plateaus.md`, con IC bootstrap de la mediana.
+
+## Coste del temporizador
+
+`src/e1_timer.c` mide el **intervalo vacío** entre dos `rdtscp` con las mismas
+barreras que E1 jerárquico, pero sin la carga dependiente intermedia. Sirve para
+saber cuánto del coste de un acceso pequeño es del montaje de medida.
+
+- Cientos de miles de muestras configurables y varias repeticiones.
+- Se publica como distribución aparte (histograma, mediana, p5, p95).
+- **No se resta** de `hit`, `miss` ni de `cycles_per_load`. Restarlo
+  silenciosamente introduciría un sesgo que el lector no puede auditar.
+- En la interpretación se compara con la meseta de L1d: si el temporizador pesa
+  mucho, las diferencias de pocos ciclos no son concluyentes.
+
 ## E2 — recuperación del secreto (modelo y validación opcional)
 
 El mecanismo se explica con `analysis/simulate_spectre.py`. Si además se ejecuta
@@ -167,6 +226,35 @@ machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,mode,sample,cycl
 - `mode`: `hit` o `miss`.
 - `sample`: índice de muestra.
 - `cycles`: latencia medida con `rdtscp`.
+
+### E1 jerárquico
+
+```text
+machine_id,session_id,timestamp,working_set_bytes,node_size_bytes,hops,repetition,total_cycles,cycles_per_load,seed,cpu_pinned,hugepage
+```
+
+- `session_id`: sesión de medida (`data/<machine_id>/<session_id>/`).
+- `timestamp`: instante UTC de la ejecución.
+- `working_set_bytes`: tamaño del buffer recorrido.
+- `node_size_bytes`: tamaño de nodo; 64 B por defecto (una línea).
+- `hops`: cargas dependientes medidas en esa repetición.
+- `repetition`: índice de repetición (0..reps-1).
+- `total_cycles`: ciclos totales del recorrido.
+- `cycles_per_load`: `total_cycles / hops`.
+- `seed`: semilla de la permutación Sattolo.
+- `cpu_pinned`: CPU observada con `sched_getcpu()`, o `-1` si no se pudo leer.
+- `hugepage`: `none`, `madvise` o `madvise-failed`.
+
+### E1 coste del temporizador
+
+```text
+machine_id,session_id,timestamp,repetition,sample,cpu_pinned,cycles
+```
+
+- `repetition`: índice de repetición.
+- `sample`: índice de intervalo dentro de la repetición.
+- `cycles`: ciclos del intervalo vacío `lfence;rdtscp;lfence;rdtscp`.
+- No se usa para restar; se analiza como distribución independiente.
 
 ### E2 (opcional) y eficacia de E3
 

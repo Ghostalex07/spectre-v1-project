@@ -10,8 +10,14 @@ MACHINE_ID="${1:-}"
 
 SAMPLES="${2:-10000}"
 BUFFER_MB="${3:-64}"
-OUT_DIR="${4:-$(machine_dir "$MACHINE_ID")}"
-ensure_machine_dir "$MACHINE_ID"
+if [ -n "${4:-}" ]; then
+  OUT_DIR="$4"
+elif [ -n "${SESSION_ID:-}" ]; then
+  OUT_DIR="$(data_out_dir "$MACHINE_ID")"
+else
+  OUT_DIR="$(machine_dir "$MACHINE_ID")"
+fi
+mkdir -p "$OUT_DIR"
 OUT="$OUT_DIR/e1_${MACHINE_ID}.csv"
 
 need_cmd make

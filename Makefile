@@ -19,15 +19,25 @@ E3_TARGETS := $(BIN)/e3_baseline $(BIN)/e3_lfence $(BIN)/e3_mask
 E2_O0_CFLAGS := -O0 -std=c11 -Wall -Wextra -Wno-unused-parameter -fno-if-conversion -fno-if-conversion2
 E2_O0_FLAGS_DEF := -DCOMPILE_FLAGS='"$(E2_O0_CFLAGS)"'
 
-.PHONY: all clean smoke test simulate summary summary-e2
+.PHONY: all clean smoke test simulate summary summary-e2 print-cflags
 
-all: $(BIN)/e1_cache $(E2_TARGETS) $(E2_O0_TARGETS) $(E3_TARGETS)
+all: $(BIN)/e1_cache $(BIN)/e1_hierarchy $(BIN)/e1_timer \
+	$(E2_TARGETS) $(E2_O0_TARGETS) $(E3_TARGETS)
 
 $(BIN):
 	mkdir -p $(BIN)
 
 $(BIN)/e1_cache: src/e1_cache.c src/common.h | $(BIN)
 	$(CC) $(CFLAGS) $(FLAGS_DEF) -o $@ src/e1_cache.c $(LDFLAGS)
+
+$(BIN)/e1_hierarchy: src/e1_hierarchy.c src/common.h | $(BIN)
+	$(CC) $(CFLAGS) $(FLAGS_DEF) -o $@ src/e1_hierarchy.c $(LDFLAGS)
+
+$(BIN)/e1_timer: src/e1_timer.c src/common.h | $(BIN)
+	$(CC) $(CFLAGS) $(FLAGS_DEF) -o $@ src/e1_timer.c $(LDFLAGS)
+
+print-cflags:
+	@echo '$(CFLAGS)'
 
 $(BIN)/e2_baseline: src/e2_spectre.c src/spectre.h src/common.h | $(BIN)
 	$(CC) $(E2_CFLAGS) $(FLAGS_DEF) -DVARIANT_BASELINE -o $@ src/e2_spectre.c $(LDFLAGS)
@@ -62,7 +72,7 @@ clean:
 smoke: all
 	./scripts/smoke.sh
 
-test:
+test: all
 	python3 -m unittest discover -s tests -v
 
 simulate:

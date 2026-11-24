@@ -45,7 +45,14 @@ Elige un `machine_id` corto, en minúsculas y sin espacios. Ejemplos:
 ./scripts/collect_env.sh <machine_id>
 ```
 
-Esto guarda `data/<machine_id>/env_<machine_id>.txt`.
+Esto guarda `data/<machine_id>/env_<machine_id>.txt`. Para una campaña con
+sesiones, define `SESSION_ID`:
+
+```bash
+SESSION_ID=$(date -u +%Y%m%dT%H%M%SZ) ./scripts/collect_env.sh <machine_id>
+# ficha en data/<machine_id>/<SESSION_ID>/env_<machine_id>.txt
+export SESSION_ID
+```
 
 Rellena tu fila en [`machines.md`](machines.md) con:
 
@@ -77,6 +84,42 @@ Añade tu fila a [`thresholds.md`](thresholds.md):
 No sigas si `hit` y `miss` se solapan completamente: mira
 [`troubleshooting.md`](troubleshooting.md).
 
+### Caracteriza la jerarquía con E1 jerárquico
+
+La calibración anterior solo dice dónde separar hit/miss. E1 jerárquico mide
+pointer chasing para localizar las mesetas de L1d, L2, L3 y memoria:
+
+```bash
+./scripts/run_e1_hierarchy.sh <machine_id>
+python3 analysis/plot_e1_hierarchy.py --machine-id <machine_id>
+```
+
+Por defecto barre 4 KiB–256 MiB con puntos `2^k` y `1,5·2^k`, 1.000.000 de
+hops y 30 repeticiones. La semilla de Sattolo y el estado de
+`MADV_HUGEPAGE` quedan en el CSV. Genera:
+
+- `figures/e1_hierarchy_<machine_id>.png` con mediana, bandas p5–p95 e IQR y
+  líneas L1d/L2/L3 tomadas de la ficha de entorno;
+- `data/derived/e1_hierarchy_plateaus.csv` y
+  `report/e1_hierarchy_plateaus.md` con las mesetas y su IC bootstrap.
+
+Criterio de meseta: tamaños en [25 %, 75 %] de la capacidad de cada nivel;
+memoria es todo tamaño >= 2·L3. Si falta la ficha o no hay puntos en la ventana,
+la tabla lo marca como `sin-ficha` o `sin-muestras`; no se inventan cifras.
+
+### Mide el coste del temporizador
+
+```bash
+./scripts/run_e1_timer.sh <machine_id>
+python3 analysis/plot_e1.py --machine-id <machine_id>
+```
+
+Guarda `e1_timer_<machine_id>.csv` con la distribución del intervalo vacío
+`lfence;rdtscp;lfence;rdtscp`. `plot_e1.py` añade
+`figures/e1_<machine_id>_timer.png` si encuentra ese CSV. **No se resta** de
+las latencias: sirve para juzgar si las diferencias de pocos ciclos son
+concluyentes.
+
 ## 3. Lanza la campaña principal (E1 + E3)
 
 ```bash
@@ -89,7 +132,11 @@ configuración del sistema.
 
 `run_all.sh` usa el protocolo final por defecto:
 
-- E1: 10.000 muestras por modo, buffer de 64 MiB.
+- Entorno: `collect_env.sh` con la sesión (`SESSION_ID`) en
+  `data/<machine_id>/<session_id>/`.
+- E1 calibración: 10.000 muestras por modo, buffer de 64 MiB.
+- E1 jerárquico: barrido 4 KiB–256 MiB, 30 repeticiones.
+- E1 temporizador: 100.000 muestras × 3 repeticiones.
 - E2: **omitido** con `RUN_E2=0`; es opcional.
 - E3: 10M iteraciones, 30 repeticiones.
 - Variantes: `baseline`, `lfence` y `mask`.
@@ -99,7 +146,14 @@ configuración del sistema.
 - Warm-up: el binario de E3 ejecuta 1.000 llamadas de calentamiento antes de
   medir; no se incluyen en los ciclos.
 
-Los CSV quedan en `data/<machine_id>/`.
+Los CSV de E1 quedan en `data/<machine_id>/<session_id>/`; los de E3 siguen en
+`data/<machine_id>/`. Si quieres un ensayo corto:
+
+```bash
+PROFILE=smoke THRESHOLD=<T> RUN_E2=0 ./scripts/run_all.sh <machine_id> <T>
+```
+
+No presentes el perfil smoke como campaña final.
 
 ### Validación opcional de E2 en hardware
 
@@ -144,6 +198,7 @@ Obligatorias (E1 y E3):
 
 ```bash
 python3 analysis/plot_e1.py --machine-id <machine_id>
+python3 analysis/plot_e1_hierarchy.py --machine-id <machine_id>
 python3 analysis/plot_e3.py --machine-id <machine_id>
 ```
 
@@ -209,6 +264,8 @@ superior, no una prueba de imposibilidad.
 ## 9. Tiempo orientativo
 
 - Inventario y E1: 15–30 minutos.
+- E1 jerárquico: 5–15 minutos según CPU y barrido.
+- E1 temporizador: 1–3 minutos.
 - E3: 5–10 minutos.
 - E2 opcional: 10–20 minutos.
 - Figuras y PR: 10 minutos.
@@ -221,6 +278,9 @@ superior, no una prueba de imposibilidad.
 - [ ] Fila añadida a `docs/machines.md`.
 - [ ] Umbral añadido a `docs/thresholds.md`.
 - [ ] E1 tiene 10.000 muestras por modo.
+- [ ] E1 jerárquico tiene el barrido completo y 30 repeticiones.
+- [ ] E1 temporizador se midió y se comparó con la meseta L1d.
+- [ ] Tabla de mesetas generada y revisada.
 - [ ] E3 tiene 30 repeticiones.
 - [ ] `objdump` revisado en las tres variantes de E3.
 - [ ] Figuras de E1/E3 generadas.

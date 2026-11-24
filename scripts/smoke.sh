@@ -18,6 +18,21 @@ head -n1 "$TMP/e1.csv" | grep -q \
   '^machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,mode,sample,cycles$'
 test "$(wc -l < "$TMP/e1.csv")" -ge 401
 
+echo "[smoke] E1 jerárquico"
+./bin/e1_hierarchy --machine-id smoke --session-id smoke \
+  --sizes 4096,65536 --hops 5000 --reps 2 --warmup-passes 1 \
+  --out "$TMP/e1_hierarchy.csv"
+head -n1 "$TMP/e1_hierarchy.csv" | grep -q \
+  '^machine_id,session_id,timestamp,working_set_bytes,node_size_bytes,hops,repetition,total_cycles,cycles_per_load,seed,cpu_pinned,hugepage$'
+test "$(wc -l < "$TMP/e1_hierarchy.csv")" -eq 5
+
+echo "[smoke] E1 temporizador"
+./bin/e1_timer --machine-id smoke --session-id smoke \
+  --samples 1000 --reps 2 --warmup 100 --out "$TMP/e1_timer.csv"
+head -n1 "$TMP/e1_timer.csv" | grep -q \
+  '^machine_id,session_id,timestamp,repetition,sample,cpu_pinned,cycles$'
+test "$(wc -l < "$TMP/e1_timer.csv")" -eq 2001
+
 echo "[smoke] E2"
 ./bin/e2_baseline --machine-id smoke --threshold 150 --attempts 10 \
   --train 5 --runs 1 --bytes 1 --out "$TMP/e2.csv"

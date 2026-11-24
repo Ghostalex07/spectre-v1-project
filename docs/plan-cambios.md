@@ -190,3 +190,50 @@ profesor. Se actualiza al final con lo realmente hecho.
 10. **Datos de referencia.** No se modifica ningún CSV existente. Las figuras
     antiguas se regeneran solo si sus scripts siguen siendo compatibles; si un
     script nuevo no puede leer un CSV antiguo, lo ignora con aviso.
+
+## 5. Estado de ejecución — Tarea 2 (E1 jerárquico)
+
+Hecho en esta tarea (commit único, sin tocar E2 ni datos existentes):
+
+- `src/e1_hierarchy.c`: pointer chasing con buffer alineado a 64 B, nodos de
+  una línea, permutación de Sattolo con semilla guardada, calentamiento completo
+  antes de medir, `--hops` (defecto 1.000.000), `--reps` (30), barrido por
+  defecto 4 KiB–256 MiB con `2^k` y `1,5·2^k`, `rdtscp` con las barreras del
+  repo y CSV con sesión, `hugepage` y CPU observada. Incluye
+  `--dump-permutation` para verificar el ciclo único.
+- `src/e1_timer.c`: coste del intervalo vacío con la misma secuencia de
+  barreras y CSV propio; no se resta de E1.
+- `src/common.h`: `machine_info_write_prefix` pasa a `static inline` para no
+  generar avisos en los binarios nuevos.
+- `scripts/collect_env.sh`: sesiones, `/proc/cmdline`, THP, gobernador y
+  frecuencias, CFLAGS reales de `make print-cflags`, git (hash y sucio),
+  mitigaciones y más campos de CPU; mantiene `data/<machine_id>/` y añade
+  `data/<machine_id>/<session_id>/`.
+- `scripts/common.sh`: helpers de carpeta de salida y sesión.
+- `scripts/run_e1_hierarchy.sh`, `scripts/run_e1_timer.sh`: perfiles
+  `default`/`smoke`.
+- `scripts/run_e1.sh`: usa la sesión si `SESSION_ID` está definido.
+- `scripts/run_all.sh`: sesión para E1 y ficha; ejecuta calibración + jerarquía
+  + temporizador; E3 sigue en la raíz para no romper análisis.
+- `scripts/smoke.sh`: comprueba cabeceras y número de filas de los CSV nuevos.
+- `Makefile`: binarios `e1_hierarchy` y `e1_timer`, `print-cflags`, `test`
+  depende de `all`.
+- `analysis/common.py`: búsqueda de CSV en raíz/sesiones y validación de
+  cabeceras nuevas.
+- `analysis/plot_e1_hierarchy.py`: figura log con mediana, p5–p95, IQR, líneas
+  L1d/L2/L3 y tablas CSV/Markdown de mesetas con IC bootstrap; acepta varias
+  máquinas.
+- `analysis/plot_e1.py`: sesiones y distribución opcional del temporizador con
+  umbral.
+- `tests/test_e1_hierarchy.py`: Sattolo de ciclo único (binario real), parseo
+  del CSV nuevo, rechazo del E1 antiguo, compatibilidad de rutas y mesetas.
+- Documentación: `docs/metrics.md`, `docs/limitations.md`, `docs/manual.md`,
+  `docs/campaign.md`, `data/README.md`, `README.md` y `PLAN.md`.
+
+Pendiente (no es parte del código de esta tarea):
+
+- Ejecutar la campaña real de E1 jerárquico y temporizador en 2–3 máquinas y
+  publicar las mesetas. Hasta entonces, las cifras de mesetas son
+  **PENDIENTES**; no se inventan.
+- Las tareas 3–5 (barrido E3, estadística por bloques, comparativa final) no se
+  abordan aquí.

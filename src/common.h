@@ -127,7 +127,7 @@ static void csv_write_quoted(FILE *f, const char *s) {
 }
 
 /* Escribe la cabecera común de máquina y deja la coma final. */
-static void machine_info_write_prefix(FILE *f, const machine_info *mi) {
+static inline void machine_info_write_prefix(FILE *f, const machine_info *mi) {
     csv_write_quoted(f, mi->machine_id);
     fputc(',', f);
     csv_write_quoted(f, mi->cpu);

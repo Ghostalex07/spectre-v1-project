@@ -159,6 +159,139 @@ def e1_path(machine_id: str) -> Path:
     return machine_dir(machine_id) / f"e1_{machine_id}.csv"
 
 
+def candidate_data_dirs(machine_id: str, data_dir: str | Path = DATA_DIR) -> list[Path]:
+    """Directorios de una máquina: la raíz antigua y sus sesiones."""
+    root = Path(data_dir) / machine_id
+    if not root.is_dir():
+        return []
+    dirs = [root]
+    dirs.extend(child for child in sorted(root.iterdir()) if child.is_dir())
+    return dirs
+
+
+def find_data_file(
+    machine_id: str,
+    filename: str,
+    data_dir: str | Path = DATA_DIR,
+    session_id: str | None = None,
+) -> Path | None:
+    """Busca un CSV en la raíz o, si no, en la sesión más reciente.
+
+    Mantiene la compatibilidad con `data/<machine_id>/` y añade
+    `data/<machine_id>/<session_id>/`. Si se indica `session_id`, solo mira
+    esa sesión.
+    """
+    root = Path(data_dir) / machine_id
+    if session_id:
+        dirs = [root / session_id]
+    else:
+        dirs = candidate_data_dirs(machine_id, data_dir)
+    candidates = [directory / filename for directory in dirs]
+    existing = [path for path in candidates if path.is_file()]
+    if not existing:
+        return None
+    return max(existing, key=lambda path: path.stat().st_mtime)
+
+
+def find_e1_path(
+    machine_id: str,
+    data_dir: str | Path = DATA_DIR,
+    session_id: str | None = None,
+) -> Path:
+    path = find_data_file(
+        machine_id, f"e1_{machine_id}.csv", data_dir=data_dir, session_id=session_id
+    )
+    if path is None:
+        raise SystemExit(
+            f"No hay E1 para {machine_id} en {Path(data_dir) / machine_id}. "
+            "Ejecuta primero scripts/run_e1.sh o revisa --session-id."
+        )
+    return path
+
+
+def machine_csv_paths(
+    machine_id: str,
+    filename: str,
+    data_dir: str | Path = DATA_DIR,
+    session_id: str | None = None,
+) -> list[Path]:
+    """Todas las apariciones de un CSV en la raíz y/o en las sesiones."""
+    root = Path(data_dir) / machine_id
+    if session_id:
+        dirs = [root / session_id]
+    else:
+        dirs = candidate_data_dirs(machine_id, data_dir)
+    paths = [directory / filename for directory in dirs]
+    return sorted(path for path in paths if path.is_file())
+
+
+def e1_hierarchy_paths(
+    machine_id: str,
+    data_dir: str | Path = DATA_DIR,
+    session_id: str | None = None,
+) -> list[Path]:
+    return machine_csv_paths(
+        machine_id,
+        f"e1_hierarchy_{machine_id}.csv",
+        data_dir=data_dir,
+        session_id=session_id,
+    )
+
+
+def e1_timer_paths(
+    machine_id: str,
+    data_dir: str | Path = DATA_DIR,
+    session_id: str | None = None,
+) -> list[Path]:
+    return machine_csv_paths(
+        machine_id,
+        f"e1_timer_{machine_id}.csv",
+        data_dir=data_dir,
+        session_id=session_id,
+    )
+
+
+def csv_header(path: str | Path) -> list[str]:
+    with open(path, newline="", encoding="utf-8") as handle:
+        reader = csv.reader(handle)
+        return next(reader, [])
+
+
+HIERARCHY_COLUMNS = (
+    "machine_id",
+    "session_id",
+    "timestamp",
+    "working_set_bytes",
+    "node_size_bytes",
+    "hops",
+    "repetition",
+    "total_cycles",
+    "cycles_per_load",
+    "seed",
+    "cpu_pinned",
+    "hugepage",
+)
+TIMER_COLUMNS = (
+    "machine_id",
+    "session_id",
+    "timestamp",
+    "repetition",
+    "sample",
+    "cpu_pinned",
+    "cycles",
+)
+
+
+def is_hierarchy_csv(path: str | Path) -> bool:
+    header = csv_header(path)
+    return all(column in header for column in HIERARCHY_COLUMNS)
+
+
+def is_timer_csv(path: str | Path) -> bool:
+    header = csv_header(path)
+    return all(column in header for column in TIMER_COLUMNS)
+
+
 def e2_paths(machine_id: str, include_o0: bool = False) -> list[Path]:
     """CSV de E2 de la máquina.
 

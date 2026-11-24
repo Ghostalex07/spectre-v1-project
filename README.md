@@ -9,7 +9,8 @@ a través de la caché y medir el **coste en rendimiento** de **LFENCE** y del
 
 El enfoque experimental, revisado tras el feedback del profesor, es:
 
-- **E1:** caracterización de la caché (experimento principal).
+- **E1:** caracterización de la caché (experimento principal): calibración
+  hit/miss y barrido jerárquico de pointer chasing.
 - **E2:** análisis documental + modelo conceptual
   (`analysis/simulate_spectre.py`). No es un experimento práctico.
 - **E3:** impacto de las mitigaciones en rendimiento (experimento principal).
@@ -27,6 +28,10 @@ make test
 ./scripts/collect_env.sh <machine_id>
 ./scripts/run_e1.sh <machine_id> 10000 64
 python3 analysis/plot_e1.py --machine-id <machine_id>
+
+./scripts/run_e1_hierarchy.sh <machine_id>
+./scripts/run_e1_timer.sh <machine_id>
+python3 analysis/plot_e1_hierarchy.py --machine-id <machine_id>
 ```
 
 Elige el umbral en el valle del histograma, anótalo en
@@ -80,12 +85,16 @@ spectre-v1-project/
     common.h
     spectre.h
     e1_cache.c
+    e1_hierarchy.c
+    e1_timer.c
     e2_spectre.c
     e3_mitigations.c
   scripts/
     common.sh
     collect_env.sh
     run_e1.sh
+    run_e1_hierarchy.sh
+    run_e1_timer.sh
     run_e2.sh
     run_e3.sh
     run_all.sh
@@ -95,6 +104,7 @@ spectre-v1-project/
     common.py
     compare_machines.py
     plot_e1.py
+    plot_e1_hierarchy.py
     plot_e2.py
     plot_e3.py
     simulate_spectre.py
@@ -124,6 +134,7 @@ spectre-v1-project/
 - [x] Modelo conceptual de E2 (`analysis/simulate_spectre.py`).
 - [x] Enfoque reorientado: E1/E3 empíricos; E2 documental y simulación.
 - [x] Resumen de resultados con IC bootstrap (`make summary`).
+- [x] E1 jerárquico y coste del temporizador implementados (campaña PENDIENTE).
 - [ ] Campaña multi-máquina de E1 jerárquico y del barrido de E3.
 - [ ] Confirmar con el profesor el anexo de E2.
 - [ ] Informe y defensa final.
@@ -137,7 +148,11 @@ La campaña de referencia del Ryzen está en `data/ryzen5pro5675u/` y es una
 ### E1 y E3 (experimentación principal)
 
 E1 en el Ryzen 5 PRO 5675U: `hit` mediana 46 ciclos, `miss` mediana 276;
-umbral usado 80. E3 con 1M iteraciones y 3 repeticiones:
+umbral usado 80. E1 jerárquico: **PENDIENTE** de la campaña por máquina; el
+harness y el análisis están implementados, pero aún no hay datos en
+`data/` para publicar mesetas.
+
+E3 con 1M iteraciones y 3 repeticiones:
 
 ```text
 baseline: 3.33 ciclos/iteración

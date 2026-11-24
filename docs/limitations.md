@@ -60,6 +60,31 @@ sobreinterpretar los resultados.
 - Las repeticiones son finitas. Las diferencias pequeñas de sobrecoste pueden
   quedar dentro del ruido y no deben presentarse como concluyentes.
 
+### 4.1 Coste del temporizador
+
+- `rdtscp` mide ciclos de referencia (TSC), no necesariamente ciclos de núcleo.
+  Con turbo o cambios de frecuencia, la conversión no es exacta.
+- La secuencia `lfence; rdtscp; ...; lfence; rdtscp` tiene un coste propio. E1
+  jerárquico mide ese intervalo vacío en un CSV aparte y **no lo resta** de las
+  latencias. Así el lector puede juzgar cuánto pesa en los tamaños pequeños.
+- En un acceso a L1d de pocos ciclos, el coste del temporizador y el ruido del
+  sistema pueden ser del mismo orden. No se deben presentar diferencias de uno
+  o dos ciclos como una característica estable de la microarquitectura.
+
+### 4.2 TLB y páginas grandes
+
+- El pointer chasing recorre una página distinta cada 4 KiB. En working sets
+  grandes, parte de la latencia puede venir de **fallos de TLB** (page walks) y
+  no solo de la jerarquía de caché. Las mesetas de L2/L3 y memoria deben
+  interpretarse con esta cautela.
+- `madvise(MADV_HUGEPAGE)` puede reducir esos efectos, pero no se garantiza que
+  el kernel entregue páginas grandes. La columna `hugepage` registra si se pidió
+  y si la llamada tuvo éxito; no se usan páginas grandes privilegiadas ni se
+  cambia la configuración del sistema.
+- Un working set que cabe en caché pero no en TLB puede mostrar una latencia
+  mayor que la de un nivel superior; por eso el criterio de mesetas usa una
+  ventana central y no un único punto.
+
 ## 5. Código y compilador
 
 - El comportamiento depende de las optimizaciones. La campaña principal usa

@@ -50,3 +50,28 @@ machine_dir() {
 ensure_machine_dir() {
   mkdir -p "$(machine_dir "$1")"
 }
+
+# Carpeta de salida con soporte de sesiones. Si hay SESSION_ID (o se pasa como
+# segundo argumento), escribe en data/<machine_id>/<session_id>/; si no,
+# mantiene la estructura antigua data/<machine_id>/.
+data_out_dir() {
+  local machine_id="$1"
+  local session_id="${2:-${SESSION_ID:-}}"
+  if [ -n "$session_id" ]; then
+    echo "$ROOT/data/$machine_id/$session_id"
+  else
+    echo "$ROOT/data/$machine_id"
+  fi
+}
+
+prepare_out_dir() {
+  local directory
+  directory="$(data_out_dir "$1" "${2:-}")"
+  mkdir -p "$directory"
+  echo "$directory"
+}
+
+# Sesión por defecto para una campaña lanzada desde run_all.sh.
+default_session_id() {
+  echo "${SESSION_ID:-$(date -u +%Y%m%dT%H%M%SZ)}"
+}

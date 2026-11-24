@@ -201,6 +201,11 @@ un preparativo de E2.
 - [ ] Elegir el umbral en el valle entre los dos modos y guardarlo en
   `docs/thresholds.md`.
 - [ ] No usar el valor 80 del PoC original: es específico de Intel.
+- [x] Implementar E1 jerárquico (`src/e1_hierarchy.c`): pointer chasing con
+  Sattolo, barrido 4 KiB–256 MiB, sesiones y CSV con semilla y `hugepage`.
+- [x] Medir el coste del temporizador (`src/e1_timer.c`) y publicarlo aparte.
+- [ ] Ejecutar E1 calibración + jerarquía + temporizador en cada máquina de la
+  campaña (PENDIENTE).
 
 **Verificación:** los histogramas muestran dos modos separados, el umbral
 clasifica correctamente la mayoría de accesos y se documenta la relación con la

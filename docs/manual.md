@@ -44,7 +44,9 @@ está ahí, abre un issue con el comando, la salida y tu `machine_id`.
 | `docs/defense-guide.md` | Guía de la defensa y demo |
 | `src/common.h` | `rdtscp`, `clflush`, barreras, lectura de CPU, CSV |
 | `src/spectre.h` | Arrays víctima, secreto y las tres variantes |
-| `src/e1_cache.c` | Experimento E1 |
+| `src/e1_cache.c` | E1 de calibración (hit/miss) |
+| `src/e1_hierarchy.c` | E1 jerárquico (pointer chasing y mesetas) |
+| `src/e1_timer.c` | Coste del temporizador `rdtscp` |
 | `src/e2_spectre.c` | Experimento E2 (opcional, hardware) |
 | `src/e3_mitigations.c` | Experimento E3 (sobrecoste) |
 | `scripts/` | Envoltorios reproducibles para ejecutar cada experimento |
@@ -68,6 +70,10 @@ make test
 ./scripts/collect_env.sh <machine_id>
 ./scripts/run_e1.sh <machine_id> 10000 64
 python3 analysis/plot_e1.py --machine-id <machine_id>
+
+./scripts/run_e1_hierarchy.sh <machine_id>
+./scripts/run_e1_timer.sh <machine_id>
+python3 analysis/plot_e1_hierarchy.py --machine-id <machine_id>
 ```
 
 Mira el histograma y el “umbral sugerido”. Anótalo en
@@ -174,6 +180,72 @@ necesita su propio valle. Calibra siempre con tu E1.
 
 Anota el umbral en [`docs/thresholds.md`](thresholds.md). E2, si se ejecuta,
 debe usar ese valor para esa máquina; E3 no depende del umbral.
+
+### E1 jerárquico: mesetas de caché
+
+E1 jerárquico barre tamaños de working set y mide la latencia de pointer
+chasing. Sirve para localizar las mesetas de L1d, L2, L3 y memoria, y para
+cruzar la calibración con la jerarquía real.
+
+```bash
+./scripts/run_e1_hierarchy.sh <machine_id>
+```
+
+Parámetros (variables de entorno, no posicionales):
+
+| Variable | Defecto | Qué hace |
+|---|---:|---|
+| `PROFILE` | `default` | `default` (barrido completo) o `smoke` (corto) |
+| `SIZES` | barrido 4 KiB–256 MiB | Lista de tamaños en bytes (`4096,6144,8192,...`); admite `K/M/G` |
+| `HOPS` | 1000000 | Cargas medidas por repetición |
+| `REPS` | 30 | Repeticiones por tamaño |
+| `WARMUP` | 1 | Pasadas completas de calentamiento antes de medir |
+| `NODE_SIZE` | 64 | Tamaño de nodo; debe ser múltiplo de 64 |
+| `HUGEPAGE` | 0 | `1` pide `MADV_HUGEPAGE` (sin privilegios) |
+| `SESSION_ID` | vacío | Si existe, escribe en `data/<machine_id>/<session_id>/` |
+| `PIN_CPU` | auto | CPU forzada con `taskset` |
+
+El barrido por defecto incluye potencias de dos y puntos `1,5·2^k`. El binario
+usa Sattolo (un único ciclo) y guarda la semilla. El calentamiento recorre el
+ciclo completo antes de cada repetición. La salida es
+`e1_hierarchy_<machine_id>.csv` dentro de la carpeta de sesión o de la máquina.
+
+Perfil smoke:
+
+```bash
+PROFILE=smoke HOPS=20000 REPS=3 \
+  ./scripts/run_e1_hierarchy.sh <machine_id>
+```
+
+Figura y tabla de mesetas:
+
+```bash
+python3 analysis/plot_e1_hierarchy.py --machine-id <machine_id>
+# varias máquinas:
+python3 analysis/plot_e1_hierarchy.py \
+  --machine-id cpu_a --machine-id cpu_b
+```
+
+Genera `figures/e1_hierarchy_<machine_id>.png` (eje X logarítmico, mediana,
+banda p5–p95 e IQR, líneas verticales L1d/L2/L3 si están en la ficha),
+`data/derived/e1_hierarchy_plateaus.csv` y
+`report/e1_hierarchy_plateaus.md`. El criterio de meseta (25 %–75 % de la
+capacidad) está en [`metrics.md`](metrics.md).
+
+### Coste del temporizador
+
+```bash
+./scripts/run_e1_timer.sh <machine_id>
+```
+
+Variables: `PROFILE` (`default`/`smoke`), `SAMPLES` (100000), `REPS` (3),
+`WARMUP` (1000), `SESSION_ID`, `PIN_CPU`. Genera
+`e1_timer_<machine_id>.csv` con la distribución del intervalo vacío
+`lfence;rdtscp;lfence;rdtscp`.
+
+`plot_e1.py` incorpora esa distribución si encuentra el CSV y genera
+`figures/e1_<machine_id>_timer.png`. **No se resta** de las latencias: se muestra
+para juzgar el peso del montaje en los tamaños pequeños.
 
 ## 6. E2 (opcional): validación en hardware
 
@@ -338,9 +410,25 @@ Hace, en orden:
 
 1. `collect_env.sh`
 2. `run_e1.sh` (10.000 muestras, 64 MiB)
-3. E3 `baseline`, `lfence`, `mask` (10M iteraciones, 30 reps), en orden
+3. `run_e1_hierarchy.sh` (barrido 4 KiB–256 MiB, 30 reps)
+4. `run_e1_timer.sh` (100.000 muestras × 3 reps)
+5. E3 `baseline`, `lfence`, `mask` (10M iteraciones, 30 reps), en orden
    aleatorizado por defecto y registrado en `e3_order_<machine_id>.txt`
-4. E2 solo si `RUN_E2=1` (1000 intentos, train 5, 50 runs, 40 bytes)
+6. E2 solo si `RUN_E2=1` (1000 intentos, train 5, 50 runs, 40 bytes)
+
+La ficha de entorno, E1 de calibración, E1 jerárquico y el temporizador se
+guardan en `data/<machine_id>/<session_id>/`. Si no defines `SESSION_ID`,
+`run_all.sh` crea una con la fecha UTC. Los datos de E3 siguen en
+`data/<machine_id>/` para no romper los análisis existentes.
+
+Perfil rápido de prueba (no es campaña final):
+
+```bash
+PROFILE=smoke THRESHOLD=<T> RUN_E2=0 ./scripts/run_all.sh <machine_id> <T>
+```
+
+El perfil smoke reduce tamaños, hops, repeticiones y muestras del temporizador.
+No presentes esos valores como campaña final.
 
 Control `-O0` opcional de E2:
 
@@ -363,6 +451,7 @@ los valores del protocolo y se identifica como tal.
 ```bash
 # Experimentación principal
 python3 analysis/plot_e1.py --machine-id <machine_id>
+python3 analysis/plot_e1_hierarchy.py --machine-id <machine_id>
 python3 analysis/plot_e3.py --machine-id <machine_id>
 
 # Modelo conceptual de E2
@@ -405,7 +494,11 @@ afirmar diversidad de CPUs.
 
 ## 10. Datos
 
-- Los CSV van en `data/<machine_id>/`.
+- Los CSV van en `data/<machine_id>/` (estructura antigua) o en
+  `data/<machine_id>/<session_id>/` (campañas nuevas).
+- E1 de calibración, E1 jerárquico y el temporizador pueden convivir en la
+  misma sesión; los análisis buscan primero la sesión indicada y, si no, la
+  estructura antigua.
 - No se editan a mano.
 - No se borran ejecuciones negativas.
 - No se mezclan `-O0` y `-O2` en el mismo archivo.
@@ -424,6 +517,9 @@ Antes de decir “he medido”:
 - [ ] `env_<machine_id>.txt` guardado.
 - [ ] Fila en `docs/machines.md`.
 - [ ] Umbral de E1 anotado en `docs/thresholds.md`.
+- [ ] E1 jerárquico ejecutado (barrido 4 KiB–256 MiB, 30 reps) y figura generada.
+- [ ] Distribución del temporizador generada y comparada con la meseta L1d.
+- [ ] Tabla de mesetas (`data/derived/e1_hierarchy_plateaus.csv`) revisada.
 - [ ] E2 con `attempts` fijo y `threshold` documentado (solo si se ejecuta).
 - [ ] Ensamblador de `baseline`, `lfence` y `mask` revisado en E3.
 - [ ] E3 con 10M iteraciones y 30 reps (campaña final).

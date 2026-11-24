@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Campaña completa en una máquina: entorno, E1, E2 opcional y E3.
+# Campaña completa en una máquina: entorno, E1 (calibración + jerarquía +
+# temporizador), E2 opcional y E3.
 # Uso: THRESHOLD=80 RUN_E2=0 ./scripts/run_all.sh <machine_id> [threshold]
-# Variables: RUN_E2=0|1 (por defecto 0), ATTEMPTS, TRAIN, RUNS, BYTES,
-# ITERATIONS, REPS, RUN_O0=1, PIN_CPU, E3_ORDER=random|fixed.
+# Variables: PROFILE=default|smoke, RUN_E2=0|1, ATTEMPTS, TRAIN, RUNS, BYTES,
+# ITERATIONS, REPS, RUN_O0=1, PIN_CPU, E3_ORDER=random|fixed, SESSION_ID,
+# HOPS, SIZES, HUGEPAGE, SAMPLES (temporizador).
 #
 # Foco experimental: E1 y E3 son obligatorios. E2 en hardware es opcional;
 # el mecanismo se cubre con análisis documental y simulación conceptual.
@@ -15,8 +17,22 @@ MACHINE_ID="${1:-}"
 THRESHOLD="${THRESHOLD:-${2:-}}"
 [ -n "$THRESHOLD" ] || die "falta THRESHOLD. Ejecuta E1, elige el umbral y vuelve a lanzar con THRESHOLD=<valor>."
 
+PROFILE="${PROFILE:-default}"
+case "$PROFILE" in
+  default|smoke) ;;
+  *) die "PROFILE no válido: $PROFILE (usa default o smoke)" ;;
+esac
+
+# Toda la campaña de E1 y la ficha de entorno comparten una sesión. Los datos
+# de E3 siguen en data/<machine_id>/ para no romper los análisis actuales.
+SESSION_ID="${SESSION_ID:-$(default_session_id)}"
+export SESSION_ID
+SESSION_DIR="$(prepare_out_dir "$MACHINE_ID")"
+
 "$ROOT/scripts/collect_env.sh" "$MACHINE_ID"
 "$ROOT/scripts/run_e1.sh" "$MACHINE_ID"
+PROFILE="$PROFILE" "$ROOT/scripts/run_e1_hierarchy.sh" "$MACHINE_ID"
+PROFILE="$PROFILE" "$ROOT/scripts/run_e1_timer.sh" "$MACHINE_ID"
 
 RUN_E2="${RUN_E2:-0}"
 if [ "$RUN_E2" = "1" ]; then
@@ -41,13 +57,24 @@ ORDER_FILE="$(machine_dir "$MACHINE_ID")/e3_order_${MACHINE_ID}.txt"
 printf '%s\n' "${E3_VARIANTS[@]}" > "$ORDER_FILE"
 echo "[run_all] orden E3: ${E3_VARIANTS[*]} (registrado en $ORDER_FILE)"
 
+if [ "$PROFILE" = "smoke" ]; then
+  E3_ITER="${E3_ITERATIONS:-${ITERATIONS:-200000}}"
+  E3_REPS="${E3_REPS:-${REPS:-3}}"
+else
+  E3_ITER="${E3_ITERATIONS:-${ITERATIONS:-10000000}}"
+  E3_REPS="${E3_REPS:-${REPS:-30}}"
+fi
 for variant in "${E3_VARIANTS[@]}"; do
-  "$ROOT/scripts/run_e3.sh" "$MACHINE_ID" "$variant"
+  ITERATIONS="$E3_ITER" REPS="$E3_REPS" \
+    "$ROOT/scripts/run_e3.sh" "$MACHINE_ID" "$variant"
 done
 
 echo
-echo "[run_all] campaña terminada para $MACHINE_ID"
-echo "  E1:  data/${MACHINE_ID}/e1_${MACHINE_ID}.csv"
+echo "[run_all] campaña terminada para $MACHINE_ID (perfil $PROFILE)"
+echo "  sesión E1: $SESSION_DIR"
+echo "  E1:       $SESSION_DIR/e1_${MACHINE_ID}.csv"
+echo "  E1 jer.:  $SESSION_DIR/e1_hierarchy_${MACHINE_ID}.csv"
+echo "  E1 temp.: $SESSION_DIR/e1_timer_${MACHINE_ID}.csv"
 if [ "$RUN_E2" = "1" ]; then
   echo "  E2:  data/${MACHINE_ID}/e2_${MACHINE_ID}_{baseline,lfence,mask}.csv"
 else
@@ -55,7 +82,8 @@ else
 fi
 echo "  E3:  data/${MACHINE_ID}/e3_${MACHINE_ID}_{baseline,lfence,mask}.csv"
 echo "  Figuras:"
-echo "    python3 analysis/plot_e1.py --machine-id ${MACHINE_ID}"
+echo "    python3 analysis/plot_e1.py --machine-id ${MACHINE_ID} --session-id ${SESSION_ID}"
+echo "    python3 analysis/plot_e1_hierarchy.py --machine-id ${MACHINE_ID} --session-id ${SESSION_ID}"
 if [ "$RUN_E2" = "1" ]; then
   echo "    python3 analysis/plot_e2.py --machine-id ${MACHINE_ID}"
 fi

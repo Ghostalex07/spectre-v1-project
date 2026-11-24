@@ -18,14 +18,22 @@ data/
     e3_<machine_id>_baseline.csv
     e3_<machine_id>_lfence.csv
     e3_<machine_id>_mask.csv
+  <machine_id>/<session_id>/
+    env_<machine_id>.txt
+    e1_<machine_id>.csv
+    e1_hierarchy_<machine_id>.csv
+    e1_timer_<machine_id>.csv
   simulation/
     spectre_model.csv
   derived/
 ```
 
 - `machine_id` debe coincidir con la fila de [`docs/machines.md`](../docs/machines.md).
-- `env_*.txt`: salida de `lscpu`, kernel, GCC, microcódigo, mitigaciones y
-  gobernador.
+- Las campañas nuevas pueden usar `data/<machine_id>/<session_id>/` para el
+  entorno y E1 (calibración, jerárquico y temporizador). Los análisis aceptan
+  ambas estructuras y, sin `--session-id`, eligen la sesión más reciente.
+- `env_*.txt`: salida de `lscpu`, kernel, GCC, microcódigo, mitigaciones, THP,
+  CFLAGS, git y gobernador.
 - `poc_*.txt`: salida de la prueba de viabilidad de Fase 0.
 - `e1_*.csv`: latencias de caché.
 - `e2_*.csv`: recuperación del secreto por variante. Es **validación opcional**
@@ -84,6 +92,27 @@ machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,mode,sample,cycl
 - `mode`: `hit` o `miss`.
 - `sample`: índice de muestra.
 - `cycles`: latencia medida con `rdtscp`.
+
+### E1 jerárquico
+
+```text
+machine_id,session_id,timestamp,working_set_bytes,node_size_bytes,hops,repetition,total_cycles,cycles_per_load,seed,cpu_pinned,hugepage
+```
+
+- `working_set_bytes`: tamaño del buffer; `node_size_bytes`: nodo (64 B).
+- `hops`: cargas medidas; `repetition`: índice de repetición.
+- `cycles_per_load = total_cycles / hops`.
+- `seed`: semilla de Sattolo; `hugepage`: `none`, `madvise` o
+  `madvise-failed`; `cpu_pinned`: CPU observada.
+
+### E1 coste del temporizador
+
+```text
+machine_id,session_id,timestamp,repetition,sample,cpu_pinned,cycles
+```
+
+- `cycles`: intervalo vacío `lfence;rdtscp;lfence;rdtscp`.
+- No se resta de E1; se analiza como distribución.
 
 ### E2 — validación opcional de hardware
 

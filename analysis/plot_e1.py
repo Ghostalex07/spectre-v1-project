@@ -4,10 +4,14 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 from common import (
+    DATA_DIR,
     FIGURES_DIR,
-    e1_path,
+    find_data_file,
+    find_e1_path,
+    is_timer_csv,
     median,
     median_ci,
     p5,
@@ -38,11 +42,20 @@ def suggest_threshold(hit: list[float], miss: list[float]) -> int:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--machine-id", required=True)
+    parser.add_argument("--session-id", default="")
+    parser.add_argument("--data-dir", default="")
     parser.add_argument("--bins", type=int, default=80)
+    parser.add_argument("--timer-csv", default="")
     parser.add_argument("--out", default="")
+    parser.add_argument("--timer-out", default="")
     args = parser.parse_args()
 
-    path = e1_path(args.machine_id)
+    data_dir = Path(args.data_dir) if args.data_dir else DATA_DIR
+    path = find_e1_path(
+        args.machine_id,
+        data_dir=data_dir,
+        session_id=args.session_id or None,
+    )
     rows = read_rows(path)
     hit = [to_float(row["cycles"]) for row in rows if row.get("mode") == "hit"]
     miss = [to_float(row["cycles"]) for row in rows if row.get("mode") == "miss"]
@@ -104,6 +117,84 @@ def main() -> None:
     fig.tight_layout()
     fig.savefig(out, dpi=160)
     print(f"figura: {out}")
+
+    timer_path = None
+    if args.timer_csv:
+        timer_path = Path(args.timer_csv)
+    else:
+        timer_path = find_data_file(
+            args.machine_id,
+            f"e1_timer_{args.machine_id}.csv",
+            data_dir=data_dir,
+            session_id=args.session_id or None,
+        )
+
+    if timer_path and timer_path.is_file():
+        if not is_timer_csv(timer_path):
+            print(f"aviso: {timer_path} no parece un CSV de temporizador; se omite")
+            return
+        timer_rows = read_rows(timer_path)
+        timer = [to_float(row.get("cycles")) for row in timer_rows]
+        timer = [value for value in timer if value == value]
+        if not timer:
+            print(f"aviso: no hay muestras en {timer_path}")
+            return
+        timer_median = median(timer)
+        timer_low, timer_high = median_ci(timer)
+        print(f"timer: {timer_path}")
+        print(
+            f"timer: n={len(timer):d} mediana={timer_median:.2f} "
+            f"p5={p5(timer):.2f} p95={p95(timer):.2f} "
+            f"IC95 mediana=[{timer_low:.2f}, {timer_high:.2f}]"
+        )
+        if hit:
+            print(
+                "coste del temporizador / mediana hit: "
+                f"{100 * timer_median / median(hit):.1f}% (no se resta)"
+            )
+        fig2, ax2 = plt.subplots(figsize=(8, 4.5))
+        ax2.hist(
+            timer,
+            bins=args.bins,
+            alpha=0.7,
+            color="C2",
+            label=f"intervalo vacío (n={len(timer)})",
+        )
+        ax2.axvline(
+            timer_median,
+            color="black",
+            linestyle="-",
+            linewidth=1.2,
+            label=f"mediana={timer_median:.1f}",
+        )
+        ax2.axvline(
+            p95(timer),
+            color="black",
+            linestyle=":",
+            linewidth=1.2,
+            label=f"p95={p95(timer):.1f}",
+        )
+        if threshold:
+            ax2.axvline(
+                threshold,
+                color="C3",
+                linestyle="--",
+                linewidth=1.2,
+                label=f"umbral E1={threshold}",
+            )
+        ax2.set_xlabel("ciclos del intervalo vacío")
+        ax2.set_ylabel("muestras")
+        ax2.set_title(f"E1 — coste del temporizador rdtscp ({args.machine_id})")
+        ax2.legend()
+        ax2.grid(alpha=0.25)
+        timer_out = args.timer_out or str(
+            FIGURES_DIR / f"e1_{args.machine_id}_timer.png"
+        )
+        fig2.tight_layout()
+        fig2.savefig(timer_out, dpi=160)
+        print(f"figura temporizador: {timer_out}")
+    elif args.timer_csv:
+        print(f"aviso: no existe {timer_path}")
 
 
 if __name__ == "__main__":
