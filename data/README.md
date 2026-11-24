@@ -150,7 +150,7 @@ machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,iteratio
 ### E3 — barrido de sensibilidad
 
 ```text
-machine_id,session_id,timestamp,variant,work_per_iter,predictability_mode,out_of_range_fraction,array_bytes,iterations,repetition,block_id,total_cycles,cycles_per_iter,seed,cpu_pinned
+machine_id,session_id,timestamp,variant,flags,work_per_iter,predictability_mode,out_of_range_fraction,array_bytes,iterations,repetition,block_id,total_cycles,cycles_per_iter,seed,cpu_pinned
 ```
 
 - `work_per_iter`: W dependiente del dato cargado.

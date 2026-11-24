@@ -7,6 +7,11 @@ BIN := bin
 # necesita un salto condicional real para que el predictor pueda fallar.
 E2_CFLAGS := $(CFLAGS) -fno-if-conversion -fno-if-conversion2
 
+# Los binarios de E3 usan las mismas flags que E2 para conservar el salto
+# condicional, pero deben registrar exactamente esas flags en el CSV.
+E3_CFLAGS := $(CFLAGS) -fno-if-conversion -fno-if-conversion2
+E3_FLAGS_DEF := -DCOMPILE_FLAGS='"$(E3_CFLAGS)"'
+
 # Guarda los flags usados en la columna flags de los CSV.
 FLAGS_DEF := -DCOMPILE_FLAGS='"$(CFLAGS)"'
 
@@ -41,6 +46,9 @@ $(BIN)/e1_timer: src/e1_timer.c src/common.h | $(BIN)
 print-cflags:
 	@echo '$(CFLAGS)'
 
+print-e3-cflags:
+	@echo '$(E3_CFLAGS)'
+
 $(BIN)/e2_baseline: src/e2_spectre.c src/spectre.h src/common.h | $(BIN)
 	$(CC) $(E2_CFLAGS) $(FLAGS_DEF) -DVARIANT_BASELINE -o $@ src/e2_spectre.c $(LDFLAGS)
 
@@ -59,27 +67,27 @@ $(BIN)/e2_lfence_O0: src/e2_spectre.c src/spectre.h src/common.h | $(BIN)
 $(BIN)/e2_mask_O0: src/e2_spectre.c src/spectre.h src/common.h | $(BIN)
 	$(CC) $(E2_O0_CFLAGS) $(E2_O0_FLAGS_DEF) -DVARIANT_MASK -o $@ src/e2_spectre.c $(LDFLAGS)
 
-$(BIN)/e3_baseline: src/e3_mitigations.c src/spectre.h src/common.h | $(BIN)
-	$(CC) $(E2_CFLAGS) $(FLAGS_DEF) -DVARIANT_BASELINE -o $@ src/e3_mitigations.c $(LDFLAGS)
+$(BIN)/e3_baseline: src/e3_mitigations.c src/spectre.h src/common.h Makefile | $(BIN)
+	$(CC) $(E3_CFLAGS) $(E3_FLAGS_DEF) -DVARIANT_BASELINE -o $@ src/e3_mitigations.c $(LDFLAGS)
 
-$(BIN)/e3_lfence: src/e3_mitigations.c src/spectre.h src/common.h | $(BIN)
-	$(CC) $(E2_CFLAGS) $(FLAGS_DEF) -DVARIANT_LFENCE -o $@ src/e3_mitigations.c $(LDFLAGS)
+$(BIN)/e3_lfence: src/e3_mitigations.c src/spectre.h src/common.h Makefile | $(BIN)
+	$(CC) $(E3_CFLAGS) $(E3_FLAGS_DEF) -DVARIANT_LFENCE -o $@ src/e3_mitigations.c $(LDFLAGS)
 
-$(BIN)/e3_mask: src/e3_mitigations.c src/spectre.h src/common.h | $(BIN)
-	$(CC) $(E2_CFLAGS) $(FLAGS_DEF) -DVARIANT_MASK -o $@ src/e3_mitigations.c $(LDFLAGS)
+$(BIN)/e3_mask: src/e3_mitigations.c src/spectre.h src/common.h Makefile | $(BIN)
+	$(CC) $(E3_CFLAGS) $(E3_FLAGS_DEF) -DVARIANT_MASK -o $@ src/e3_mitigations.c $(LDFLAGS)
 
 # Barrido de sensibilidad E3: contiene las tres variantes y las intercala por
 # bloques. Se compila con los mismos flags que evitan el cmov en el chequeo.
-$(BIN)/e3_sweep: src/e3_sweep.c src/common.h | $(BIN)
-	$(CC) $(E2_CFLAGS) $(FLAGS_DEF) -o $@ src/e3_sweep.c $(LDFLAGS)
+$(BIN)/e3_sweep: src/e3_sweep.c src/common.h Makefile | $(BIN)
+	$(CC) $(E3_CFLAGS) $(E3_FLAGS_DEF) -o $@ src/e3_sweep.c $(LDFLAGS)
 
 # Desensamblado de referencia para revisar el chequeo de límites.
 asm: all | $(BIN)
 	mkdir -p $(ASM_DIR)
-	objdump -d -Mintel $(BIN)/e3_sweep > $(ASM_DIR)/e3_sweep.asm
-	objdump -d -Mintel $(BIN)/e3_baseline > $(ASM_DIR)/e3_baseline.asm
-	objdump -d -Mintel $(BIN)/e3_lfence > $(ASM_DIR)/e3_lfence.asm
-	objdump -d -Mintel $(BIN)/e3_mask > $(ASM_DIR)/e3_mask.asm
+	objdump -d -Mintel $(BIN)/e3_sweep | sed 's/[[:space:]]*$$//' > $(ASM_DIR)/e3_sweep.asm
+	objdump -d -Mintel $(BIN)/e3_baseline | sed 's/[[:space:]]*$$//' > $(ASM_DIR)/e3_baseline.asm
+	objdump -d -Mintel $(BIN)/e3_lfence | sed 's/[[:space:]]*$$//' > $(ASM_DIR)/e3_lfence.asm
+	objdump -d -Mintel $(BIN)/e3_mask | sed 's/[[:space:]]*$$//' > $(ASM_DIR)/e3_mask.asm
 	@echo "desensamblado en $(ASM_DIR)/"
 
 clean:

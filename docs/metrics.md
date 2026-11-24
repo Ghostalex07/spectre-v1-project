@@ -28,7 +28,7 @@ personales ni secretos reales.
 - **Documental:** paper, PoC, ensamblador y documentación de AMD/Intel.
 
 No mezcles las tres en una misma afirmación. “El modelo recupera el secreto” no
-es “esta CPU filtra”; “0/2000 en esta CPU” no es “la mitigación es imposible de
+es “esta CPU filtra”; “0/N en esta CPU” no es “la mitigación es imposible de
 romper”.
 
 ## E1 — latencia de caché
@@ -175,7 +175,7 @@ el harness, no para afirmar una tasa poblacional.
 ### Resultados negativos
 
 Un `0` sobre `N` no demuestra imposibilidad. Reporta `N` y una cota superior
-aproximada del 95 % (regla de tres: `3/N`). Por ejemplo, `0/2000` es una cota
+aproximada del 95 % (regla de tres: `3/N`). Por ejemplo, `0/N` es una cota
 superior de aproximadamente `0,15 %`, no “0 % garantizado”.
 
 ## E3 — mitigaciones y sobrecoste
@@ -332,19 +332,12 @@ machine_id,session_id,timestamp,repetition,sample,cpu_pinned,cycles
 - `cycles`: ciclos del intervalo vacío `lfence;rdtscp;lfence;rdtscp`.
 - No se usa para restar; se analiza como distribución independiente.
 
-### E2 (opcional) y eficacia de E3
+### E2 (anexo opcional)
 
-```text
-machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,threshold,train,run,byte,guess,score1,score2,success,cycles
-```
-
-- `variant`: `baseline`, `lfence` o `mask`.
-- `threshold`: umbral de E1 usado para esa máquina.
-- `byte`: 0–39 para el secreto de 40 bytes.
-- `guess`: 0–255.
-- `score1`, `score2`: conteos de aciertos (0..attempts).
-- `success`: 1 o 0.
-- `cycles`: vacío en E2.
+E2 no es un experimento principal y no se usa para calcular la eficacia de E3.
+Los CSV de la PoC histórica se conservan para trazabilidad, pero no entran en la
+campaña ni en las figuras principales. Su posible inclusión como anexo está
+pendiente de confirmar con el profesor; ver [`e2-anexo.md`](e2-anexo.md).
 
 ### E3 — sobrecoste
 
@@ -360,7 +353,7 @@ machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,iteratio
 ### E3 — barrido de sensibilidad
 
 ```text
-machine_id,session_id,timestamp,variant,work_per_iter,predictability_mode,out_of_range_fraction,array_bytes,iterations,repetition,block_id,total_cycles,cycles_per_iter,seed,cpu_pinned
+machine_id,session_id,timestamp,variant,flags,work_per_iter,predictability_mode,out_of_range_fraction,array_bytes,iterations,repetition,block_id,total_cycles,cycles_per_iter,seed,cpu_pinned
 ```
 
 - `variant`: `baseline`, `lfence` o `mask`.
@@ -377,6 +370,14 @@ machine_id,session_id,timestamp,variant,work_per_iter,predictability_mode,out_of
 - `cpu_pinned`: CPU observada con `sched_getcpu()`.
 
 Los detalles de nombres y carpetas están en [`../data/README.md`](../data/README.md).
+
+### Nota sobre `flags` en CSV E3 antiguos
+
+Los CSV de E3 anteriores a la corrección del Makefile registran en la columna
+`flags` solo `$(CFLAGS)`, sin `-fno-if-conversion -fno-if-conversion2`, aunque
+los binarios se compilaron con esas dos opciones. No se modifican esos CSV: la
+nota queda aquí para no interpretar mal la columna. Los CSV nuevos de E3
+registran exactamente las flags efectivas.
 
 ## Repeticiones y estabilidad del sobrecoste
 

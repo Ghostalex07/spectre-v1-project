@@ -245,8 +245,11 @@ Hecho en esta tarea (commit único, sin tocar E2 ni datos existentes):
 
 Pendiente (no es parte del código de esta tarea):
 
-- Ejecutar la campaña real de E1 jerárquico y temporizador en 2–3 máquinas y
-  publicar las mesetas. Hasta entonces, las cifras de mesetas son
-  **PENDIENTES**; no se inventan.
-- Las tareas 3–5 (barrido E3, estadística por bloques, comparativa final) no se
-  abordan aquí.
+- Tareas 3, 4 y 5 completadas: barrido de sensibilidad E3, estadística por
+  bloques, sesiones, validación de fichas, regeneración y comparativa extendida.
+- Correcciones finales aplicadas: E3 registra sus flags efectivas, `make smoke`
+  omite E2 por defecto, el manual/onboarding no presentan E2 como campaña y
+  `make asm` genera desensamblados sin espacios finales.
+- Pendiente solo la campaña real multi-máquina (E1 jerárquico, temporizador y
+  barrido E3) y confirmar con el profesor si el anexo E2 se incluye. Hasta
+  entonces, las cifras de campaña quedan **PENDIENTES**; no se inventan.

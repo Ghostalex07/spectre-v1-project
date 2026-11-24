@@ -244,111 +244,15 @@ Variables: `PROFILE` (`default`/`smoke`), `SAMPLES` (100000), `REPS` (3),
 `figures/e1_<machine_id>_timer.png`. **No se resta** de las latencias: se muestra
 para juzgar el peso del montaje en los tamaños pequeños.
 
-## 6. E2 (opcional): validación en hardware
+## 6. E2: modelo conceptual
 
-El mecanismo de E2 se cubre con el modelo conceptual de
-[`simulation.md`](simulation.md). Esta sección solo aplica si quieres validarlo
-en tu CPU; no es necesaria para la campaña principal.
+La PoC de E2 en hardware no forma parte de la experimentación principal. El
+mecanismo se cubre con el análisis documental y el modelo conceptual de
+[`simulation.md`](simulation.md); la posible inclusión de la PoC como anexo está
+pendiente de confirmar con el profesor.
 
-E2 ejecuta el ataque de Spectre V1 y, para cada byte, elige el candidato con más
-aciertos de caché. El secreto de prueba es:
-
-```text
-Spectre V1 test secret 0123456789ABCDEF!
-```
-
-(40 bytes; el harness lo copia en `.rodata`.)
-
-```bash
-THRESHOLD=<T> ./scripts/run_e2.sh <machine_id> baseline <T> 1000 5 50 40
-```
-
-Parámetros:
-
-| Argumento | Defecto | Qué hace |
-|---|---:|---|
-| `machine_id` | — | Identificador de la máquina |
-| `variant` | — | `baseline`, `lfence` o `mask` |
-| `threshold` | — | Umbral de E1; obligatorio |
-| `attempts` | 1000 | Intentos por byte; fijo para comparar |
-| `train` | 5 | Aciertos de entrenamiento por ataque |
-| `runs` | 50 | Repeticiones completas del secreto |
-| `bytes` | 40 | Bytes a recuperar (máximo 40) |
-
-Variables de entorno equivalentes: `THRESHOLD`, `ATTEMPTS`, `TRAIN`, `RUNS`,
-`BYTES`, `OPT=O2|O0`, `PIN_CPU`.
-
-Salida: `data/<machine_id>/e2_<machine_id>_<variant>.csv`. Columnas relevantes:
-
-- `guess`: byte elegido.
-- `score1`: aciertos del mejor candidato (0..attempts).
-- `score2`: aciertos del segundo candidato distinto.
-- `success`: 1 si `guess` es el byte correcto.
-- `cycles`: vacío en E2.
-
-### Variantes
-
-- `baseline`: `if (x < array1_size) temp &= array2[array1[x] * 512];`
-  Debe filtrar si la microarquitectura es vulnerable y el umbral/entrenamiento
-  son correctos.
-- `lfence`: añade `_mm_lfence()` después de la comprobación y antes del acceso.
-  Debe bloquear la fuga.
-- `mask`: `mask = -(size_t)(x < array1_size); idx = x & mask;` y acceso con
-  `idx`. No debe haber salto dependiente del dato. Debe bloquear la fuga.
-
-### Control a `-O0`
-
-Para comprobar que el compilador no ha eliminado la vulnerabilidad:
-
-```bash
-OPT=O0 THRESHOLD=<T> ./scripts/run_e2.sh <machine_id> baseline <T> 1000 5 50 40
-```
-
-Salida: `e2_<machine_id>_baseline_O0.csv`. No entra en la comparación principal;
-sirve para diagnosticar.
-
-### Revisar el ensamblador
-
-```bash
-objdump -d -Mintel bin/e2_baseline | awk '/<victim_function>:/,/^$/'
-objdump -d -Mintel bin/e2_mask     | awk '/<victim_function>:/,/^$/'
-objdump -d -Mintel bin/e2_lfence   | awk '/<victim_function>:/,/^$/'
-```
-
-Qué buscar:
-
-- `baseline`: `cmp` + salto condicional (`jbe`, `jae`, etc.), no `cmov`.
-- `mask`: `cmp` + `and` (o `sbb`), **sin** salto condicional en la función
-  vulnerable.
-- `lfence`: `lfence` entre la comprobación y el acceso.
-
-Si el compilador genera `cmov` en `baseline`, revisa que se compiló con
-`-fno-if-conversion -fno-if-conversion2`. Si `mask` genera un salto, revisa el
-código o usa una secuencia `cmp`/`sbb` en ensamblador y vuelve a verificar.
-
-### Barrido de entrenamiento
-
-Para ver cómo influye el predictor:
-
-```bash
-for t in 2 4 5 6 8 10; do
-  mid="${machine_id}_train${t}"
-  TRAIN=$t THRESHOLD=<T> ./scripts/run_e2.sh "$mid" baseline <T> 1000 "$t" 10 1
-done
-```
-
-Cada valor de `train` usa un `machine_id` auxiliar y escribe en su propio
-`data/<machine_id>_train<t>/`, así no sobrescribe la campaña principal. Estos
-CSV son un diagnóstico del predictor, no la campaña final. Lo importante es
-reportar la tasa por `train`, no solo el mejor valor.
-
-### Interpretación
-
-- `success=1` y `score1` cerca de `attempts`: recuperación clara.
-- `success=0` y `margin` alto: candidato claro pero erróneo; el ataque no
-  funciona en esa configuración.
-- `margin` bajo: candidato “unclear”; no lo cuentes como recuperación clara.
-- Un `0/N` no demuestra imposibilidad; reporta `N` y una cota `3/N`.
+No hay instrucciones de campaña de E2 en este manual. Para el estado del
+anexo, consulta [`e2-anexo.md`](e2-anexo.md).
 
 ## 7. E3: mitigaciones y sobrecoste
 
@@ -388,7 +292,8 @@ Parámetros configurables (variables de entorno):
 
 El perfil `smoke` usa W 0/8, `inrange/random_p50`, arrays de 4 KiB y 32 MiB,
 2.000 iteraciones, 2 bloques y 1 repetición. `make smoke` valida la cabecera y
-el número de filas.
+el número de filas de E1/E3; la PoC de E2 hardware solo se ejecuta si
+`RUN_E2=1`.
 
 ### 7.2 Modo antiguo (una variante)
 
@@ -638,18 +543,17 @@ mask:     3.68 ciclos/iteración  (~1.11x, +10.7 %)
 
 Con 300 intentos y 1M iteraciones los números son orientativos.
 
-Campaña final de la misma máquina (`ryzen5pro5675u_final`, 50 runs y 30 reps):
+Campaña final de la misma máquina (`ryzen5pro5675u_final`, 30 reps de E3):
 
 ```text
-E2 (opcional): baseline 2000/2000 byte-intentos (40/40 por run)
-               lfence 0/2000; mask 0/2000
 E3: baseline 3.34 ciclos/iteración
     lfence  13.40 ciclos/iteración  (~4.01x, +300.6 %)
     mask     3.39 ciclos/iteración  (~1.01x, +1.3 %)
 ```
 
 Es la misma microarquitectura que la referencia; no sustituye a una segunda CPU
-en la comparación. Los `0/2000` son “no observado”, no prueba de imposibilidad.
+en la comparación. Los resultados de E2 en hardware no se incluyen como
+resultado: ver [`e2-anexo.md`](e2-anexo.md).
 
 ## 16. Seguridad y alcance
 

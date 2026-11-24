@@ -479,7 +479,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    fputs("machine_id,session_id,timestamp,variant,work_per_iter,"
+    fputs("machine_id,session_id,timestamp,variant,flags,work_per_iter,"
           "predictability_mode,out_of_range_fraction,array_bytes,iterations,"
           "repetition,block_id,total_cycles,cycles_per_iter,seed,cpu_pinned\n",
           out);
@@ -542,10 +542,12 @@ int main(int argc, char **argv) {
                             csv_write_quoted(out, session);
                             fputc(',', out);
                             csv_write_quoted(out, timestamp);
+                            fprintf(out, ",%s,", variants[v].name);
+                            csv_write_quoted(out, mi.flags);
                             fprintf(out,
-                                    ",%s,%llu,%s,%.6f,%zu,%llu,%llu,%llu,"
+                                    ",%llu,%s,%.6f,%zu,%llu,%llu,%llu,"
                                     "%llu,%.6f,%llu,%d\n",
-                                    variants[v].name, work, mode->name, oor,
+                                    work, mode->name, oor,
                                     limit, iterations, rep, block,
                                     (unsigned long long)total, cpi, seed, cpu);
                         }

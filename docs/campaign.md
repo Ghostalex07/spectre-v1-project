@@ -241,33 +241,17 @@ Incluye un resumen con:
 - E1: medianas, p5/p95 y separación de modos.
 - E3: mediana de ciclos/iteración y sobrecoste relativo.
 - Resultado de `objdump` para las tres variantes de E3.
-- E2 (opcional): aciertos de `baseline`, `lfence` y `mask`, o “no ejecutado”.
-- Si la máquina no filtra: dilo y explica qué probaste; no es bloqueante.
+- Si la máquina no filtra en E2: no aplica a esta campaña; E2 no se ejecuta.
 
-## 8. Si tu máquina no filtra (E2 opcional)
-
-No es un fracaso y no se maquilla. E1/E3 siguen siendo válidos. Si decides
-probar E2, hazlo en este orden:
-
-1. Revisa el umbral con E1.
-2. Prueba `train=2,4,5,6,8,10`.
-3. Prueba `-O0` como control.
-4. Comprueba que el binario tiene el salto condicional.
-5. Documenta el resultado negativo y sube los datos igualmente.
-
-Una máquina sin fuga es un resultado comparativo; un `0/N` es una cota
-superior, no una prueba de imposibilidad.
-
-## 9. Tiempo orientativo
+## 8. Tiempo orientativo
 
 - Inventario y E1: 15–30 minutos.
 - E1 jerárquico: 5–15 minutos según CPU y barrido.
 - E1 temporizador: 1–3 minutos.
 - E3: 5–10 minutos.
-- E2 opcional: 10–20 minutos.
 - Figuras y PR: 10 minutos.
 
-## 10. Checklist final
+## 9. Checklist final
 
 - [ ] `make smoke` pasa.
 - [ ] `make test` pasa.

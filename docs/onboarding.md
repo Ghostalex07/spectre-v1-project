@@ -64,10 +64,11 @@ make test
 make simulate
 ```
 
-`make smoke` compila E1/E2/E3 y valida las cabeceras CSV con ejecuciones
-pequeñas. `make test` valida el análisis y el modelo; `make simulate` genera la
-simulación conceptual. Si algo falla, no sigas: consulta
-[`troubleshooting.md`](troubleshooting.md).
+`make smoke` compila E1/E3 y valida sus cabeceras CSV con ejecuciones pequeñas;
+la PoC de E2 hardware se omite por defecto (`RUN_E2=0`) y solo se prueba con
+`RUN_E2=1` por interés diagnóstico. `make test` valida el análisis y el modelo;
+`make simulate` genera la simulación conceptual. Si algo falla, no sigas:
+consulta [`troubleshooting.md`](troubleshooting.md).
 
 ## 2. Prueba opcional de viabilidad del PoC (1–2 h)
 
