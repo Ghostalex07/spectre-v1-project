@@ -1,8 +1,12 @@
 # Guía del informe
 
 El informe cuenta una historia: **qué mecanismo permite la fuga, cómo se
-reproduce, cuánto filtra y cuánto cuesta mitigarlo**. No es un diario de
-depuración ni una colección de capturas.
+caracteriza la caché y cuánto cuesta mitigarlo**. No es un diario de depuración
+ni una colección de capturas.
+
+El foco experimental es E1 (caché) y E3 (rendimiento). E2 se aborda con análisis
+documental y simulación conceptual; la validación en hardware es opcional y va
+como anexo.
 
 ## Estructura recomendada
 
@@ -15,14 +19,19 @@ depuración ni una colección de capturas.
    estado arquitectónico y microarquitectónico.
 4. **Spectre V1** (4–5 páginas): modelo de amenaza, código C, ensamblador,
    línea temporal del ataque y Flush+Reload.
-5. **Metodología** (3–4 páginas): equipos, protocolo, E1/E2/E3, métricas,
-   controles y validez.
-6. **Resultados** (5–7 páginas): E1, E2, E3 y comparación entre máquinas.
-7. **Discusión** (2–3 páginas): hipótesis, diferencias microarquitectónicas,
-   coste de LFENCE frente a máscara, limitaciones.
-8. **Conclusiones y trabajo futuro** (1–2 páginas).
-9. **Referencias**.
-10. **Anexos**: código, datos crudos, fichas de equipos, comandos.
+5. **Metodología** (3–4 páginas): equipos, protocolo, E1/E3 como experimentos
+   principales, E2 documental y modelo conceptual, métricas, controles y validez.
+6. **Resultados E1** (2–3 páginas): caracterización de caché y umbrales.
+7. **Resultados E2** (2–3 páginas): análisis documental, línea temporal y
+   simulación conceptual; validación opcional en hardware como anexo.
+8. **Resultados E3** (3–4 páginas): sobrecoste y comparación entre máquinas.
+9. **Discusión** (2–3 páginas): hipótesis de coste, diferencias
+   microarquitectónicas, límites de la evidencia y ausencia de comportamiento
+   observable.
+10. **Conclusiones y trabajo futuro** (1–2 páginas).
+11. **Referencias**.
+12. **Anexos**: código, datos crudos, fichas de equipos, comandos y validación
+    opcional de E2 en hardware.
 
 ## Figuras y tablas mínimas
 
@@ -31,14 +40,16 @@ depuración ni una colección de capturas.
 | Tabla de equipos | CPU, familia/modelo/stepping, microcódigo, kernel, GCC, VM/nativo | `docs/machines.md` |
 | Tabla de umbrales | hit/miss, mediana/p5/p95, umbral elegido | `docs/thresholds.md` |
 | Figura E1 | Histograma hit/miss con el umbral marcado | `analysis/plot_e1.py` |
-| Tabla E2 | Tasa por variante y `train`, con IC de Wilson | `analysis/plot_e2.py` |
-| Figura E2 | Recuperación vs `train` y por byte | `analysis/plot_e2.py` |
-| Tabla E3 | Eficacia, mediana/p95 de ciclos, sobrecoste absoluto/porcentual | `analysis/plot_e3.py` |
+| Tabla E2 | Línea temporal y supuestos del modelo | `analysis/simulate_spectre.py` |
+| Figura E2 | Aciertos por línea en `baseline`/`lfence`/`mask` (modelo) | `analysis/simulate_spectre.py` |
+| Tabla E3 | Mediana/p95 de ciclos, sobrecoste absoluto/porcentual | `analysis/plot_e3.py` |
 | Figura E3 | Sobrecoste por variante | `analysis/plot_e3.py` |
-| Figura E3 | Scatter eficacia/sobrecoste | `analysis/plot_e3.py` |
+| Figura E3 | Comparación entre máquinas | `analysis/compare_machines.py` |
+| Anexo E2 | Recuperación opcional en hardware, con IC y `unclear` | `analysis/plot_e2.py` |
 
-No inventes una figura “bonita” que no salga de los CSV. Si una máquina no
-filtra, inclúyela en la tabla y explica por qué.
+No inventes una figura “bonita” que no salga de los CSV o del modelo. Si una
+máquina no filtra en E2, inclúyela en el anexo y explica qué se observó y qué no
+se puede concluir.
 
 ## Metodología: qué debe quedar claro
 
@@ -47,8 +58,8 @@ filtra, inclúyela en la tabla y explica por qué.
 - **Aislamiento:** Linux nativo, `taskset`, SMT sibling idle, gobernador
   registrado, mismas flags.
 - **E1:** cómo se mide `hit`/`miss`, cuántas muestras, cómo se elige el umbral.
-- **E2:** número de intentos fijo, `train`, `runs`, bytes, umbral, variantes y
-  revisión del ensamblador.
+- **E2:** análisis documental y modelo conceptual; supuestos, límites y
+  validación opcional en hardware con número fijo de intentos y umbral.
 - **E3:** iteraciones, repeticiones, definición de ciclos/iteración y
   comparación contra baseline.
 - **Estadística:** tasa global, IC de Wilson, bootstrap para medianas, `unclear`
@@ -58,8 +69,11 @@ filtra, inclúyela en la tabla y explica por qué.
 
 ## Resultados: cómo escribirlos
 
-- Empieza por lo que se ve: “la versión base recuperó 40/40 bytes; LFENCE y
-  máscara, 0/40”.
+- Empieza por E1: “la caché muestra dos modos separados; el umbral elegido es
+  T para esta máquina”.
+- Sigue por E3: “LFENCE cuesta X % más; la máscara, Y %”.
+- Presenta E2 como mecanismo: línea temporal, modelo y límites. Si hay hardware,
+  va al anexo: “la versión base recuperó 40/40; LFENCE y máscara, 0/40”.
 - Da la incertidumbre: “40/40, IC 95 % [91,2 %, 100 %]” no es lo mismo que
   “100 %”.
 - Separa eficacia de coste: una mitigación puede ser eficaz y cara; otra puede
@@ -70,12 +84,13 @@ filtra, inclúyela en la tabla y explica por qué.
 
 ## Discusión: preguntas que debes responder
 
-- ¿Se cumple la hipótesis?
+- ¿Se cumple la hipótesis de coste?
 - ¿LFENCE costó más que la máscara? ¿Cuánto?
-- ¿La eficacia depende de la microarquitectura? ¿Cómo se ve en los datos?
-- ¿Hubo máquinas sin fuga? ¿Qué las diferencia?
+- ¿El sobrecoste depende de la microarquitectura? ¿Cómo se ve en los datos?
+- ¿Qué explica el modelo y qué no puede explicar?
+- ¿Hubo máquinas sin fuga en E2? ¿Qué se puede y qué no se puede concluir?
 - ¿Qué limitaciones tiene el experimento? (mismo proceso, secreto sintético,
-  umbral por máquina, ruido, VM, número de equipos).
+  umbral por máquina, ruido, VM, número de equipos, modelo simplificado).
 - ¿Qué harías con más tiempo? (más microarquitecturas, más variantes, energía,
   otras mitigaciones, etc.). No lo presentes como resultado.
 
@@ -107,12 +122,18 @@ filtra, inclúyela en la tabla y explica por qué.
 ```bash
 make
 make smoke
+make test
 
-./scripts/run_all.sh <machine_id> <threshold>
+RUN_E2=0 ./scripts/run_all.sh <machine_id> <threshold>
 
 python3 analysis/plot_e1.py --machine-id <machine_id>
-python3 analysis/plot_e2.py --machine-id <machine_id>
 python3 analysis/plot_e3.py --machine-id <machine_id>
+python3 analysis/simulate_spectre.py --attempts 200 --train 5 \
+  --out data/simulation/spectre_model.csv \
+  --figure figures/simulation_spectre.png
+
+# Opcional: E2 en hardware
+python3 analysis/plot_e2.py --machine-id <machine_id>
 ```
 
 Las tablas de los scripts se pueden copiar al informe, pero revisa que las

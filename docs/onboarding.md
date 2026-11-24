@@ -1,7 +1,12 @@
 # Onboarding — primeros pasos
 
-Objetivo: que cualquier integrante pueda clonar el repositorio y empezar la
-**Fase 0** sin depender de conversaciones privadas. Tiempo estimado: 2–3 días.
+Objetivo: que cualquier integrante pueda clonar el repositorio y empezar sin
+depender de conversaciones privadas. Tiempo estimado: 2–3 días.
+
+La experimentación principal es **E1 (caracterización de caché)** y **E3
+(sobrecoste de mitigaciones)**. La prueba del PoC de E2 es **opcional**: el
+mecanismo se explica con el modelo conceptual de
+[`docs/simulation.md`](simulation.md).
 
 Si algo no está en el repositorio, abre un issue; no lo resuelvas por chat.
 
@@ -18,8 +23,9 @@ Lee, en este orden:
 2. [`CONTRIBUTING.md`](../CONTRIBUTING.md)
 3. [`docs/metrics.md`](metrics.md)
 4. [`docs/manual.md`](manual.md)
-5. [`docs/campaign.md`](campaign.md)
-6. [`data/README.md`](../data/README.md)
+5. [`docs/simulation.md`](simulation.md)
+6. [`docs/campaign.md`](campaign.md)
+7. [`data/README.md`](../data/README.md)
 
 ## 1. Ficha del equipo (30 min)
 
@@ -54,15 +60,20 @@ probar, pero no entra en la comparación principal.
 ```bash
 make
 make smoke
+make test
+make simulate
 ```
 
 `make smoke` compila E1/E2/E3 y valida las cabeceras CSV con ejecuciones
-pequeñas. Si falla, no sigas: consulta
+pequeñas. `make test` valida el análisis y el modelo; `make simulate` genera la
+simulación conceptual. Si algo falla, no sigas: consulta
 [`troubleshooting.md`](troubleshooting.md).
 
-## 2. Prueba de viabilidad del PoC (1–2 h)
+## 2. Prueba opcional de viabilidad del PoC (1–2 h)
 
-El objetivo es comprobar si tu máquina filtra. **No** es la campaña de medidas.
+El objetivo es comprobar si tu máquina filtra. **No** es la campaña de medidas y
+**no es necesario** para E1/E3. Sirve como evidencia opcional para el anexo de
+E2.
 
 ```bash
 mkdir -p /tmp/spectre-poc
@@ -106,9 +117,11 @@ taskset -c 0 /tmp/spectre-poc/spectre > data/<machine_id>/poc_<machine_id>.txt 2
 
 Interpretación:
 
-- Si recupera el secreto, la máquina filtra y es candidata para E2/E3.
+- Si recupera el secreto, la máquina filtra: es evidencia opcional para el anexo
+  de E2. E1/E3 no dependen de esto.
 - Si no filtra, no lo ocultes: prueba otro umbral y otro patrón de entrenamiento
-  según `PLAN.md`; si sigue sin filtrar, documenta el resultado negativo.
+  según `PLAN.md`; si sigue sin filtrar, documenta el resultado negativo. No es
+  bloqueante para el proyecto.
 - No modifiques el PoC para “forzar” que filtre.
 
 ## 3. Entorno de medida

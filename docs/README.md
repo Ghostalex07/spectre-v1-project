@@ -7,6 +7,7 @@
 | [`onboarding.md`](onboarding.md) | Primeros pasos, Fase 0 y prueba de viabilidad |
 | [`campaign.md`](campaign.md) | Campaña final: qué ejecuta cada integrante en su máquina |
 | [`manual.md`](manual.md) | Manual completo: compilar, medir, analizar y reproducir |
+| [`simulation.md`](simulation.md) | Modelo conceptual de E2 y sus límites |
 | [`metrics.md`](metrics.md) | Definiciones de métricas y esquemas CSV |
 | [`thresholds.md`](thresholds.md) | Umbral de cada máquina y `margin_min` |
 | [`machines.md`](machines.md) | Ficha de CPU, kernel, compiler y VM/nativo |
@@ -22,8 +23,9 @@
 3. [`onboarding.md`](onboarding.md) — qué hacer el primer día.
 4. [`campaign.md`](campaign.md) — qué ejecuta cada integrante en su máquina.
 5. [`manual.md`](manual.md) — cómo ejecutar todo.
-6. [`metrics.md`](metrics.md) y [`thresholds.md`](thresholds.md) — cómo medir.
-7. [`report-guide.md`](report-guide.md) y [`defense-guide.md`](defense-guide.md)
+6. [`simulation.md`](simulation.md) — cómo se explica E2 sin hardware.
+7. [`metrics.md`](metrics.md) y [`thresholds.md`](thresholds.md) — cómo medir.
+8. [`report-guide.md`](report-guide.md) y [`defense-guide.md`](defense-guide.md)
    — cómo presentar.
 
 ## Regla

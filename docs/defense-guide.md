@@ -1,8 +1,9 @@
 # Guía de la defensa
 
-Objetivo: explicar el mecanismo, mostrar que se ha reproducido y comparar
-eficacia frente a coste **sin leer el informe**. Una idea por diapositiva,
-figuras grandes y una demo corta.
+Objetivo: explicar el mecanismo, mostrar la caracterización de caché y comparar
+el sobrecoste de las mitigaciones **sin leer el informe**. E2 se explica con
+análisis documental y simulación conceptual; la demo de hardware es opcional.
+Una idea por diapositiva, figuras grandes y una demo corta.
 
 ## Formato
 
@@ -27,22 +28,22 @@ figuras grandes y una demo corta.
 7. **Pregunta y objetivos.** Una pregunta, tres objetivos, hipótesis.
 8. **Alcance y modelo de amenaza.** Mismo proceso, secreto de prueba, Linux
    nativo; fuera de alcance Meltdown, kernel y cross-process.
-9. **Metodología.** E1, E2, E3; variables, controles y métricas.
+9. **Metodología.** E1/E3 empíricos; E2 documental y modelo conceptual.
 10. **Equipos y protocolo.** Tabla de máquinas, umbral por máquina, `taskset`,
     SMT idle, flags.
-11. **E1: resultados.** Histograma hit/miss y umbral elegido.
-12. **E2: resultados.** Tasa por variante y `train`; 40/40 baseline, 0/40
-    mitigaciones; IC y `unclear`.
-13. **E3: resultados.** Ciclos/iteración, sobrecoste absoluto/porcentual y
-    scatter eficacia/sobrecoste.
-14. **Discusión.** Hipótesis, diferencias microarquitectónicas, LFENCE vs
-    máscara, limitaciones.
+11. **E1: resultados.** Histograma hit/miss, caracterización y umbral elegido.
+12. **E2: mecanismo y modelo.** Línea temporal y simulación; qué explica y qué
+    no. La validación en hardware, si existe, va al anexo.
+13. **E3: resultados.** Ciclos/iteración y sobrecoste absoluto/porcentual.
+14. **Comparación y discusión.** Diferencias microarquitectónicas, LFENCE vs
+    máscara, límites de la evidencia.
 15. **Conclusiones, demo y Q&A.** Qué se ha demostrado, qué no, y siguiente
     paso.
 
 ## Demo
 
-La demo debe durar menos de 2 minutos. Enseña solo lo necesario:
+La demo de hardware es **opcional**. Si la tienes, debe durar menos de 2
+minutos:
 
 ```bash
 make
@@ -63,9 +64,9 @@ Salida esperada (Ryzen de referencia, threshold 80):
   aciertos:   0/40
 ```
 
-Si la máquina de la defensa no filtra, no improvises: explica el resultado
-negativo y usa el vídeo de respaldo grabado en el equipo de referencia. Lleva
-también los CSV y las figuras en local.
+Si la máquina de la defensa no filtra, no improvises: explica que E2 en
+hardware es opcional y usa la simulación conceptual. Si tienes vídeo de
+respaldo, úsalo. Lleva también los CSV y las figuras en local.
 
 ### Guion de la demo
 
@@ -76,10 +77,12 @@ también los CSV y las figuras en local.
 4. Ejecuta lfence y muestra 0/40.
 5. “Esta es la máscara; el índice fuera de rango se convierte en 0.”
 6. Ejecuta mask y muestra 0/40.
-7. “La mitigación funciona, pero LFENCE cuesta ~4×; la máscara, ~1×.”
+7. “En esta máquina no se observó fuga con LFENCE ni con máscara, pero LFENCE
+   cuesta ~4× y la máscara ~1×.”
 
 No digas “la máscara es gratis” con una sola medida. Di “en esta máquina y con
-este bucle, el sobrecoste es aproximadamente el 2 %”.
+este bucle, el sobrecoste es aproximadamente el 1–2 %”. No presentes un `0/40`
+como prueba universal de seguridad.
 
 ## Preguntas previsibles
 
@@ -106,14 +109,16 @@ la máscara solo transforma el índice y elimina el salto, así que el coste es
 mucho menor en este bucle. Los números exactos dependen de la microarquitectura.
 
 **¿La máscara elimina la fuga?**
-En nuestras medidas, sí: el índice fuera de rango se convierte en 0 y el acceso
-constante a `array1[0]` no revela el secreto. `guess=1` con `score1` alto es el
-acceso constante, no una fuga.
+En nuestras medidas **no se observó** fuga: el índice fuera de rango se convierte
+en 0 y el acceso constante a `array1[0]` no revela el secreto. `guess=1` con
+`score1` alto es el acceso constante, no una fuga. Un `0/N` es una cota
+superior, no una prueba de imposibilidad.
 
 **¿Por qué la variante LFENCE no recupera nada?**
-Porque la barrera impide que la carga posterior se ejecute especulativamente
-antes de que se resuelva la comprobación. Si en tu máquina recupera algo, revisa
-el ensamblador: puede que el compilador haya movido o eliminado la barrera.
+En nuestras medidas no recuperó: la barrera impide que la carga posterior se
+ejecute especulativamente antes de que se resuelva la comprobación. Si en tu
+máquina recupera algo, revisa el ensamblador: puede que el compilador haya
+movido o eliminado la barrera. No generalices el resultado a todas las CPUs.
 
 **¿Y si el compilador convierte el `if` en `cmov`?**
 Entonces la versión base puede dejar de filtrar. Compilamos con
@@ -142,8 +147,11 @@ VM se puede usar para probar el harness, pero se excluye de la comparación
 principal.
 
 **¿Cómo se reproduce?**
-Clonando el repo, ejecutando `make`, `make smoke` y `scripts/run_all.sh` con el
-umbral de la máquina. Los CSV y las figuras se regeneran desde los scripts.
+Clonando el repo, ejecutando `make`, `make smoke`, `make test` y
+`RUN_E2=0 ./scripts/run_all.sh <machine_id> <T>` con el umbral de la máquina.
+E2 se reproduce conceptualmente con `analysis/simulate_spectre.py`; la
+validación en hardware es opcional. Los CSV y las figuras se regeneran desde
+los scripts.
 
 ## Checklist antes de la defensa
 

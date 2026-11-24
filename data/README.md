@@ -18,6 +18,8 @@ data/
     e3_<machine_id>_baseline.csv
     e3_<machine_id>_lfence.csv
     e3_<machine_id>_mask.csv
+  simulation/
+    spectre_model.csv
   derived/
 ```
 
@@ -26,8 +28,12 @@ data/
   gobernador.
 - `poc_*.txt`: salida de la prueba de viabilidad de Fase 0.
 - `e1_*.csv`: latencias de caché.
-- `e2_*.csv`: recuperación del secreto por variante.
+- `e2_*.csv`: recuperación del secreto por variante. Es **validación opcional**
+  de hardware; la explicación del mecanismo va en el modelo y en el análisis
+  documental.
 - `e3_*.csv`: sobrecoste por variante.
+- `simulation/spectre_model.csv`: salida del modelo conceptual de
+  `analysis/simulate_spectre.py`; no es una medida de hardware.
 - `derived/`: tablas agregadas generadas por `analysis/`; no se editan a mano.
   `compare_machines.csv` es la tabla comparativa que genera
   `analysis/compare_machines.py`.
@@ -38,15 +44,20 @@ data/
 validar el harness, no la campaña final:
 
 - E1: 10.000 muestras por modo, buffer de 64 MiB.
-- E2: 40 bytes, 300 intentos, `train=5`, **1 run**.
+- E2: 40 bytes, 300 intentos, `train=5`, **1 run** (validación opcional).
 - E3: 1.000.000 iteraciones, 3 repeticiones.
 
 `data/ryzen5pro5675u_final/` contiene la **campaña final** de esa misma máquina,
 con el protocolo completo:
 
 - E1: 10.000 muestras por modo, buffer de 64 MiB.
-- E2: 40 bytes, 1000 intentos, `train=5`, **50 runs**.
+- E2: 40 bytes, 1000 intentos, `train=5`, **50 runs** (validación opcional).
 - E3: 10.000.000 iteraciones, **30 repeticiones**.
+
+La simulación conceptual de referencia está en
+`data/simulation/spectre_model.csv` y se regenera con `make simulate`. No es una
+medida de hardware: sirve para explicar el mecanismo y comparar las variantes de
+forma reproducible.
 
 Es la misma microarquitectura que `ryzen5pro5675u`, así que sirve como campaña
 completa de referencia, pero **no cuenta como una CPU distinta** para el
@@ -68,7 +79,7 @@ machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,mode,sample,cycl
 - `sample`: índice de muestra.
 - `cycles`: latencia medida con `rdtscp`.
 
-### E2 y eficacia de E3
+### E2 — validación opcional de hardware
 
 ```text
 machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,threshold,train,run,byte,guess,score1,score2,success,cycles

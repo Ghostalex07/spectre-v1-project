@@ -217,7 +217,7 @@ Ejecuta primero la campaña o revisa el `machine_id`:
 
 ```bash
 ls data/
-./scripts/run_all.sh <machine_id>
+THRESHOLD=<T> RUN_E2=0 ./scripts/run_all.sh <machine_id> <T>
 ```
 
 ### `FileNotFoundError: .../e1_<machine>.csv`

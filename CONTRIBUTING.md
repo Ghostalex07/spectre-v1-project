@@ -9,6 +9,7 @@ Antes de tocar nada, lee:
 - [`docs/onboarding.md`](docs/onboarding.md): primeros pasos y Fase 0.
 - [`docs/campaign.md`](docs/campaign.md): qué ejecuta cada integrante en su máquina.
 - [`docs/manual.md`](docs/manual.md): manual completo del harness.
+- [`docs/simulation.md`](docs/simulation.md): modelo conceptual de Spectre V1.
 - [`docs/metrics.md`](docs/metrics.md): cómo se mide y cómo se reporta.
 - [`docs/troubleshooting.md`](docs/troubleshooting.md): errores típicos.
 - [`AGENTS.md`](AGENTS.md): reglas para agentes de IA (a los humanos también os
@@ -44,16 +45,26 @@ guardes en el repositorio.
 - Opcional: `perf` para inspección.
 - No introduzcas dependencias nuevas sin justificarlo en el PR.
 
+## Enfoque actual
+
+Tras el feedback del profesor, la experimentación principal es **E1
+(caracterización de caché)** y **E3 (sobrecoste de mitigaciones)**. El mecanismo
+de explotación de E2 se cubre con análisis documental y el modelo conceptual de
+[`docs/simulation.md`](docs/simulation.md). Ejecutar E2 en hardware es
+**opcional** y va como anexo.
+
 ## Primer comando
 
 ```bash
 make
 make smoke
 make test
+make simulate
 ```
 
 Si `make smoke` pasa, el harness está sano. Después sigue
-[`docs/manual.md`](docs/manual.md) para medir en tu máquina.
+[`docs/manual.md`](docs/manual.md) para medir en tu máquina. La campaña principal
+se lanza con `RUN_E2=0` para no ejecutar la validación opcional de E2.
 
 ## Flujo de trabajo
 

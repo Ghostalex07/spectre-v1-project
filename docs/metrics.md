@@ -20,6 +20,17 @@ los resultados para que el resultado quede mejor.
 El secreto es sintético y público para el experimento. No se usan datos
 personales ni secretos reales.
 
+## Tipos de evidencia
+
+- **Empírica:** E1 y E3, medidas en hardware con CSV y repeticiones.
+- **Conceptual:** E2, modelo explícito de predictor/caché; explica el mecanismo,
+  no demuestra el comportamiento de una CPU concreta.
+- **Documental:** paper, PoC, ensamblador y documentación de AMD/Intel.
+
+No mezcles las tres en una misma afirmación. “El modelo recupera el secreto” no
+es “esta CPU filtra”; “0/2000 en esta CPU” no es “la mitigación es imposible de
+romper”.
+
 ## E1 — latencia de caché
 
 Para cada máquina y modo (acceso caliente / acceso frío):
@@ -30,14 +41,17 @@ Para cada máquina y modo (acceso caliente / acceso frío):
 - Comprobar la clasificación: `hit` si `latencia <= T`, `miss` si no.
 - Reportar aciertos y falsos positivos/negativos de la clasificación.
 
-El umbral es **por máquina**. No se usa el valor 80 del PoC original: es
-específico de Intel. En el Ryzen 5 PRO 5675U de referencia, 80 funciona porque
-los aciertos están en ~46 ciclos y los fallos por encima de ~230; en otra
-máquina hay que repetir E1 y elegir su propio valle.
+El umbral es **por máquina**. No se copia el 80 de otra máquina: en el Ryzen 5
+PRO 5675U de referencia funciona porque los aciertos están en ~46 ciclos y los
+fallos por encima de ~230; en otra máquina hay que repetir E1 y elegir su propio
+valle.
 
 El resultado se guarda en [`docs/thresholds.md`](thresholds.md).
 
-## E2 — recuperación del secreto
+## E2 — recuperación del secreto (modelo y validación opcional)
+
+El mecanismo se explica con `analysis/simulate_spectre.py`. Si además se ejecuta
+la PoC en hardware, se aplican estas métricas y se reportan como anexo.
 
 Para cada byte `b`, repetición `r` e intento `a`, el programa mide las 256
 líneas de `array2` y cuenta cuántas veces cada línea parece estar en caché.
@@ -76,9 +90,9 @@ Notas:
 Intervalo de confianza del 95 % para proporciones: **Wilson**. Para medianas:
 **bootstrap** con 10.000 remuestreos (percentiles 2,5 y 97,5).
 
-`R >= 50` para E2. No se concluye con una sola ejecución. La ejecución de
-referencia del repositorio usa `R=1` y sirve solo para validar el harness, no
-para afirmar una tasa poblacional.
+`R >= 50` si se ejecuta E2 en hardware. No se concluye con una sola ejecución.
+La ejecución de referencia del repositorio usa `R=1` y sirve solo para validar
+el harness, no para afirmar una tasa poblacional.
 
 ### Resultados negativos
 
@@ -90,9 +104,9 @@ superior de aproximadamente `0,15 %`, no “0 % garantizado”.
 
 Para cada variante (`baseline`, `lfence`, `mask`):
 
-- Repetir el protocolo de E2 para medir eficacia (`tasa global`, `unclear`,
-  `margin`). La eficacia de E3 se calcula a partir de los CSV de E2; no se
-  duplica el ataque en el binario de sobrecoste.
+- La eficacia de seguridad se discute con el modelo conceptual y la literatura.
+  Si hay E2 en hardware, se puede cruzar su `tasa global`, `unclear` y `margin`
+  como evidencia adicional; no se duplica el ataque en el binario de E3.
 - Medir el bucle de sobrecoste: 10 millones de iteraciones, mezcla de índices
   válidos, 30 repeticiones.
 - `ciclos/iteración = ciclos_totales / iteraciones`.
@@ -134,7 +148,7 @@ machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,mode,sample,cycl
 - `sample`: índice de muestra.
 - `cycles`: latencia medida con `rdtscp`.
 
-### E2 y eficacia de E3
+### E2 (opcional) y eficacia de E3
 
 ```text
 machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,threshold,train,run,byte,guess,score1,score2,success,cycles

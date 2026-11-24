@@ -4,6 +4,11 @@ Esta es la parte que hace **cada integrante en su propio equipo**. No hay que
 repetir el harness ni reescribir documentación: se clona el repo, se ejecuta el
 protocolo y se suben los datos.
 
+> **Foco experimental (feedback del profesor):** E1 (caracterización de caché) y
+> E3 (impacto de mitigaciones en rendimiento) son obligatorios. E2 en hardware
+> es **opcional**; el mecanismo se cubre con análisis documental y
+> [`simulation.md`](simulation.md). Si tu CPU no filtra, no es un problema.
+
 > **Regla de oro:** el umbral de una máquina no sirve para otra. No copies el 80
 > del Ryzen de referencia. Calibra el tuyo con E1.
 
@@ -72,34 +77,45 @@ Añade tu fila a [`thresholds.md`](thresholds.md):
 No sigas si `hit` y `miss` se solapan completamente: mira
 [`troubleshooting.md`](troubleshooting.md).
 
-## 3. Lanza la campaña final
+## 3. Lanza la campaña principal (E1 + E3)
 
 ```bash
-THRESHOLD=<T> ./scripts/run_all.sh <machine_id> <T>
+THRESHOLD=<T> RUN_E2=0 ./scripts/run_all.sh <machine_id> <T>
 ```
 
 `run_all.sh` usa el protocolo final por defecto:
 
-- E2: 1000 intentos, 50 runs, 40 bytes, `train=5`.
+- E1: 10.000 muestras por modo, buffer de 64 MiB.
+- E2: **omitido** con `RUN_E2=0`; es opcional.
 - E3: 10M iteraciones, 30 repeticiones.
 - Variantes: `baseline`, `lfence` y `mask`.
 
-No hace falta pasar intentos ni runs. Si quieres el control `-O0`:
+Los CSV quedan en `data/<machine_id>/`.
+
+### Validación opcional de E2 en hardware
+
+Si quieres comprobar la fuga en tu máquina, ejecuta además:
 
 ```bash
-RUN_O0=1 THRESHOLD=<T> ./scripts/run_all.sh <machine_id> <T>
+RUN_E2=1 THRESHOLD=<T> ./scripts/run_all.sh <machine_id> <T>
 ```
 
-Los CSV quedan en `data/<machine_id>/`.
+E2 usa 1000 intentos, 50 runs, 40 bytes y `train=5`. Si no recupera el secreto,
+se documenta como “no observado” y no se maquilla. Para el control `-O0`:
+
+```bash
+RUN_E2=1 RUN_O0=1 THRESHOLD=<T> ./scripts/run_all.sh <machine_id> <T>
+```
 
 ## 4. Revisa el ensamblador
 
-Antes de dar los datos por buenos:
+Antes de dar los datos por buenos, revisa las variantes de E3:
 
 ```bash
-objdump -d -Mintel bin/e2_baseline | awk '/<victim_function>:/,/^$/'
-objdump -d -Mintel bin/e2_lfence  | awk '/<victim_function>:/,/^$/'
-objdump -d -Mintel bin/e2_mask    | awk '/<victim_function>:/,/^$/'
+for v in baseline lfence mask; do
+  echo "== $v =="
+  objdump -d -Mintel "bin/e3_$v" | awk '/<victim_function>:/,/^$/'
+done
 ```
 
 Qué debe salir:
@@ -111,16 +127,26 @@ Qué debe salir:
 
 Si la máscara se compila a un salto, no uses esos datos: avisa y se corrige.
 
+Si además ejecutas E2 en hardware, repite la revisión con `bin/e2_*`.
+
 ## 5. Genera las figuras
+
+Obligatorias (E1 y E3):
 
 ```bash
 python3 analysis/plot_e1.py --machine-id <machine_id>
-python3 analysis/plot_e2.py --machine-id <machine_id>
 python3 analysis/plot_e3.py --machine-id <machine_id>
 ```
 
+Opcional (si ejecutaste E2 en hardware):
+
+```bash
+python3 analysis/plot_e2.py --machine-id <machine_id>
+```
+
 Las figuras se guardan en `figures/`. `plot_e2.py` excluye por defecto los CSV
-`-O0` para no mezclarlos con la campaña principal.
+`-O0` para no mezclarlos con la campaña principal. `plot_e3.py` funciona aunque
+no haya E2: en ese caso solo genera la figura de sobrecoste.
 
 ## 6. Sube los datos al repo
 
@@ -151,14 +177,16 @@ Incluye un resumen con:
 
 - CPU, `family/model/stepping`, microcódigo, kernel, GCC y nativo/VM.
 - Umbral elegido y por qué.
-- E2: aciertos de `baseline`, `lfence` y `mask`.
+- E1: medianas, p5/p95 y separación de modos.
 - E3: mediana de ciclos/iteración y sobrecoste relativo.
-- Resultado de `objdump` para las tres variantes.
-- Si la máquina no filtra: dilo y explica qué probaste.
+- Resultado de `objdump` para las tres variantes de E3.
+- E2 (opcional): aciertos de `baseline`, `lfence` y `mask`, o “no ejecutado”.
+- Si la máquina no filtra: dilo y explica qué probaste; no es bloqueante.
 
-## 8. Si tu máquina no filtra
+## 8. Si tu máquina no filtra (E2 opcional)
 
-No es un fracaso y no se maquilla. Prueba, en este orden:
+No es un fracaso y no se maquilla. E1/E3 siguen siendo válidos. Si decides
+probar E2, hazlo en este orden:
 
 1. Revisa el umbral con E1.
 2. Prueba `train=2,4,5,6,8,10`.
@@ -166,12 +194,14 @@ No es un fracaso y no se maquilla. Prueba, en este orden:
 4. Comprueba que el binario tiene el salto condicional.
 5. Documenta el resultado negativo y sube los datos igualmente.
 
-Una máquina sin fuga es un resultado comparativo del trabajo.
+Una máquina sin fuga es un resultado comparativo; un `0/N` es una cota
+superior, no una prueba de imposibilidad.
 
 ## 9. Tiempo orientativo
 
 - Inventario y E1: 15–30 minutos.
-- Campaña E2/E3: 10–20 minutos.
+- E3: 5–10 minutos.
+- E2 opcional: 10–20 minutos.
 - Figuras y PR: 10 minutos.
 
 ## 10. Checklist final
@@ -182,9 +212,9 @@ Una máquina sin fuga es un resultado comparativo del trabajo.
 - [ ] Fila añadida a `docs/machines.md`.
 - [ ] Umbral añadido a `docs/thresholds.md`.
 - [ ] E1 tiene 10.000 muestras por modo.
-- [ ] E2 tiene 50 runs y 40 bytes.
 - [ ] E3 tiene 30 repeticiones.
-- [ ] `objdump` revisado en las tres variantes.
-- [ ] Figuras generadas.
+- [ ] `objdump` revisado en las tres variantes de E3.
+- [ ] Figuras de E1/E3 generadas.
+- [ ] E2 ejecutado (opcional) o marcado como “no ejecutado”.
 - [ ] PR abierto contra `main`.
 - [ ] `git status` no muestra archivos raros.

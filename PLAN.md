@@ -6,20 +6,23 @@ orden, con qué controles experimentales y qué se entrega.
 
 ## 0. Estado de implementación
 
-Actualizado el 2026-11-17.
+Actualizado el 2026-11-24 tras el feedback del profesor.
 
 - [x] Fase 1: harness, `Makefile`, scripts, análisis y documentación.
-- [x] E1/E2/E3 validados en el Ryzen 5 PRO 5675U de referencia.
-- [x] `make smoke` pasa.
-- [x] Campaña final de referencia en el Ryzen (`ryzen5pro5675u_final`, 50 runs y 30 reps).
-- [ ] Campaña multi-máquina con 2–3 microarquitecturas.
+- [x] E1/E2/E3 implementados y validados en el Ryzen 5 PRO 5675U de referencia.
+- [x] `make smoke` y `make test` pasan.
+- [x] Modelo conceptual de E2 (`analysis/simulate_spectre.py`).
+- [x] Enfoque experimental reorientado: **E1 y E3 son el núcleo empírico**;
+      **E2 se cubre con análisis documental y simulación conceptual**.
+- [ ] Campaña multi-máquina de E1/E3 con 2–3 microarquitecturas.
 - [ ] Informe y defensa final.
 
 Los datos de validación están en `data/ryzen5pro5675u/` (1 run en E2) y la
 campaña final de esa misma CPU en `data/ryzen5pro5675u_final/` (50 runs en E2,
 30 reps en E3). No son dos microarquitecturas distintas. El manual de ejecución
-está en [`docs/manual.md`](docs/manual.md) y la campaña por máquina en
-[`docs/campaign.md`](docs/campaign.md).
+está en [`docs/manual.md`](docs/manual.md), la campaña por máquina en
+[`docs/campaign.md`](docs/campaign.md) y el modelo conceptual en
+[`docs/simulation.md`](docs/simulation.md).
 
 ## 1. Ficha del proyecto
 
@@ -39,29 +42,51 @@ caché, y medir el coste de las principales mitigaciones.
 
 1. Describir los mecanismos de predicción de saltos, ejecución especulativa y
    caché que intervienen en Spectre V1.
-2. Reproducir y analizar experimentalmente el canal lateral en un entorno
-   controlado.
-3. Evaluar la eficacia y el sobrecoste de LFENCE y del enmascarado de índices en
-   distintos procesadores.
+2. Analizar el mecanismo de explotación mediante **análisis documental y un
+   modelo conceptual reproducible**; la validación en hardware es opcional y se
+   reporta como anexo, no como condición del proyecto.
+3. Caracterizar experimentalmente la caché (E1) y evaluar el **sobrecoste** de
+   LFENCE y del enmascarado de índices en distintas microarquitecturas (E3).
+   La eficacia de seguridad se discute a partir del modelo, la literatura y, si
+   existe, la validación opcional en hardware.
 
 **Alcance:** pipeline, ejecución fuera de orden, predicción de saltos,
 recuperación ante fallos, jerarquía de caché y diferencia entre estado
 arquitectónico y microarquitectónico. Spectre V1 en un único proceso, con un
 secreto de prueba, y las mitigaciones LFENCE y enmascarado de índices.
 
+**Enfoque experimental (revisado tras el feedback del profesor):**
+
+- **E1 — caracterización de caché:** experimentación principal. Latencia de
+  acierto/fallo, histogramas y umbral por máquina.
+- **E2 — mecanismo de explotación:** análisis documental (paper, PoC,
+  ensamblador, línea temporal) y **simulación conceptual** con
+  `analysis/simulate_spectre.py`. No depende de que una CPU concreta filtre.
+- **E3 — impacto de las mitigaciones:** experimentación principal. Ciclos por
+  iteración y sobrecoste de `baseline`, `lfence` y `mask` en cada
+  microarquitectura.
+- **E2 en hardware:** opcional. Si se ejecuta, se presenta como validación
+  adicional y se interpreta con sus límites; no se usa para afirmar que una
+  mitigación es universalmente infalible.
+
 **Fuera de alcance:** otras variantes de Spectre, Meltdown y ataques entre
 procesos o contra el kernel. Las mitigaciones hardware se mencionan solo como
 contexto.
 
-**Hipótesis:** ambas mitigaciones reducirán significativamente la filtración,
-aunque su eficacia y sobrecoste dependerán de la microarquitectura. Se espera que
-LFENCE tenga un coste mayor que el enmascarado de índices.
+**Hipótesis:** LFENCE tendrá un sobrecoste mayor que el enmascarado de índices,
+con diferencias ligadas a la microarquitectura. El modelo conceptual y la
+literatura permiten anticipar que ambas mitigaciones bloquean la fuga en el
+caso base; la validación en hardware, si se hace, se reporta como evidencia
+limitada y no como prueba universal. Un resultado de “no observado” no demuestra
+imposibilidad.
 
 ## 2. Entregables
 
 - Repositorio reproducible con código C, scripts de ejecución y análisis.
 - Datos crudos en CSV por máquina y configuración.
-- Figuras y tablas de E1, E2 y E3.
+- Modelo conceptual reproducible (`analysis/simulate_spectre.py`) y sus salidas.
+- Figuras y tablas de E1, E3 y simulación; E2 en hardware solo si se ejecuta,
+  como anexo.
 - Informe final en PDF.
 - Presentación de defensa final y demo de respaldo grabada.
 - Ficha de cada equipo: CPU, family/model/stepping, microcódigo, kernel,
@@ -90,8 +115,14 @@ spectre-v1/
     plot_e1.py
     plot_e2.py
     plot_e3.py
+    simulate_spectre.py
+  tests/
+    test_simulate_spectre.py
+  docs/
+    simulation.md
   data/
     <machine_id>/
+    simulation/
   figures/
   report/
   slides/
@@ -101,8 +132,9 @@ spectre-v1/
 
 ### Fase 0 — Inventario y viabilidad (2–3 días)
 
-**Objetivo:** saber en qué hardware se puede medir y confirmar que el PoC filtra
-al menos en una máquina antes de invertir tiempo en el harness.
+**Objetivo:** saber en qué hardware se puede medir E1/E3 y confirmar que hay
+suficiente diversidad de microarquitecturas. La comprobación del PoC es
+opcional: el proyecto no se bloquea si una máquina no filtra.
 
 - [ ] Cada integrante ejecuta y guarda la salida de:
 
@@ -121,13 +153,15 @@ al menos en una máquina antes de invertir tiempo en el harness.
   stepping, microcódigo, núcleos/hilos, L1/L2/L3, kernel, GCC y si es VM.
 - [ ] Confirmar que hay al menos 2–3 microarquitecturas distintas. Si no, decidir
   el plan alternativo antes de continuar.
-- [ ] Compilar el `spectre.c` original **sin `_mm_lfence()`** y ejecutarlo en cada
-  máquina. Registrar si recupera el secreto o no.
-- [ ] Si no filtra: ajustar umbral y patrón de entrenamiento. Si sigue sin
-  filtrar, documentarlo y apoyarse en las máquinas que sí filtran.
+- [ ] (Opcional) Compilar el `spectre.c` original **sin `_mm_lfence()`** y
+  ejecutarlo en cada máquina. Registrar si recupera el secreto o no. Si no
+  filtra, no es un fallo del proyecto: es un resultado que se documenta.
+- [ ] Confirmar que cada máquina puede ejecutar E1 y E3 (compilador, `taskset`,
+  permisos y entorno nativo).
 
-**Verificación:** existe una tabla de equipos completa y al menos una máquina
-recupera el secreto de prueba.
+**Verificación:** existe una tabla de equipos completa, hay 2–3
+microarquitecturas o un plan alternativo declarado, y E1/E3 pueden ejecutarse.
+La fuga en hardware no es un criterio de aceptación.
 
 ### Fase 1 — Repositorio y harness (2–3 días)
 
@@ -151,7 +185,9 @@ línea CSV válida.
 
 ### Fase 2 — E1: latencia de caché (3–4 días)
 
-**Objetivo:** calibrar el umbral de acierto/fallo de cada máquina.
+**Objetivo:** caracterizar la caché de cada máquina y calibrar el umbral de
+acierto/fallo. Esta fase es el núcleo experimental de caracterización, no solo
+un preparativo de E2.
 
 - [ ] Implementar `src/e1_cache.c` con un buffer grande y medidas de acceso en
   caliente y en frío usando `clflush` + `rdtscp`.
@@ -162,32 +198,38 @@ línea CSV válida.
   `docs/thresholds.md`.
 - [ ] No usar el valor 80 del PoC original: es específico de Intel.
 
-**Verificación:** los histogramas muestran dos modos separados y el umbral
-clasifica correctamente la mayoría de accesos.
+**Verificación:** los histogramas muestran dos modos separados, el umbral
+clasifica correctamente la mayoría de accesos y se documenta la relación con la
+jerarquía de caché y la frecuencia de la CPU.
 
-### Fase 3 — E2: fuga base (1 semana)
+### Fase 3 — E2: análisis documental y simulación conceptual (3–4 días)
 
-**Objetivo:** reproducir Spectre V1 y medir la tasa de recuperación por byte.
+**Objetivo:** explicar el mecanismo de Spectre V1 sin depender de que una CPU
+concreta filtre. La experimentación principal de esta fase es documental y
+conceptual; la PoC en hardware queda como validación opcional.
 
-- [ ] Partir del PoC de Kocher.
-- [ ] Quitar `_mm_lfence()` de `victim_function` para la versión base.
-- [ ] Añadir `__attribute__((noinline))` y evitar que el compilador elimine el
-  bucle o el acceso.
-- [ ] Pasar el umbral por argumento y fijar el número de intentos.
-- [ ] Verificar el ensamblador con `objdump -d`: debe quedar un salto condicional
-  real antes del acceso, no un `cmov` que elimine la vulnerabilidad.
-- [ ] Barrido de entrenamiento: 2, 4, 5, 6, 8 y 10 aciertos por ataque.
-- [ ] Probar `-O0` y `-O2`.
-- [ ] Ejecutar 50–100 repeticiones por configuración con un secreto de 40 bytes.
-- [ ] Medir: acierto por byte, margen entre el primero y el segundo, tasa de
-  “unclear” e intentos-hasta-éxito si se usa parada temprana.
+- [ ] Analizar el paper de Kocher, el PoC original y el ensamblador de
+  `victim_function`.
+- [ ] Construir la línea temporal: entrenamiento → malpredicción → acceso
+  transitorio → rastro en caché → Flush+Reload.
+- [ ] Implementar `analysis/simulate_spectre.py` con un modelo explícito de
+  predictor de 2 bits, caché y variantes `baseline`, `lfence`, `mask`.
+- [ ] Documentar los supuestos y límites del modelo en `docs/simulation.md`.
+- [ ] Generar `data/simulation/spectre_model.csv` y
+  `figures/simulation_spectre.png`.
+- [ ] (Opcional) Validar en hardware con `src/e2_spectre.c`, manteniendo el
+  umbral por máquina y el número fijo de intentos. Si se hace, va en un anexo.
 
-**Verificación:** al menos una máquina recupera el secreto por encima del azar,
-con intervalo de confianza.
+**Verificación:** el modelo es reproducible, muestra que `baseline` recupera el
+secreto y que `lfence`/`mask` no lo recuperan en el caso modelado, y las
+limitaciones están escritas. No se exige que una máquina real filtre.
 
 ### Fase 4 — E3: mitigaciones (1 semana)
 
-**Objetivo:** comparar eficacia y sobrecoste de LFENCE y del enmascarado.
+**Objetivo:** medir el **impacto en rendimiento** de LFENCE y del enmascarado en
+cada microarquitectura. La eficacia de seguridad se discute con el modelo
+conceptual, la literatura y, si existe, la validación opcional de E2 en
+hardware.
 
 Variantes:
 
@@ -201,14 +243,18 @@ Tareas:
 
 - [ ] Implementar las tres variantes en `src/spectre.h`.
 - [ ] Verificar el ensamblador de cada una con `objdump -d`.
-- [ ] Repetir el protocolo de E2 para medir eficacia, con la misma configuración
-  base por máquina.
 - [ ] Implementar el bucle de sobrecoste: 10 millones de iteraciones, mezcla de
   índices válidos, 30 repeticiones, mediana y p95 de ciclos/iteración.
 - [ ] Reportar ciclos absolutos y porcentaje relativo frente a la base.
+- [ ] Comparar 2–3 microarquitecturas; si solo hay una, aplicar el plan
+  alternativo y declararlo como limitación.
+- [ ] (Opcional) Si se ejecutó E2 en hardware, cruzar su eficacia observada con
+  el sobrecoste, dejando claro que es evidencia limitada.
 
-**Verificación:** la base filtra; LFENCE y máscara reducen la fuga a cero o a una
-cota muy baja; el sobrecoste es medible y comparable.
+**Verificación:** el sobrecoste es medible y comparable entre variantes y
+máquinas. No se afirma que una mitigación sea universalmente infalible: un
+`0/N` se reporta con su cota superior y como “no observado”, no como prueba de
+imposibilidad.
 
 ### Fase 5 — Campaña y análisis (1 semana)
 
@@ -216,15 +262,19 @@ cota muy baja; el sobrecoste es medible y comparable.
 - [ ] Mergear los CSV por `machine_id`.
 - [ ] Generar figuras:
   - histogramas de E1;
-  - acierto por byte y barrido de entrenamiento de E2;
-  - eficacia de E3;
-  - scatter de sobrecoste frente a fuga.
-- [ ] Calcular intervalos de confianza por bootstrap.
-- [ ] Discutir: ¿se cumple la hipótesis? ¿LFENCE costó más que la máscara? ¿Influyó
-  la microarquitectura? ¿Hubo máquinas sin fuga? ¿Por qué?
+  - sobrecoste de E3 por variante y máquina;
+  - comparación entre microarquitecturas;
+  - simulación conceptual de E2;
+  - (opcional) eficacia de E2 en hardware.
+- [ ] Calcular intervalos de confianza por bootstrap y cotas superiores para
+  resultados `0/N`.
+- [ ] Discutir: ¿se cumple la hipótesis de coste? ¿LFENCE costó más que la
+  máscara? ¿Influyó la microarquitectura? ¿Qué explica el modelo? ¿Qué no se
+  puede concluir de los datos?
 
 **Verificación:** todas las figuras y tablas se regeneran desde los CSV con los
-scripts del repositorio.
+scripts del repositorio. Las conclusiones distinguen evidencia empírica,
+modelo y literatura.
 
 ### Fase 6 — Informe y defensa final (1–2 semanas)
 
@@ -236,12 +286,17 @@ scripts del repositorio.
    especulación, caché y estado arquitectónico frente a microarquitectónico.
 4. Spectre V1: modelo de amenaza, código C, ensamblador, línea temporal y
    Flush+Reload.
-5. Metodología: equipos, controles, E1/E2/E3, métricas y validez.
-6. Resultados: E1, E2, E3 y comparación entre máquinas.
-7. Discusión: hipótesis, diferencias microarquitectónicas, limitaciones.
-8. Conclusiones y trabajo futuro.
-9. Referencias.
-10. Anexos: código, datos crudos y fichas de equipos.
+5. Metodología: equipos, controles, E1/E3 como experimentación principal, E2
+   documental y modelo conceptual, métricas y validez.
+6. Resultados E1: caracterización de caché y umbrales por máquina.
+7. Resultados E2: análisis documental y simulación conceptual; validación
+   opcional en hardware como anexo.
+8. Resultados E3: sobrecoste de mitigaciones y comparación entre máquinas.
+9. Discusión: hipótesis de coste, diferencias microarquitectónicas, límites de
+   la evidencia y ausencia de comportamiento observable.
+10. Conclusiones y trabajo futuro.
+11. Referencias.
+12. Anexos: código, datos crudos, fichas de equipos y validación opcional E2.
 
 **Defensa final (12–15 diapositivas):**
 
@@ -250,18 +305,20 @@ scripts del repositorio.
 3. Pipeline, especulación, predictor y caché.
 4. Spectre V1: código, ensamblador y línea temporal.
 5. Pregunta y objetivos.
-6. Metodología E1/E2/E3.
+6. Metodología: E1/E3 empíricos; E2 documental y modelo conceptual.
 7. Tabla de equipos.
-8. E1: histogramas y umbrales.
-9. E2: recuperación por byte y entrenamiento.
-10. E3: eficacia.
-11. E3: sobrecoste y scatter.
-12. Discusión.
-13. Limitaciones.
+8. E1: histogramas, caracterización de caché y umbrales.
+9. E2: mecanismo, línea temporal y simulación conceptual.
+10. E3: sobrecoste por variante.
+11. E3: comparación entre microarquitecturas.
+12. Discusión: coste, seguridad y compromisos.
+13. Limitaciones y validez.
 14. Conclusiones.
 15. Referencias / Q&A.
 
-**Demo:** mostrar la versión base leyendo el secreto y LFENCE/máscara fallando.
+**Demo:** si la validación opcional en hardware está disponible, mostrar
+`baseline` leyendo el secreto y `lfence`/`mask` sin recuperarlo. Si no, usar la
+simulación conceptual y explicar que no demuestra comportamiento universal.
 Llevar un vídeo grabado como respaldo.
 
 **Verificación:** ensayo cronometrado, demo probada en la máquina de la defensa y
@@ -280,6 +337,9 @@ respuestas preparadas para las preguntas previsibles.
 - Repeticiones suficientes, mediana/p95 e intervalos de confianza; no concluir con
   una sola ejecución.
 - Mismo código y flags en todas las máquinas; compilar localmente.
+- E1/E3 son la experimentación principal; E2 en hardware es opcional.
+- Separar evidencia empírica, modelo conceptual y literatura en la discusión.
+- Para `0/N`, reportar la cota superior y decir “no observado”, no “imposible”.
 - Documentar resultados negativos: una máquina sin fuga es un resultado.
 
 ## 6. Esquema CSV
@@ -296,36 +356,37 @@ machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,threshol
 
 | Semana | Foco | Entregable |
 |---|---|---|
-| 1 | Inventario, repo, viabilidad, E1 | `machines.md`, umbrales |
-| 2 | E2 base y barrido | CSV E2 |
-| 3 | E2 campaña + variantes E3 | CSV E2 completo, código E3 |
-| 4 | E3 campaña | CSV E3 |
-| 5 | Análisis y borrador | figuras y draft |
+| 1 | Inventario, repo, E1 | `machines.md`, umbrales, CSV E1 |
+| 2 | E2 documental y simulación conceptual | `simulation.md`, modelo, figura |
+| 3 | E3: variantes, ensamblador y sobrecoste | CSV E3, `objdump` |
+| 4 | Campaña E1/E3 en 2–3 microarquitecturas | CSV por máquina |
+| 5 | Análisis comparativo y borrador | figuras, tabla y draft |
 | 6 | Informe, slides y ensayo | PDF, defensa, demo |
 
-Si la fecha aprieta, priorizar E1/E2/E3 y recortar el barrido de entrenamiento.
-No recortar la verificación del ensamblador ni los intervalos de confianza.
+Si la fecha aprieta, priorizar E1/E3 y la simulación conceptual. La validación
+E2 en hardware es lo primero que se recorta. No recortar la verificación del
+ensamblador, los intervalos de confianza ni la discusión de limitaciones.
 
 ## 8. Riesgos y mitigaciones
 
 | Riesgo | Mitigación |
 |---|---|
-| Ninguna máquina filtra | Ajustar umbral/entrenamiento; probar otra máquina; documentar el resultado negativo |
+| Ninguna máquina filtra en E2 hardware | No es bloqueante: E2 se cubre con modelo y literatura; documentar el resultado |
 | Solo hay una microarquitectura | Comparar configuraciones/compiladores y declarar la limitación; buscar una máquina prestada |
 | El compilador elimina la vulnerabilidad | `objdump -d`, `-O0` como control, `noinline`, `volatile` |
 | El enmascarado se optimiza a un salto | Usar dependencia de datos o `cmp`/`sbb` en ensamblador y verificar |
 | Ruido de medidas | `taskset`, gobernador `performance`, repeticiones, mediana/p95, CIs |
 | VM contamina los tiempos | Excluir de la comparación principal y documentar |
-| Falta de tiempo | Priorizar E1/E2/E3; dejar extras para anexos |
+| Interpretar un `0/N` como imposibilidad | Reportar cota superior y hablar de “no observado”; discutir límites |
+| Falta de tiempo | Priorizar E1/E3 y simulación; recortar E2 hardware |
 
 ## 9. Primeros tres días
 
 1. Pedir a cada integrante la ficha de CPU y confirmar cuántas microarquitecturas
    hay.
-2. Quitar `_mm_lfence()` del PoC y probarlo en el Ryzen actual; si no filtra,
-   ajustar umbral y entrenamiento antes de seguir.
-3. Crear el repo, el esquema CSV y repartir roles: harness, campaña de medidas,
-   análisis, informe y slides.
+2. Ejecutar E1 en cada máquina y anotar el umbral; no hace falta que E2 filtre.
+3. Revisar `analysis/simulate_spectre.py` y `docs/simulation.md`; después
+   repartir roles: E1, E3, análisis, informe y slides.
 
 ## 10. Referencias
 

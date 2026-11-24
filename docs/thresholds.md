@@ -23,8 +23,8 @@ algunos Intel; en cada equipo hay que medir E1 y elegir el valle del histograma.
 4. Si los modos se solapan, aumenta el buffer, revisa la afinidad de CPU y el
    gobernador, y repite. No elijas un umbral que clasifique mal una parte grande
    de las muestras.
-5. Anota el valor y la fecha en la tabla de abajo. E2 y E3 deben usar **ese**
-   valor para esa máquina.
+5. Anota el valor y la fecha en la tabla de abajo. E2, si se ejecuta, debe usar
+   **ese** valor para esa máquina; E3 no depende del umbral.
 
 ## Tabla de umbrales
 

@@ -8,6 +8,11 @@ resultados reproducibles.
 Si algo falla, consulta [`troubleshooting.md`](troubleshooting.md). Si tu caso no
 está ahí, abre un issue con el comando, la salida y tu `machine_id`.
 
+> **Foco experimental (feedback del profesor):** E1 (caché) y E3 (sobrecoste)
+> son la experimentación principal. E2 se cubre con análisis documental y
+> simulación conceptual en [`simulation.md`](simulation.md); la PoC en hardware
+> es opcional y se reporta como anexo.
+
 ## 1. Qué necesitas
 
 - Linux x86-64 **nativo** para las medidas principales.
@@ -30,6 +35,7 @@ está ahí, abre un issue con el comando, la salida y tu `machine_id`.
 | `docs/onboarding.md` | Primeros pasos de Fase 0 |
 | `docs/campaign.md` | Campaña final: qué hace cada integrante en su máquina |
 | `docs/manual.md` | Este manual |
+| `docs/simulation.md` | Modelo conceptual de E2 y sus límites |
 | `docs/metrics.md` | Definiciones de métricas y esquemas CSV |
 | `docs/thresholds.md` | Umbral de cada máquina y `margin_min` |
 | `docs/troubleshooting.md` | Errores típicos y cómo resolverlos |
@@ -39,10 +45,12 @@ está ahí, abre un issue con el comando, la salida y tu `machine_id`.
 | `src/common.h` | `rdtscp`, `clflush`, barreras, lectura de CPU, CSV |
 | `src/spectre.h` | Arrays víctima, secreto y las tres variantes |
 | `src/e1_cache.c` | Experimento E1 |
-| `src/e2_spectre.c` | Experimento E2 |
+| `src/e2_spectre.c` | Experimento E2 (opcional, hardware) |
 | `src/e3_mitigations.c` | Experimento E3 (sobrecoste) |
 | `scripts/` | Envoltorios reproducibles para ejecutar cada experimento |
-| `analysis/` | Figuras, comparación entre máquinas y agregados a partir de los CSV |
+| `analysis/` | Figuras, comparación, simulación conceptual y agregados |
+| `analysis/simulate_spectre.py` | Modelo conceptual de E2, sin hardware |
+| `tests/` | Tests de comparación y simulación |
 | `data/<machine_id>/` | Datos crudos por máquina |
 | `figures/` | Figuras generadas |
 | `references/` | Paper, PoC y material de consulta |
@@ -63,28 +71,23 @@ python3 analysis/plot_e1.py --machine-id <machine_id>
 ```
 
 Mira el histograma y el “umbral sugerido”. Anótalo en
-[`docs/thresholds.md`](thresholds.md). Después:
+[`docs/thresholds.md`](thresholds.md). Después, para la campaña principal:
 
 ```bash
-THRESHOLD=<T> ./scripts/run_e2.sh <machine_id> baseline <T> 1000 5 50 40
-THRESHOLD=<T> ./scripts/run_e2.sh <machine_id> lfence   <T> 1000 5 50 40
-THRESHOLD=<T> ./scripts/run_e2.sh <machine_id> mask     <T> 1000 5 50 40
-
-./scripts/run_e3.sh <machine_id> baseline 10000000 30
-./scripts/run_e3.sh <machine_id> lfence   10000000 30
-./scripts/run_e3.sh <machine_id> mask     10000000 30
-
-python3 analysis/plot_e2.py --machine-id <machine_id>
+THRESHOLD=<T> RUN_E2=0 ./scripts/run_all.sh <machine_id> <T>
+python3 analysis/plot_e1.py --machine-id <machine_id>
 python3 analysis/plot_e3.py --machine-id <machine_id>
 ```
 
-O todo de una vez, si ya tienes el umbral:
+`run_all.sh` ejecuta el entorno, E1 y las tres variantes de E3. E2 en hardware
+está **omitido por defecto** (`RUN_E2=0`) porque el mecanismo se cubre con el
+modelo conceptual. Si quieres validarlo en tu CPU:
 
 ```bash
-THRESHOLD=<T> ./scripts/run_all.sh <machine_id> <T>
+RUN_E2=1 THRESHOLD=<T> ./scripts/run_all.sh <machine_id> <T>
+python3 analysis/plot_e2.py --machine-id <machine_id>
 ```
 
-`run_all.sh` ejecuta el entorno, E1, las tres variantes de E2 y las tres de E3.
 Tarda varios minutos; no lo lances en una VM para los resultados principales.
 
 ## 4. Fase 0: ficha del equipo
@@ -131,13 +134,15 @@ Ejecuta fijado a un núcleo y guarda la salida:
 taskset -c 0 /tmp/spectre-poc/spectre | tee data/<machine_id>/poc_<machine_id>.txt
 ```
 
-Si recupera el secreto, la máquina es candidata para E2/E3. Si no, documenta el
-resultado y prueba otra máquina; no fuerces el PoC.
+Si recupera el secreto, es evidencia opcional para el anexo de E2; E1 y E3 no
+dependen de ello. Si no lo recupera, documenta el resultado: no es bloqueante y
+no fuerces el PoC.
 
 ## 5. E1: latencia de caché
 
 E1 mide cuántos ciclos tarda un acceso cuando la línea está en caché (`hit`) y
-cuando se ha expulsado (`miss`). Sirve para elegir el umbral de E2.
+cuando se ha expulsado (`miss`). Sirve para elegir el umbral de E2 (si se
+ejecuta).
 
 ```bash
 ./scripts/run_e1.sh <machine_id> 10000 64
@@ -166,10 +171,14 @@ valle. **No copies el 80 de otra máquina**: en el Ryzen de referencia funciona
 porque `hit` está en ~46 ciclos y `miss` por encima de ~230, pero cada CPU
 necesita su propio valle. Calibra siempre con tu E1.
 
-Anota el umbral en [`docs/thresholds.md`](thresholds.md). E2 y E3 deben usar ese
-valor para esa máquina.
+Anota el umbral en [`docs/thresholds.md`](thresholds.md). E2, si se ejecuta,
+debe usar ese valor para esa máquina; E3 no depende del umbral.
 
-## 6. E2: recuperación del secreto
+## 6. E2 (opcional): validación en hardware
+
+El mecanismo de E2 se cubre con el modelo conceptual de
+[`simulation.md`](simulation.md). Esta sección solo aplica si quieres validarlo
+en tu CPU; no es necesaria para la campaña principal.
 
 E2 ejecuta el ataque de Spectre V1 y, para cada byte, elige el candidato con más
 aciertos de caché. El secreto de prueba es:
@@ -316,29 +325,29 @@ slowdown     = mediana(variante) / mediana(baseline)
 
 ## 8. Campaña completa en una máquina
 
-Si ya tienes el umbral:
+Si ya tienes el umbral, la campaña principal es E1 + E3:
 
 ```bash
-THRESHOLD=<T> ./scripts/run_all.sh <machine_id> <T>
+THRESHOLD=<T> RUN_E2=0 ./scripts/run_all.sh <machine_id> <T>
 ```
 
 Hace, en orden:
 
 1. `collect_env.sh`
 2. `run_e1.sh` (10.000 muestras, 64 MiB)
-3. E2 `baseline`, `lfence`, `mask` (1000 intentos, train 5, 50 runs, 40 bytes)
-4. E3 `baseline`, `lfence`, `mask` (10M iteraciones, 30 reps)
+3. E3 `baseline`, `lfence`, `mask` (10M iteraciones, 30 reps)
+4. E2 solo si `RUN_E2=1` (1000 intentos, train 5, 50 runs, 40 bytes)
 
-Control `-O0` opcional:
+Control `-O0` opcional de E2:
 
 ```bash
-RUN_O0=1 THRESHOLD=<T> ./scripts/run_all.sh <machine_id> <T>
+RUN_E2=1 RUN_O0=1 THRESHOLD=<T> ./scripts/run_all.sh <machine_id> <T>
 ```
 
 Para una campaña más rápida de prueba, reduce los valores:
 
 ```bash
-ATTEMPTS=300 RUNS=1 BYTES=1 ITERATIONS=1000000 REPS=3 \
+RUN_E2=0 ITERATIONS=1000000 REPS=3 \
   THRESHOLD=<T> ./scripts/run_all.sh <machine_id> <T>
 ```
 
@@ -348,15 +357,27 @@ los valores del protocolo y se identifica como tal.
 ## 9. Análisis y figuras
 
 ```bash
+# Experimentación principal
 python3 analysis/plot_e1.py --machine-id <machine_id>
-python3 analysis/plot_e2.py --machine-id <machine_id>
 python3 analysis/plot_e3.py --machine-id <machine_id>
+
+# Modelo conceptual de E2
+python3 analysis/simulate_spectre.py \
+  --attempts 200 --train 5 \
+  --out data/simulation/spectre_model.csv \
+  --figure figures/simulation_spectre.png
+
+# Opcional: si ejecutaste E2 en hardware
+python3 analysis/plot_e2.py --machine-id <machine_id>
+
+# Comparación entre máquinas
 python3 analysis/compare_machines.py
 ```
 
 Las figuras van a `figures/`. Los scripts imprimen tablas con tasas, intervalos
 de Wilson, `unclear` y sobrecoste. `plot_e2.py` excluye por defecto los CSV
-`-O0` para no mezclarlos con la campaña principal. No edites las figuras a
+`-O0` para no mezclarlos con la campaña principal. `plot_e3.py` funciona sin
+E2: en ese caso solo genera la figura de sobrecoste. No edites las figuras a
 mano: si cambias el análisis, vuelve a generarlas.
 
 `compare_machines.py` recorre `data/<machine_id>/`, escribe la tabla agregada
@@ -386,10 +407,11 @@ Antes de decir “he medido”:
 - [ ] `env_<machine_id>.txt` guardado.
 - [ ] Fila en `docs/machines.md`.
 - [ ] Umbral de E1 anotado en `docs/thresholds.md`.
-- [ ] E2 con `attempts` fijo y `threshold` documentado.
-- [ ] Ensamblador de `baseline`, `lfence` y `mask` revisado.
+- [ ] E2 con `attempts` fijo y `threshold` documentado (solo si se ejecuta).
+- [ ] Ensamblador de `baseline`, `lfence` y `mask` revisado en E3.
 - [ ] E3 con 10M iteraciones y 30 reps (campaña final).
-- [ ] Figuras generadas desde los CSV.
+- [ ] Modelo conceptual generado (`data/simulation/spectre_model.csv`).
+- [ ] Figuras de E1/E3 y simulación generadas desde los datos.
 - [ ] `git status` sin archivos no intencionados.
 - [ ] Resultados negativos documentados, no borrados.
 
@@ -398,7 +420,8 @@ Antes de decir “he medido”:
 1. Ejecuta `./scripts/collect_env.sh <machine_id>`.
 2. Rellena `docs/machines.md`.
 3. Ejecuta E1 y elige el umbral; anótalo en `docs/thresholds.md`.
-4. Ejecuta `run_all.sh` con ese umbral.
+4. Ejecuta `RUN_E2=0 ./scripts/run_all.sh <machine_id> <T>` con ese umbral
+   (añade `RUN_E2=1` solo si vas a validar E2 en hardware).
 5. Genera las figuras.
 6. Añade una nota si es VM, contenedor, portátil con turbo variable o una
    configuración especial.
@@ -448,7 +471,15 @@ umbral sugerido por el análisis: 138
 umbral usado en E2: 80 (ambos separan los dos modos)
 ```
 
-E2 (300 intentos, train 5, 1 run, 40 bytes, threshold 80):
+E2 conceptual (modelo, 200 intentos, train 5, 40 bytes):
+
+```text
+baseline: 40/40 bytes correctos (modelo)
+lfence:    0/40 bytes correctos (modelo)
+mask:      0/40 bytes correctos (modelo)
+```
+
+E2 en hardware (opcional; 300 intentos, train 5, 1 run, 40 bytes, threshold 80):
 
 ```text
 baseline: 40/40 bytes correctos
@@ -469,14 +500,15 @@ Con 300 intentos y 1M iteraciones los números son orientativos.
 Campaña final de la misma máquina (`ryzen5pro5675u_final`, 50 runs y 30 reps):
 
 ```text
-E2: baseline 2000/2000 byte-intentos (40/40 por run); lfence 0/2000; mask 0/2000
+E2 (opcional): baseline 2000/2000 byte-intentos (40/40 por run)
+               lfence 0/2000; mask 0/2000
 E3: baseline 3.34 ciclos/iteración
     lfence  13.40 ciclos/iteración  (~4.01x, +300.6 %)
     mask     3.39 ciclos/iteración  (~1.01x, +1.3 %)
 ```
 
 Es la misma microarquitectura que la referencia; no sustituye a una segunda CPU
-en la comparación.
+en la comparación. Los `0/2000` son “no observado”, no prueba de imposibilidad.
 
 ## 16. Seguridad y alcance
 

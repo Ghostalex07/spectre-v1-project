@@ -19,7 +19,7 @@ E3_TARGETS := $(BIN)/e3_baseline $(BIN)/e3_lfence $(BIN)/e3_mask
 E2_O0_CFLAGS := -O0 -std=c11 -Wall -Wextra -Wno-unused-parameter -fno-if-conversion -fno-if-conversion2
 E2_O0_FLAGS_DEF := -DCOMPILE_FLAGS='"$(E2_O0_CFLAGS)"'
 
-.PHONY: all clean smoke test
+.PHONY: all clean smoke test simulate
 
 all: $(BIN)/e1_cache $(E2_TARGETS) $(E2_O0_TARGETS) $(E3_TARGETS)
 
@@ -64,3 +64,8 @@ smoke: all
 
 test:
 	python3 -m unittest discover -s tests -v
+
+simulate:
+	python3 analysis/simulate_spectre.py \
+		--out data/simulation/spectre_model.csv \
+		--figure figures/simulation_spectre.png
