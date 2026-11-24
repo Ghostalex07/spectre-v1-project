@@ -292,6 +292,128 @@ def is_timer_csv(path: str | Path) -> bool:
     return all(column in header for column in TIMER_COLUMNS)
 
 
+E3_SWEEP_COLUMNS = (
+    "machine_id",
+    "session_id",
+    "timestamp",
+    "variant",
+    "work_per_iter",
+    "predictability_mode",
+    "out_of_range_fraction",
+    "array_bytes",
+    "iterations",
+    "repetition",
+    "block_id",
+    "total_cycles",
+    "cycles_per_iter",
+    "seed",
+    "cpu_pinned",
+)
+E3_LEGACY_COLUMNS = (
+    "machine_id",
+    "cpu",
+    "family",
+    "model",
+    "stepping",
+    "microcode",
+    "kernel",
+    "gcc",
+    "flags",
+    "variant",
+    "iterations",
+    "run",
+    "cycles_per_iteration",
+    "total_cycles",
+)
+
+
+def is_e3_sweep_csv(path: str | Path) -> bool:
+    """True si el CSV es del barrido E3 nuevo (cabecera con work_per_iter)."""
+    header = csv_header(path)
+    return all(column in header for column in E3_SWEEP_COLUMNS)
+
+
+def is_e3_legacy_csv(path: str | Path) -> bool:
+    """True si el CSV es del E3 antiguo de una sola configuración."""
+    header = csv_header(path)
+    return all(column in header for column in E3_LEGACY_COLUMNS)
+
+
+def e3_sweep_paths(
+    machine_id: str,
+    data_dir: str | Path = DATA_DIR,
+    session_id: str | None = None,
+) -> list[Path]:
+    """CSV de barrido E3 en la raíz o en las sesiones de la máquina."""
+    root = Path(data_dir) / machine_id
+    if session_id:
+        dirs = [root / session_id]
+    else:
+        dirs = candidate_data_dirs(machine_id, data_dir)
+    paths: list[Path] = []
+    for directory in dirs:
+        paths.extend(directory.glob(f"e3_sweep_{machine_id}_*.csv"))
+    return sorted(paths)
+
+
+def block_statistics(
+    rows: Iterable[dict[str, str]],
+    value_key: str = "cycles_per_iter",
+    block_key: str = "block_id",
+    statistic=statistics.median,
+) -> dict[int, float]:
+    """Resume cada bloque completo a un estadístico (mediana por defecto)."""
+    grouped: dict[int, list[float]] = {}
+    for row in rows:
+        block = to_int(row.get(block_key), default=-1)
+        value = to_float(row.get(value_key))
+        if block < 0 or math.isnan(value):
+            continue
+        grouped.setdefault(block, []).append(value)
+    return {block: statistic(values) for block, values in grouped.items()}
+
+
+def paired_block_bootstrap(
+    baseline_by_block: dict[int, float],
+    variant_by_block: dict[int, float],
+    n_boot: int = 10_000,
+    seed: int = 12345,
+    alpha: float = 0.05,
+) -> tuple[float, float, float]:
+    """Sobrecoste relativo con IC bootstrap remuestreando bloques completos.
+
+    Solo se usan los bloques presentes en las dos variantes, de modo que el
+    remuestreo sea emparejado. El estadístico de cada bloque ya está resumido
+    (por ejemplo, mediana de sus repeticiones). Devuelve
+    ``(overhead_pct, ci_low, ci_high)``.
+    """
+    blocks = sorted(set(baseline_by_block) & set(variant_by_block))
+    if not blocks:
+        return float("nan"), float("nan"), float("nan")
+
+    def relative(sample_blocks: list[int]) -> float:
+        base = statistics.median(baseline_by_block[b] for b in sample_blocks)
+        var = statistics.median(variant_by_block[b] for b in sample_blocks)
+        if base == 0 or math.isnan(base) or math.isnan(var):
+            return float("nan")
+        return 100.0 * (var - base) / base
+
+    point = relative(blocks)
+    rng = random.Random(seed)
+    samples = []
+    for _ in range(n_boot):
+        sample = [blocks[rng.randrange(len(blocks))] for _ in blocks]
+        value = relative(sample)
+        if not math.isnan(value):
+            samples.append(value)
+    if not samples:
+        return point, float("nan"), float("nan")
+    samples.sort()
+    lower = samples[int((alpha / 2) * len(samples))]
+    upper = samples[int((1 - alpha / 2) * len(samples)) - 1]
+    return point, lower, upper
+
+
 def e2_paths(machine_id: str, include_o0: bool = False) -> list[Path]:
     """CSV de E2 de la máquina.
 

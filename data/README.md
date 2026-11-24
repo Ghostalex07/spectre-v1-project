@@ -23,6 +23,7 @@ data/
     e1_<machine_id>.csv
     e1_hierarchy_<machine_id>.csv
     e1_timer_<machine_id>.csv
+    e3_sweep_<machine_id>_<session_id>.csv   # barrido E3 nuevo
   simulation/
     spectre_model.csv
   derived/
@@ -39,9 +40,14 @@ data/
 - `e2_*.csv`: recuperación del secreto por variante. Es **validación opcional**
   de hardware; la explicación del mecanismo va en el modelo y en el análisis
   documental.
-- `e3_*.csv`: sobrecoste por variante.
-- `e3_order_<machine_id>.txt`: orden aleatorizado de las variantes de E3, para
-  que la secuencia de medición quede registrada.
+- `e3_*.csv`: sobrecoste por variante en el formato antiguo (una configuración,
+  firma `scripts/run_e3.sh <machine_id> <variant>`).
+- `e3_sweep_<machine_id>_<session_id>.csv`: barrido de sensibilidad nuevo
+  (W, predictibilidad, tamaño de array y bloques intercalados). Se genera con
+  `scripts/run_e3.sh <machine_id> sweep`. No se mezcla con el E3 antiguo.
+- `e3_order_<machine_id>.txt`: orden aleatorizado de las variantes en el modo
+  legacy de E3, para que la secuencia de medición quede registrada. El barrido
+  nuevo guarda la semilla y el bloque en cada fila.
 - `simulation/spectre_model.csv`: salida del modelo conceptual de
   `analysis/simulate_spectre.py`; no es una medida de hardware.
 - `derived/`: tablas agregadas generadas por `analysis/`; no se editan a mano.
@@ -140,6 +146,24 @@ machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,iteratio
 - `run`: repetición (0..reps-1).
 - `cycles_per_iteration`: `total_cycles / iterations`.
 - `total_cycles`: ciclos totales del bucle.
+
+### E3 — barrido de sensibilidad
+
+```text
+machine_id,session_id,timestamp,variant,work_per_iter,predictability_mode,out_of_range_fraction,array_bytes,iterations,repetition,block_id,total_cycles,cycles_per_iter,seed,cpu_pinned
+```
+
+- `work_per_iter`: W dependiente del dato cargado.
+- `predictability_mode`: `inrange` o `random_pX` (X = 1, 10, 50).
+- `out_of_range_fraction`: fracción real de índices fuera de rango.
+- `array_bytes`: tamaño del array de datos.
+- `block_id` / `repetition`: bloque aleatorizado y repetición dentro del bloque.
+- `cycles_per_iter = total_cycles / iterations`.
+- `seed`: semilla de generación de índices y del orden de variantes.
+
+El análisis del barrido es `analysis/plot_e3_sweep.py`; `analysis/plot_e3.py`
+sigue leyendo solo el E3 antiguo. Cada script detecta la cabecera y no mezcla
+formatos.
 
 ## Nombres
 

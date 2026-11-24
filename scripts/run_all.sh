@@ -3,8 +3,10 @@
 # temporizador), E2 opcional y E3.
 # Uso: THRESHOLD=80 RUN_E2=0 ./scripts/run_all.sh <machine_id> [threshold]
 # Variables: PROFILE=default|smoke, RUN_E2=0|1, ATTEMPTS, TRAIN, RUNS, BYTES,
-# ITERATIONS, REPS, RUN_O0=1, PIN_CPU, E3_ORDER=random|fixed, SESSION_ID,
-# HOPS, SIZES, HUGEPAGE, SAMPLES (temporizador).
+# ITERATIONS, REPS, RUN_O0=1, PIN_CPU, E3_MODE=sweep|legacy,
+# E3_ORDER=random|fixed (solo legacy), E3_WORK, E3_PREDICTABILITY,
+# E3_ARRAY_BYTES, E3_BLOCKS, E3_REPS, E3_SEED, SESSION_ID, HOPS, SIZES,
+# HUGEPAGE, SAMPLES (temporizador).
 #
 # Foco experimental: E1 y E3 son obligatorios. E2 en hardware es opcional;
 # el mecanismo se cubre con análisis documental y simulación conceptual.
@@ -49,25 +51,32 @@ else
   echo "[run_all] E2 hardware omitido (RUN_E2=0; opcional)."
 fi
 
-E3_VARIANTS=(baseline lfence mask)
-if [ "${E3_ORDER:-random}" = "random" ] && command -v shuf >/dev/null 2>&1; then
-  mapfile -t E3_VARIANTS < <(printf '%s\n' "${E3_VARIANTS[@]}" | shuf)
-fi
-ORDER_FILE="$(machine_dir "$MACHINE_ID")/e3_order_${MACHINE_ID}.txt"
-printf '%s\n' "${E3_VARIANTS[@]}" > "$ORDER_FILE"
-echo "[run_all] orden E3: ${E3_VARIANTS[*]} (registrado en $ORDER_FILE)"
+E3_MODE="${E3_MODE:-sweep}"
+if [ "$E3_MODE" = "legacy" ]; then
+  E3_VARIANTS=(baseline lfence mask)
+  if [ "${E3_ORDER:-random}" = "random" ] && command -v shuf >/dev/null 2>&1; then
+    mapfile -t E3_VARIANTS < <(printf '%s\n' "${E3_VARIANTS[@]}" | shuf)
+  fi
+  ORDER_FILE="$(machine_dir "$MACHINE_ID")/e3_order_${MACHINE_ID}.txt"
+  printf '%s\n' "${E3_VARIANTS[@]}" > "$ORDER_FILE"
+  echo "[run_all] orden E3 legacy: ${E3_VARIANTS[*]} (registrado en $ORDER_FILE)"
 
-if [ "$PROFILE" = "smoke" ]; then
-  E3_ITER="${E3_ITERATIONS:-${ITERATIONS:-200000}}"
-  E3_REPS="${E3_REPS:-${REPS:-3}}"
+  if [ "$PROFILE" = "smoke" ]; then
+    E3_ITER="${E3_ITERATIONS:-${ITERATIONS:-200000}}"
+    E3_REPS="${E3_REPS:-${REPS:-3}}"
+  else
+    E3_ITER="${E3_ITERATIONS:-${ITERATIONS:-10000000}}"
+    E3_REPS="${E3_REPS:-${REPS:-30}}"
+  fi
+  for variant in "${E3_VARIANTS[@]}"; do
+    ITERATIONS="$E3_ITER" REPS="$E3_REPS" \
+      "$ROOT/scripts/run_e3.sh" "$MACHINE_ID" "$variant"
+  done
 else
-  E3_ITER="${E3_ITERATIONS:-${ITERATIONS:-10000000}}"
-  E3_REPS="${E3_REPS:-${REPS:-30}}"
+  # El barrido intercala las variantes por bloques y registra la semilla en el
+  # propio CSV; no hace falta ordenar binarios por separado.
+  PROFILE="$PROFILE" "$ROOT/scripts/run_e3.sh" "$MACHINE_ID" sweep
 fi
-for variant in "${E3_VARIANTS[@]}"; do
-  ITERATIONS="$E3_ITER" REPS="$E3_REPS" \
-    "$ROOT/scripts/run_e3.sh" "$MACHINE_ID" "$variant"
-done
 
 echo
 echo "[run_all] campaña terminada para $MACHINE_ID (perfil $PROFILE)"
@@ -80,11 +89,16 @@ if [ "$RUN_E2" = "1" ]; then
 else
   echo "  E2:  omitido (opcional; el mecanismo se cubre con simulación)"
 fi
-echo "  E3:  data/${MACHINE_ID}/e3_${MACHINE_ID}_{baseline,lfence,mask}.csv"
+if [ "$E3_MODE" = "legacy" ]; then
+  echo "  E3 legacy: data/${MACHINE_ID}/e3_${MACHINE_ID}_{baseline,lfence,mask}.csv"
+  echo "    python3 analysis/plot_e3.py --machine-id ${MACHINE_ID}"
+else
+  echo "  E3 barrido: ${SESSION_DIR}/e3_sweep_${MACHINE_ID}_${SESSION_ID}.csv"
+  echo "    python3 analysis/plot_e3_sweep.py --machine-id ${MACHINE_ID} --session-id ${SESSION_ID}"
+fi
 echo "  Figuras:"
 echo "    python3 analysis/plot_e1.py --machine-id ${MACHINE_ID} --session-id ${SESSION_ID}"
 echo "    python3 analysis/plot_e1_hierarchy.py --machine-id ${MACHINE_ID} --session-id ${SESSION_ID}"
 if [ "$RUN_E2" = "1" ]; then
   echo "    python3 analysis/plot_e2.py --machine-id ${MACHINE_ID}"
 fi
-echo "    python3 analysis/plot_e3.py --machine-id ${MACHINE_ID}"

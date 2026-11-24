@@ -47,4 +47,14 @@ head -n1 "$TMP/e3.csv" | grep -q \
   '^machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,iterations,run,cycles_per_iteration,total_cycles$'
 test "$(wc -l < "$TMP/e3.csv")" -eq 3
 
+echo "[smoke] E3 barrido"
+./bin/e3_sweep --machine-id smoke --session-id smoke \
+  --work 0,8 --predictability inrange,random_p50 \
+  --array-bytes 4096,33554432 --iterations 2000 --blocks 2 --reps 1 \
+  --warmup 32 --out "$TMP/e3_sweep.csv"
+head -n1 "$TMP/e3_sweep.csv" | grep -q \
+  '^machine_id,session_id,timestamp,variant,work_per_iter,predictability_mode,out_of_range_fraction,array_bytes,iterations,repetition,block_id,total_cycles,cycles_per_iter,seed,cpu_pinned$'
+# 3 variantes x 2 W x 2 modos x 2 arrays x 2 bloques x 1 repetición = 48 filas
+test "$(wc -l < "$TMP/e3_sweep.csv")" -eq 49
+
 echo "smoke: OK"

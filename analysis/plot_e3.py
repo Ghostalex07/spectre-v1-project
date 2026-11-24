@@ -16,6 +16,7 @@ from common import (
     e3_paths,
     fmt_num,
     fmt_pct,
+    is_e3_legacy_csv,
     median,
     median_ci,
     p5,
@@ -29,14 +30,24 @@ from common import (
 
 
 def load_e3(machine_id: str):
+    """Carga solo el E3 antiguo de una configuración.
+
+    Los CSV del barrido nuevo tienen otra cabecera y no se mezclan aquí; su
+    análisis vive en `plot_e3_sweep.py`.
+    """
     by_variant = defaultdict(list)
     for path in e3_paths(machine_id):
+        if not is_e3_legacy_csv(path):
+            print(f"aviso: se ignora {path} (no es E3 antiguo)")
+            continue
         for row in read_rows(path):
             by_variant[row.get("variant", "")].append(
                 to_float(row.get("cycles_per_iteration"))
             )
     if not by_variant:
-        raise SystemExit(f"No hay CSV E3 para {machine_id} en data/{machine_id}/")
+        raise SystemExit(
+            f"No hay CSV E3 antiguo para {machine_id} en data/{machine_id}/"
+        )
     return by_variant
 
 

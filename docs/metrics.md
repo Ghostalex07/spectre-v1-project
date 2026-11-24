@@ -203,6 +203,82 @@ Se reportan valores absolutos y relativos. No se compara una variante `-O0` con
 una `-O2`; se agrupan por flags. Tampoco se mezcla una VM con un equipo nativo en
 la comparación principal.
 
+## E3 barrido de sensibilidad
+
+El E3 antiguo mide una sola configuración. El barrido nuevo (`src/e3_sweep.c`)
+mide el coste del chequeo de límites en función de:
+
+- `work_per_iter` (**W**): operaciones dependientes del byte cargado. W = 0
+  significa que el valor solo se consume en un sumidero `volatile`; W > 0 aplica
+  una cadena de multiplicaciones y sumas cuyo resultado también acaba en el
+  sumidero. El compilador no puede eliminarla.
+- `predictability_mode`: `inrange` (todos los índices dentro del array) o
+  `random_pX` con X = 1, 10, 50 (porcentaje de índices fuera de rango generado
+  al azar). `out_of_range_fraction` guarda la fracción real observada.
+- `array_bytes`: tamaño del array de datos. El perfil por defecto incluye 4 KiB
+  (L1) y 64 MiB (mayor que la L3 habitual). Se reserva el doble para que un
+  acceso especulativo fuera de rango no toque memoria no mapeada.
+- `iterations`, `blocks`, `reps`, `seed`, CPU fijada con `taskset` y
+  `cpu_pinned` observado con `sched_getcpu()`.
+
+Protocolo:
+
+- Los índices se generan **antes** de medir con un PRNG `splitmix64` y una
+  semilla que se escribe en el CSV. Las tres variantes de una combinación usan
+  los mismos índices, de modo que la comparación es emparejada.
+- Las variantes `baseline`, `lfence` y `mask` se intercalan por bloques: en cada
+  bloque y repetición se mide cada variante una vez, en orden aleatorio derivado
+  de `seed`. No se mide una variante entera seguida de otra.
+- Antes de cada medida se ejecuta un calentamiento (`--warmup`).
+- La máscara es aritmética, tipo `array_index_nospec`:
+  `mask = (size_t)0 - (size_t)(x < limit); idx = x & mask;`. Si `x` está fuera
+  de rango, `idx = 0`; si está dentro, `idx = x`. No hay salto condicional.
+- Las cargas de cada variante son funciones `noinline` separadas para poder
+  revisar el desensamblado.
+
+### Sobrecoste por bloques
+
+Para cada combinación y variante se resume cada bloque completo con la mediana
+de sus repeticiones (`cycles_per_iter`). El sobrecoste relativo se calcula
+frente a `baseline` y el IC95 se obtiene remuestreando **bloques completos**, no
+filas sueltas, y de forma emparejada (solo bloques presentes en las dos
+variantes):
+
+```text
+por_bloque_b       = mediana(cycles_per_iter de las reps del bloque b)
+overhead_pct       = 100 * (mediana(por_bloque_variante) - mediana(por_bloque_base))
+                           / mediana(por_bloque_base)
+slowdown           = mediana(por_bloque_variante) / mediana(por_bloque_base)
+IC95               = percentiles 2,5 y 97,5 del mismo cociente en B remuestreos
+                     de bloques con reemplazo (B = n_boot, semilla fija)
+```
+
+El remuestreo por bloques evita tratar como independientes las repeticiones de
+un mismo bloque, que comparten temperatura, frecuencia y estado del predictor.
+
+### Compatibilidad de CSV
+
+El análisis detecta la cabecera:
+
+- CSV antiguo: `cycles_per_iteration`, `run`, columnas de máquina.
+- CSV nuevo: `work_per_iter`, `predictability_mode`, `array_bytes`,
+  `block_id`, `cycles_per_iter`.
+
+`plot_e3.py` solo lee el antiguo; `plot_e3_sweep.py` solo lee el nuevo. Nunca se
+mezclan en la misma figura ni en el mismo agregado.
+
+### Verificación del ensamblador
+
+`make asm` genera `docs/asm/`. `tests/test_e3_asm.py` comprueba sobre
+`bin/e3_sweep`:
+
+- `load_lfence` contiene `lfence`;
+- `load_baseline` contiene un salto condicional y ningún `cmov`;
+- `load_mask` no contiene `lfence`.
+
+Si el compilador cambia el código y una comprobación falla, no se usan esos
+datos: se documenta el fallo y se corrige el código o los flags.
+
 ## Reglas de comparación
 
 - Mismo código y flags en todas las máquinas; compilar localmente.
@@ -280,5 +356,24 @@ machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,iteratio
 - `run`: repetición (0..reps-1).
 - `cycles_per_iteration`: `total_cycles / iterations`.
 - `total_cycles`: ciclos totales del bucle.
+
+### E3 — barrido de sensibilidad
+
+```text
+machine_id,session_id,timestamp,variant,work_per_iter,predictability_mode,out_of_range_fraction,array_bytes,iterations,repetition,block_id,total_cycles,cycles_per_iter,seed,cpu_pinned
+```
+
+- `variant`: `baseline`, `lfence` o `mask`.
+- `work_per_iter`: W, trabajo dependiente del dato (0, 1, 2, 4, ..., 64).
+- `predictability_mode`: `inrange` o `random_pX` (X = 1, 10, 50).
+- `out_of_range_fraction`: fracción real de índices fuera de rango (0–1).
+- `array_bytes`: tamaño del array de datos; el doble está reservado.
+- `iterations`: iteraciones por medida.
+- `repetition`: repetición dentro del bloque (0..reps-1).
+- `block_id`: bloque aleatorizado (0..blocks-1).
+- `total_cycles`: ciclos de la medida completa.
+- `cycles_per_iter = total_cycles / iterations`.
+- `seed`: semilla de los índices y del orden de variantes.
+- `cpu_pinned`: CPU observada con `sched_getcpu()`.
 
 Los detalles de nombres y carpetas están en [`../data/README.md`](../data/README.md).

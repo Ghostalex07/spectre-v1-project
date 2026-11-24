@@ -355,8 +355,47 @@ reportar la tasa por `train`, no solo el mejor valor.
 
 ## 7. E3: mitigaciones y sobrecoste
 
-E3 mide el coste del bucle vulnerable con cada variante. La eficacia se toma de
-los CSV de E2; no se repite el ataque en E3.
+E3 mide el coste del chequeo de límites con cada variante. La eficacia de
+seguridad se toma del modelo conceptual y de la literatura; no se repite el
+ataque en E3.
+
+### 7.1 Barrido de sensibilidad (recomendado)
+
+```bash
+# Perfil por defecto: W 0..64, inrange/random_p1/p10/p50, 4 KiB y 64 MiB.
+./scripts/run_e3.sh <machine_id>
+# o explícitamente
+./scripts/run_e3.sh <machine_id> sweep
+
+# Perfil corto para validar el harness
+PROFILE=smoke ./scripts/run_e3.sh <machine_id> sweep
+```
+
+Salida: `data/<machine_id>/<session_id>/e3_sweep_<machine_id>_<session_id>.csv`
+si hay `SESSION_ID`; si no, `data/<machine_id>/e3_sweep_<machine_id>_manual.csv`.
+Las tres variantes van en el mismo CSV y se intercalan por bloques.
+
+Parámetros configurables (variables de entorno):
+
+| Variable | Defecto (default) | Qué hace |
+|---|---:|---|
+| `E3_WORK` | `0,1,2,4,8,16,32,64` | Valores de W |
+| `E3_PREDICTABILITY` | `inrange,random_p1,random_p10,random_p50` | Modos |
+| `E3_ARRAY_BYTES` | `4096,67108864` | Tamaños de array |
+| `E3_ITERATIONS` | 200000 | Iteraciones por medida |
+| `E3_BLOCKS` | 5 | Bloques aleatorizados |
+| `E3_REPS` | 3 | Repeticiones por bloque |
+| `E3_WARMUP` | 256 | Llamadas de calentamiento |
+| `E3_SEED` | 20261124 | Semilla de índices y orden |
+| `PROFILE` | `default` | `default` o `smoke` |
+
+El perfil `smoke` usa W 0/8, `inrange/random_p50`, arrays de 4 KiB y 32 MiB,
+2.000 iteraciones, 2 bloques y 1 repetición. `make smoke` valida la cabecera y
+el número de filas.
+
+### 7.2 Modo antiguo (una variante)
+
+Se mantiene para reproducir datos anteriores:
 
 ```bash
 ./scripts/run_e3.sh <machine_id> baseline 10000000 30
@@ -364,39 +403,40 @@ los CSV de E2; no se repite el ataque en E3.
 ./scripts/run_e3.sh <machine_id> mask     10000000 30
 ```
 
-Parámetros:
-
-| Argumento | Defecto | Qué hace |
-|---|---:|---|
-| `machine_id` | — | Identificador |
-| `variant` | — | `baseline`, `lfence` o `mask` |
-| `iterations` | 10000000 | Iteraciones del bucle |
-| `reps` | 30 | Repeticiones |
-| `out_dir` | `data/<machine_id>` | Carpeta de salida |
-
 Salida: `data/<machine_id>/e3_<machine_id>_<variant>.csv` con
-`cycles_per_iteration` y `total_cycles`.
+`cycles_per_iteration` y `total_cycles`. No se mezcla con el barrido.
 
-Análisis:
+### 7.3 Análisis
 
 ```bash
+# Barrido nuevo
+python3 analysis/plot_e3_sweep.py --machine-id <machine_id>
+# Repetir --machine-id para superponer varias máquinas en la figura
+
+# E3 antiguo (sigue funcionando)
 python3 analysis/plot_e3.py --machine-id <machine_id>
 ```
 
-Genera:
+El barrido genera:
 
-- `figures/e3_<machine>_overhead.png`: mediana e IC95 bootstrap por variante;
-  los percentiles p5–p95 se imprimen en la tabla como medida de dispersión.
-- `figures/e3_<machine>_scatter.png`: **solo si se pasa `--with-efficacy`**.
-  Es un anexo opcional que mezcla E2 y E3; no es una figura principal.
+- `figures/e3_sweep_<machine>_overhead_vs_work.png`: sobrecoste frente a W,
+  con bandas IC95 por predictibilidad y tamaño.
+- `figures/e3_sweep_overlay.png`: superposición multi-máquina.
+- `data/derived/e3_sweep_overhead.csv` y `report/e3_sweep_overhead.md`.
 
-Métricas:
+El IC se calcula remuestreando **bloques completos** (emparejado), no filas
+sueltas. Fórmulas en [`metrics.md`](metrics.md).
 
-```text
-overhead_abs = mediana(variante) - mediana(baseline)
-overhead_pct = 100 * overhead_abs / mediana(baseline)
-slowdown     = mediana(variante) / mediana(baseline)
+### 7.4 Verificación del ensamblador
+
+```bash
+make asm
+python3 -m unittest discover -s tests -p 'test_e3_asm.py' -v
 ```
+
+Genera `docs/asm/` y comprueba que `baseline` conserva el salto condicional y
+no usa `cmov`, que `lfence` contiene `lfence` y que `mask` no contiene `lfence`.
+Si falla, no se usan esos datos: se documenta y se corrige.
 
 ## 8. Campaña completa en una máquina
 
