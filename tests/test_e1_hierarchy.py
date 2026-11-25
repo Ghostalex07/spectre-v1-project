@@ -36,7 +36,6 @@ def hierarchy_row(size: int, rep: int, value: float, **extra: str) -> dict:
         "total_cycles": str(int(value * 1000)),
         "cycles_per_load": f"{value:.6f}",
         "seed": "23901",
-        "cpu_pinned": "0",
         "hugepage": "none",
     }
     row.update(extra)

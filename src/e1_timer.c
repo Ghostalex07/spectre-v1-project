@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
     machine_info mi;
     machine_info_init(&mi, machine_id);
 
-    fputs("machine_id,session_id,timestamp,repetition,sample,cpu_pinned,"
+    fputs("machine_id,session_id,timestamp,repetition,sample,pinned_cpu,"
           "cycles\n",
           out);
 

@@ -485,7 +485,7 @@ int main(int argc, char **argv) {
 
     fputs("machine_id,session_id,timestamp,variant,flags,work_per_iter,"
           "predictability_mode,out_of_range_fraction,array_bytes,iterations,"
-          "repetition,block_id,total_cycles,cycles_per_iter,seed,cpu_pinned\n",
+          "repetition,block_id,total_cycles,cycles_per_iter,seed,pinned_cpu\n",
           out);
 
     size_t combo_index = 0;

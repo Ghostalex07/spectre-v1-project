@@ -383,7 +383,7 @@ int main(int argc, char **argv) {
     }
 
     fputs("machine_id,session_id,timestamp,working_set_bytes,node_size_bytes,"
-          "hops,repetition,total_cycles,cycles_per_load,seed,cpu_pinned,"
+          "hops,repetition,total_cycles,cycles_per_load,seed,pinned_cpu,"
           "hugepage\n",
           out);
 

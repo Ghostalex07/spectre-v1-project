@@ -101,19 +101,19 @@ machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,mode,sample,cycl
 ### E1 jerárquico
 
 ```text
-machine_id,session_id,timestamp,working_set_bytes,node_size_bytes,hops,repetition,total_cycles,cycles_per_load,seed,cpu_pinned,hugepage
+machine_id,session_id,timestamp,working_set_bytes,node_size_bytes,hops,repetition,total_cycles,cycles_per_load,seed,pinned_cpu,hugepage
 ```
 
 - `working_set_bytes`: tamaño del buffer; `node_size_bytes`: nodo (64 B).
 - `hops`: cargas medidas; `repetition`: índice de repetición.
 - `cycles_per_load = total_cycles / hops`.
 - `seed`: semilla de Sattolo; `hugepage`: `none`, `madvise` o
-  `madvise-failed`; `cpu_pinned`: CPU observada.
+  `madvise-failed`; `pinned_cpu`: CPU observada.
 
 ### E1 coste del temporizador
 
 ```text
-machine_id,session_id,timestamp,repetition,sample,cpu_pinned,cycles
+machine_id,session_id,timestamp,repetition,sample,pinned_cpu,cycles
 ```
 
 - `cycles`: intervalo vacío `lfence;rdtscp;lfence;rdtscp`.
@@ -149,7 +149,7 @@ machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,iteratio
 ### E3 — barrido de sensibilidad
 
 ```text
-machine_id,session_id,timestamp,variant,flags,work_per_iter,predictability_mode,out_of_range_fraction,array_bytes,iterations,repetition,block_id,total_cycles,cycles_per_iter,seed,cpu_pinned
+machine_id,session_id,timestamp,variant,flags,work_per_iter,predictability_mode,out_of_range_fraction,array_bytes,iterations,repetition,block_id,total_cycles,cycles_per_iter,seed,pinned_cpu
 ```
 
 - `work_per_iter`: W dependiente del dato cargado.

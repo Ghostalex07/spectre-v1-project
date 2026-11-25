@@ -23,14 +23,14 @@ echo "[smoke] E1 jerárquico"
   --sizes 4096,65536 --hops 5000 --reps 2 --warmup-passes 1 \
   --out "$TMP/e1_hierarchy.csv"
 head -n1 "$TMP/e1_hierarchy.csv" | grep -q \
-  '^machine_id,session_id,timestamp,working_set_bytes,node_size_bytes,hops,repetition,total_cycles,cycles_per_load,seed,cpu_pinned,hugepage$'
+  '^machine_id,session_id,timestamp,working_set_bytes,node_size_bytes,hops,repetition,total_cycles,cycles_per_load,seed,pinned_cpu,hugepage$'
 test "$(wc -l < "$TMP/e1_hierarchy.csv")" -eq 5
 
 echo "[smoke] E1 temporizador"
 ./bin/e1_timer --machine-id smoke --session-id smoke \
   --samples 1000 --reps 2 --warmup 100 --out "$TMP/e1_timer.csv"
 head -n1 "$TMP/e1_timer.csv" | grep -q \
-  '^machine_id,session_id,timestamp,repetition,sample,cpu_pinned,cycles$'
+  '^machine_id,session_id,timestamp,repetition,sample,pinned_cpu,cycles$'
 test "$(wc -l < "$TMP/e1_timer.csv")" -eq 2001
 
 if [ "${RUN_E2:-0}" = "1" ]; then
@@ -57,7 +57,7 @@ echo "[smoke] E3 barrido"
   --array-bytes 4096,33554432 --iterations 2000 --blocks 2 --reps 1 \
   --warmup 32 --out "$TMP/e3_sweep.csv"
 head -n1 "$TMP/e3_sweep.csv" | grep -q \
-  '^machine_id,session_id,timestamp,variant,flags,work_per_iter,predictability_mode,out_of_range_fraction,array_bytes,iterations,repetition,block_id,total_cycles,cycles_per_iter,seed,cpu_pinned$'
+  '^machine_id,session_id,timestamp,variant,flags,work_per_iter,predictability_mode,out_of_range_fraction,array_bytes,iterations,repetition,block_id,total_cycles,cycles_per_iter,seed,pinned_cpu$'
 # 3 variantes x 2 W x 2 modos x 2 arrays x 2 bloques x 1 repetición = 48 filas
 test "$(wc -l < "$TMP/e3_sweep.csv")" -eq 49
 

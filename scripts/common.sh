@@ -16,10 +16,10 @@ need_cmd() {
   command -v "$1" >/dev/null 2>&1 || die "falta el comando '$1'"
 }
 
-# Devuelve el primer CPU permitido por la afinidad actual. Sirve para
-# contenedores y para máquinas donde el CPU 0 no está disponible.
+# Devuelve la segunda CPU permitida por la afinidad actual, para no medir
+# siempre en la CPU 0. Si solo hay una, usa esa.
 pick_cpu() {
-  local list first
+  local list first second
   list="$(taskset -pc $$ 2>/dev/null | sed 's/.*: //' || true)"
   if [ -z "$list" ]; then
     echo 0
@@ -27,7 +27,17 @@ pick_cpu() {
   fi
   first="${list%%,*}"
   if [[ "$first" == *-* ]]; then
-    echo "${first%-*}"
+    local low="${first%-*}" high="${first#*-}"
+    if [ "$low" -lt "$high" ]; then
+      echo "$((low + 1))"
+    else
+      echo "$low"
+    fi
+    return
+  fi
+  if [[ "$list" == *,* ]]; then
+    second="${list#*,}"
+    echo "${second%%-*}"
   else
     echo "$first"
   fi

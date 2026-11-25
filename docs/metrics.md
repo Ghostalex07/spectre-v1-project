@@ -219,7 +219,7 @@ mide el coste del chequeo de límites en función de:
   (L1) y 64 MiB (mayor que la L3 habitual). Se reserva el doble para que un
   acceso especulativo fuera de rango no toque memoria no mapeada.
 - `iterations`, `blocks`, `reps`, `seed`, CPU fijada con `taskset` y
-  `cpu_pinned` observado con `sched_getcpu()`.
+  `pinned_cpu` observado con `sched_getcpu()`.
 
 Protocolo:
 
@@ -309,7 +309,7 @@ machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,mode,sample,cycl
 ### E1 jerárquico
 
 ```text
-machine_id,session_id,timestamp,working_set_bytes,node_size_bytes,hops,repetition,total_cycles,cycles_per_load,seed,cpu_pinned,hugepage
+machine_id,session_id,timestamp,working_set_bytes,node_size_bytes,hops,repetition,total_cycles,cycles_per_load,seed,pinned_cpu,hugepage
 ```
 
 - `session_id`: sesión de medida (`data/<machine_id>/<session_id>/`).
@@ -321,13 +321,15 @@ machine_id,session_id,timestamp,working_set_bytes,node_size_bytes,hops,repetitio
 - `total_cycles`: ciclos totales del recorrido.
 - `cycles_per_load`: `total_cycles / hops`.
 - `seed`: semilla de la permutación Sattolo.
-- `cpu_pinned`: CPU observada con `sched_getcpu()`, o `-1` si no se pudo leer.
+- `pinned_cpu`: CPU observada con `sched_getcpu()`, o `-1` si no se pudo leer.
+  Los CSV anteriores a esta corrección usan `cpu_pinned`; el análisis acepta
+  ambas columnas.
 - `hugepage`: `none`, `madvise` o `madvise-failed`.
 
 ### E1 coste del temporizador
 
 ```text
-machine_id,session_id,timestamp,repetition,sample,cpu_pinned,cycles
+machine_id,session_id,timestamp,repetition,sample,pinned_cpu,cycles
 ```
 
 - `repetition`: índice de repetición.
@@ -357,7 +359,7 @@ machine_id,cpu,family,model,stepping,microcode,kernel,gcc,flags,variant,iteratio
 ### E3 — barrido de sensibilidad
 
 ```text
-machine_id,session_id,timestamp,variant,flags,work_per_iter,predictability_mode,out_of_range_fraction,array_bytes,iterations,repetition,block_id,total_cycles,cycles_per_iter,seed,cpu_pinned
+machine_id,session_id,timestamp,variant,flags,work_per_iter,predictability_mode,out_of_range_fraction,array_bytes,iterations,repetition,block_id,total_cycles,cycles_per_iter,seed,pinned_cpu
 ```
 
 - `variant`: `baseline`, `lfence` o `mask`.
@@ -371,7 +373,7 @@ machine_id,session_id,timestamp,variant,flags,work_per_iter,predictability_mode,
 - `total_cycles`: ciclos de la medida completa.
 - `cycles_per_iter = total_cycles / iterations`.
 - `seed`: semilla de los índices y del orden de variantes.
-- `cpu_pinned`: CPU observada con `sched_getcpu()`.
+- `pinned_cpu`: CPU observada con `sched_getcpu()`.
 
 Los detalles de nombres y carpetas están en [`../data/README.md`](../data/README.md).
 

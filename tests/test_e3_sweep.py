@@ -51,7 +51,6 @@ def sweep_row(
         "total_cycles": str(int(value * 1000)),
         "cycles_per_iter": f"{value:.6f}",
         "seed": "7",
-        "cpu_pinned": "0",
     }
 
 

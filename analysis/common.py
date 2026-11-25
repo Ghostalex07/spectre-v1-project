@@ -270,7 +270,6 @@ HIERARCHY_COLUMNS = (
     "total_cycles",
     "cycles_per_load",
     "seed",
-    "cpu_pinned",
     "hugepage",
 )
 TIMER_COLUMNS = (
@@ -279,7 +278,6 @@ TIMER_COLUMNS = (
     "timestamp",
     "repetition",
     "sample",
-    "cpu_pinned",
     "cycles",
 )
 
@@ -309,7 +307,6 @@ E3_SWEEP_COLUMNS = (
     "total_cycles",
     "cycles_per_iter",
     "seed",
-    "cpu_pinned",
 )
 E3_LEGACY_COLUMNS = (
     "machine_id",
