@@ -60,32 +60,31 @@ data/
 
 ## Datos de referencia incluidos
 
-`data/ryzen5pro5675u/` contiene una **ejecución de referencia** hecha para
-validar el harness, no la campaña final:
+`data/ryzen5pro5675u/` contiene los datos de referencia del Ryzen, incluidos
+los datos antiguos de la raíz y dos sesiones de la metodología nueva:
 
-- E1: 10.000 muestras por modo, buffer de 64 MiB.
-- E2: 40 bytes, 300 intentos, `train=5`, **1 run** (validación opcional).
-- E3: 1.000.000 iteraciones, 3 repeticiones.
+- `20261124-200944`: E1 calibración, E1 jerárquico, temporizador y E3 barrido.
+- `20261125-084943`: la misma campaña, en un arranque distinto.
 
-`data/ryzen5pro5675u_final/` contiene la **campaña final** de esa misma máquina,
-con el protocolo completo:
+Las dos sesiones permiten comprobar repetibilidad. El umbral cambió entre
+arranques (184 y 138), así que debe registrarse por sesión y no copiarse de una
+máquina o sesión a otra. Los datos antiguos de la raíz se conservan para no
+romper análisis previos.
 
-- E1: 10.000 muestras por modo, buffer de 64 MiB.
-- E2: 40 bytes, 1000 intentos, `train=5`, **50 runs** (validación opcional).
-- E3: 10.000.000 iteraciones, **30 repeticiones**.
+`data/ryzen5pro5675u_final/` es **legacy**: se generó con la metodología
+anterior (E2 hardware y E3 de un solo bucle). Se conserva como referencia
+histórica y comprobación cruzada, pero **no se usa en la comparación principal**,
+no se citan sus cifras E2 y su E3 no es comparable con el barrido nuevo. Es la
+misma microarquitectura que `ryzen5pro5675u`, así que tampoco cuenta como una
+CPU distinta para el objetivo de 2–3 microarquitecturas.
 
 La simulación conceptual de referencia está en
 `data/simulation/spectre_model.csv` y se regenera con `make simulate`. No es una
 medida de hardware: sirve para explicar el mecanismo y comparar las variantes de
 forma reproducible.
 
-Es la misma microarquitectura que `ryzen5pro5675u`, así que sirve como campaña
-completa de referencia, pero **no cuenta como una CPU distinta** para el
-objetivo de 2–3 microarquitecturas. El archivo
-`e2_ryzen5pro5675u_baseline_O0.csv` es un control `-O0` de 1 byte; no se mezcla
-con la campaña `-O2` en las figuras. La campaña final de cada compañero debe
-usar los valores del protocolo y quedar identificada con su propio
-`machine_id`.
+La campaña de cada compañero debe usar los valores del protocolo y quedar
+identificada con su propio `machine_id` y su `session_id`.
 
 ## Esquemas CSV
 

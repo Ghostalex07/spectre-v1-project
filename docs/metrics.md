@@ -381,27 +381,29 @@ registran exactamente las flags efectivas.
 
 ## Repeticiones y estabilidad del sobrecoste
 
-La comparación entre la validación inicial y la campaña final del Ryzen 5 PRO
-5675U muestra por qué no basta con tres repeticiones. Los intervalos se calculan
-con bootstrap de la mediana (10.000 remuestreos) sobre los CSV ya existentes;
-no se ha modificado ningún dato.
+La comparación entre la validación inicial y la campaña antigua del Ryzen 5 PRO
+5675U muestra por qué no basta con tres repeticiones. La campaña antigua
+(`ryzen5pro5675u_final`) es **legacy**: se usa aquí solo como referencia de
+estabilidad, no como resultado principal. Los intervalos se calculan con
+bootstrap de la mediana (10.000 remuestreos) sobre los CSV existentes; no se ha
+modificado ningún dato.
 
 | máquina | repeticiones | variante | mediana (ciclos/iter) | IC95 bootstrap |
 |---|---:|---|---:|---|
 | `ryzen5pro5675u` | 3 | baseline | 3,328 | [3,303; 3,405] |
 | `ryzen5pro5675u` | 3 | lfence | 13,523 | [13,514; 13,600] |
 | `ryzen5pro5675u` | 3 | mask | 3,683 | [3,404; 3,810] |
-| `ryzen5pro5675u_final` | 30 | baseline | 3,344 | [3,337; 3,353] |
-| `ryzen5pro5675u_final` | 30 | lfence | 13,397 | [13,391; 13,406] |
-| `ryzen5pro5675u_final` | 30 | mask | 3,386 | [3,383; 3,396] |
+| `ryzen5pro5675u_final` (legacy) | 30 | baseline | 3,344 | [3,337; 3,353] |
+| `ryzen5pro5675u_final` (legacy) | 30 | lfence | 13,397 | [13,391; 13,406] |
+| `ryzen5pro5675u_final` (legacy) | 30 | mask | 3,386 | [3,383; 3,396] |
 
 Con tres repeticiones, el IC de `mask` es unas diez veces más ancho y su mediana
 (+10,7 %) se aleja de la estimación con 30 repeticiones (+1,3 %). La causa es la
 variabilidad térmica, de frecuencia y de planificación entre ejecuciones cortas.
-Por eso el protocolo exige un mínimo de 30 repeticiones para E3 y recomienda
+Por eso el protocolo exige varios bloques y repeticiones para E3 y recomienda
 repetir la campaña en sesiones distintas. La estimación que debe citarse es la
-de la campaña final; la de tres repeticiones queda como evidencia de la
-inestabilidad, no como resultado principal.
+del barrido nuevo con IC por bloques; la comparación de 3 vs 30 repeticiones
+queda como evidencia de la inestabilidad, no como resultado principal.
 
 Este cálculo no corrige el sesgo del montaje: solo muestra la precisión de cada
 estimación en sus propias condiciones.

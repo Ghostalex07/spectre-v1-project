@@ -222,6 +222,42 @@ class CompareMachinesTest(unittest.TestCase):
     def test_discovers_machine_with_data(self):
         self.assertEqual(cm.discover_machines(self.data), ["machine_a"])
 
+    def test_discovers_machine_with_session_e1(self):
+        machine = "machine_b"
+        session = self.data / machine / "session_a"
+        session.mkdir(parents=True)
+        write_csv(
+            session / f"e1_{machine}.csv",
+            E1_HEADER,
+            [
+                row(machine, mode="hit", sample=0, cycles=30),
+                row(machine, mode="hit", sample=1, cycles=30),
+                row(machine, mode="miss", sample=0, cycles=200),
+                row(machine, mode="miss", sample=1, cycles=200),
+            ],
+        )
+
+        self.assertIn(machine, cm.discover_machines(self.data))
+        summary = cm.summarize_machine(self.data, machine)
+        self.assertEqual(summary["e1"]["suggested_threshold"], 115)
+        self.assertIn("session_a", summary["e1"]["path"])
+
+    def test_ignores_legacy_final_machine_by_default(self):
+        machine = "machine_final"
+        directory = self.data / machine
+        directory.mkdir()
+        write_csv(
+            directory / f"e1_{machine}.csv",
+            E1_HEADER,
+            [
+                row(machine, mode="hit", sample=0, cycles=20),
+                row(machine, mode="miss", sample=0, cycles=100),
+            ],
+        )
+
+        self.assertNotIn(machine, cm.discover_machines(self.data))
+        self.assertIn(machine, cm.discover_machines(self.data, include_legacy=True))
+
     def test_summarizes_e1_e2_e3(self):
         summary = cm.summarize_machine(self.data, "machine_a")
         self.assertEqual(summary["e1"]["suggested_threshold"], 60)

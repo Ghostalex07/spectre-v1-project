@@ -23,6 +23,7 @@ from pathlib import Path
 from common import (
     DATA_DIR,
     FIGURES_DIR,
+    find_e1_path,
     fmt_num,
     fmt_pct,
     median,
@@ -41,15 +42,29 @@ VARIANTS = ("baseline", "lfence", "mask")
 DEFAULT_MARGIN_MIN = 5
 
 
-def discover_machines(data_dir: str | Path = DATA_DIR) -> list[str]:
-    """Máquinas con un E1 válido, ordenadas por nombre."""
+def discover_machines(
+    data_dir: str | Path = DATA_DIR, include_legacy: bool = False
+) -> list[str]:
+    """Máquinas con un E1 válido, ordenadas por nombre.
+
+    Un E1 puede estar en la raíz antigua o en una subcarpeta de sesión. Las
+    máquinas cuyo nombre termina en `_final` son campañas legacy y se omiten
+    salvo que se pida explícitamente incluirlas.
+    """
     root = Path(data_dir)
     if not root.is_dir():
         raise SystemExit(f"No existe el directorio de datos: {root}")
     machines = []
     for directory in sorted(root.iterdir()):
-        if directory.is_dir() and (directory / f"e1_{directory.name}.csv").is_file():
-            machines.append(directory.name)
+        if not directory.is_dir():
+            continue
+        name = directory.name
+        if name.endswith("_final") and not include_legacy:
+            continue
+        has_root = (directory / f"e1_{name}.csv").is_file()
+        has_session = any(directory.glob(f"*/e1_{name}.csv"))
+        if has_root or has_session:
+            machines.append(name)
     return machines
 
 
@@ -68,8 +83,9 @@ def suggest_threshold(hit: list[float], miss: list[float]) -> int:
     return 0
 
 
-def load_e1(directory: Path, machine_id: str) -> dict:
-    path = directory / f"e1_{machine_id}.csv"
+def load_e1(directory: Path, machine_id: str, path: Path | None = None) -> dict:
+    if path is None:
+        path = directory / f"e1_{machine_id}.csv"
     rows = read_rows(path)
     hit = [to_float(row.get("cycles")) for row in rows if row.get("mode") == "hit"]
     miss = [to_float(row.get("cycles")) for row in rows if row.get("mode") == "miss"]
@@ -190,7 +206,7 @@ def summarize_machine(
         raise SystemExit(f"No existe {directory}")
     return {
         "machine_id": machine_id,
-        "e1": load_e1(directory, machine_id),
+        "e1": load_e1(directory, machine_id, find_e1_path(machine_id, data_dir)),
         "e2": load_e2(directory, machine_id, margin_min),
         "e3": load_e3(directory, machine_id),
     }
@@ -517,9 +533,14 @@ def main() -> None:
         action="store_true",
         help="incluye tablas/figuras de E2 (anexo opcional, no resultado principal)",
     )
+    parser.add_argument(
+        "--include-legacy",
+        action="store_true",
+        help="incluye campañas legacy cuyo machine_id termina en _final",
+    )
     args = parser.parse_args()
 
-    machines = discover_machines(args.data_dir)
+    machines = discover_machines(args.data_dir, include_legacy=args.include_legacy)
     if not machines:
         raise SystemExit(f"No hay máquinas con E1 en {args.data_dir}")
 

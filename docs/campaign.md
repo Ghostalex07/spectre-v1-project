@@ -44,7 +44,7 @@ python3 -m pip install -r analysis/requirements.txt
 ## 1. Identifica tu máquina
 
 Elige un `machine_id` corto, en minúsculas y sin espacios. Ejemplos:
-`intel_i7_1165g7`, `ryzen7_5800h`, `ryzen5pro5675u_final`.
+`intel_i7_1165g7`, `ryzen7_5800h`, `intel_i5_1235u`.
 
 ```bash
 ./scripts/collect_env.sh <machine_id>

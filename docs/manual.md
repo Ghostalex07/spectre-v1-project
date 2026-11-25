@@ -543,17 +543,13 @@ mask:     3.68 ciclos/iteración  (~1.11x, +10.7 %)
 
 Con 300 intentos y 1M iteraciones los números son orientativos.
 
-Campaña final de la misma máquina (`ryzen5pro5675u_final`, 30 reps de E3):
-
-```text
-E3: baseline 3.34 ciclos/iteración
-    lfence  13.40 ciclos/iteración  (~4.01x, +300.6 %)
-    mask     3.39 ciclos/iteración  (~1.01x, +1.3 %)
-```
-
-Es la misma microarquitectura que la referencia; no sustituye a una segunda CPU
-en la comparación. Los resultados de E2 en hardware no se incluyen como
-resultado: ver [`e2-anexo.md`](e2-anexo.md).
+Los E3 de 1M/3 repeticiones y de 30 repeticiones (`ryzen5pro5675u_final`)
+corresponden a la **metodología antigua** y se conservan solo como comprobación
+cruzada legacy. La campaña nueva usa el barrido E3 y las dos sesiones de
+`data/ryzen5pro5675u/`; sus resultados están en el `README.md` y en
+`report/results_summary.md`. `_final` no se usa en la comparación principal.
+Los resultados de E2 en hardware no se incluyen como resultado: ver
+[`e2-anexo.md`](e2-anexo.md).
 
 ## 16. Seguridad y alcance
 

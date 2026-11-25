@@ -247,7 +247,7 @@ def write_plateau_csv(blocks: list[dict], path: Path) -> None:
         "status",
     ]
     with open(path, "w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer = csv.DictWriter(handle, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         for block in blocks:
             row = {}

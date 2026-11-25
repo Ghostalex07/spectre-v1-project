@@ -1,6 +1,6 @@
 | machine_id | level | sessions | cycles_per_load | ci_low | ci_high | status |
 |---|---|---|---|---|---|---|
-| ryzen5pro5675u | L1d | 1 | 3.555 | 3.555 | 3.555 | ok |
-| ryzen5pro5675u | L2 | 1 | 10.214 | 10.214 | 10.214 | ok |
-| ryzen5pro5675u | L3 | 1 | 298.292 | 298.292 | 298.292 | ok |
-| ryzen5pro5675u | memoria | 1 | 361.486 | 361.486 | 361.486 | ok |
+| ryzen5pro5675u | L1d | 2 | 2.857 | 2.160 | 3.555 | ok |
+| ryzen5pro5675u | L2 | 2 | 8.340 | 6.467 | 10.214 | ok |
+| ryzen5pro5675u | L3 | 2 | 163.819 | 29.346 | 298.292 | ok |
+| ryzen5pro5675u | memoria | 2 | 323.077 | 284.668 | 361.486 | ok |

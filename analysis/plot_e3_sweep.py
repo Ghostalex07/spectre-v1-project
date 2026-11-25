@@ -138,7 +138,7 @@ def write_table(table: list[dict]) -> None:
     DERIVED_DIR.mkdir(parents=True, exist_ok=True)
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     with open(OVERHEAD_CSV, "w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=TABLE_FIELDS)
+        writer = csv.DictWriter(handle, fieldnames=TABLE_FIELDS, lineterminator="\n")
         writer.writeheader()
         for row in table:
             writer.writerow(

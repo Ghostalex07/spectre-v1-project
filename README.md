@@ -153,38 +153,42 @@ spectre-v1-project/
 - [ ] Confirmar con el profesor el anexo de E2.
 - [ ] Informe y defensa final.
 
-La campaña de referencia del Ryzen está en `data/ryzen5pro5675u/` y es una
-**ejecución de validación**, no la campaña final. Consulta
-[`data/README.md`](data/README.md).
+La campaña de referencia del Ryzen está en `data/ryzen5pro5675u/`, con dos
+sesiones en arranques distintos (`20261124-200944` y `20261125-084943`). Sirve
+para comprobar repetibilidad, no para comparar microarquitecturas.
+`data/ryzen5pro5675u_final/` es **legacy** (metodología antigua) y no se usa en
+la comparación principal. Consulta [`data/README.md`](data/README.md).
 
 ## Resultados de referencia
 
 ### E1 y E3 (experimentación principal)
 
-E1 en el Ryzen 5 PRO 5675U: `hit` mediana 46 ciclos, `miss` mediana 276;
-umbral usado 80. E1 jerárquico: **PENDIENTE** de la campaña por máquina; el
-harness y el análisis están implementados, pero aún no hay datos en
-`data/` para publicar mesetas.
+E1 calibración en el Ryzen 5 PRO 5675U:
 
-E3 con 1M iteraciones y 3 repeticiones:
+| Sesión | hit mediana | miss mediana | Umbral |
+|---|---:|---:|---:|
+| `20261124-200944` | 69 | 322 | 184 |
+| `20261125-084943` | 46 | 276 | 138 |
 
-```text
-baseline: 3.33 ciclos/iteración
-lfence:  13.52 ciclos/iteración  (~4.06x, +306 %)
-mask:     3.68 ciclos/iteración  (~1.11x, +10.7 %)
-```
+La diferencia entre arranques es real y se documenta: el umbral debe elegirse
+por sesión, no copiarse. E1 jerárquico (ciclos/carga, mismas sesiones):
 
-Campaña final de esa misma CPU, 10M iteraciones y 30 repeticiones:
+| Nivel | `20261124-200944` | `20261125-084943` |
+|---|---:|---:|
+| L1d | 3,55 | 2,16 |
+| L2 | 10,21 | 6,47 |
+| L3 | 298,29 | 29,35 |
+| Memoria | 361,49 | 284,67 |
 
-```text
-baseline: 3.34 ciclos/iteración
-lfence:  13.40 ciclos/iteración  (~4.01x, +300.6 %)
-mask:     3.39 ciclos/iteración  (~1.01x, +1.3 %)
-```
+La meseta de L3 es la más variable entre arranques; se discute en el informe y
+no se presenta como un valor único.
 
-La diferencia de `mask` entre 3 y 30 repeticiones se discute en
-[`docs/metrics.md`](docs/metrics.md); la campaña de 30 repeticiones es la que
-debe citarse.
+E3 con el barrido de sensibilidad (128 combinaciones): LFENCE va de ~+10,5 % a
+~+833,8 % de sobrecoste (habitualmente 2–9× más lento, creciendo con el array y
+el trabajo por iteración). La máscara queda entre ~−56,9 % y +34,4 %, muchas
+veces negativa o con IC que cruza cero: en estas combinaciones no muestra un
+sobrecoste estable. Los E3 de un solo bucle (3 y 30 repeticiones) se conservan
+como comprobación cruzada legacy, no como resultado principal.
 
 ### E2: modelo conceptual
 
