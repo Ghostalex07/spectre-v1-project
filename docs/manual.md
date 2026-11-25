@@ -547,9 +547,10 @@ Con 300 intentos y 1M iteraciones los números son orientativos.
 
 Los E3 de 1M/3 repeticiones y de 30 repeticiones (`ryzen5pro5675u_final`)
 corresponden a la **metodología antigua** y se conservan solo como comprobación
-cruzada legacy. La campaña nueva usa el barrido E3 y las dos sesiones de
-`data/ryzen5pro5675u/`; sus resultados están en el `README.md` y en
-`report/results_summary.md`. `_final` no se usa en la comparación principal.
+cruzada legacy. La campaña nueva usa el barrido E3 de las sesiones A y B, con 15
+bloques y la máscara aritmética; las otras dos sesiones del Ryzen se usan para
+E1 y como control histórico de `LFENCE`. Los resultados están en el `README.md`
+y en `report/results_summary.md`. `_final` no se usa en la comparación principal.
 Los resultados de E2 en hardware no se incluyen como resultado: ver
 [`e2-anexo.md`](e2-anexo.md).
 

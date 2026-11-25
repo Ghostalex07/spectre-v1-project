@@ -51,8 +51,8 @@
 - [ ] `make asm` pasa.
 - [ ] `baseline` tiene `cmp` + salto condicional, no `cmov`.
 - [ ] `lfence` tiene `cmp` + salto + `lfence`.
-- [ ] `mask` tiene `cmp` + `and` y **ningún salto condicional** en la función
-      vulnerable.
+- [ ] `mask` tiene salto condicional + `cmp`/`sbb` + `and`, sin `lfence` ni
+      `cmov` en la función vulnerable.
 
 ## 5. Figuras y validación
 

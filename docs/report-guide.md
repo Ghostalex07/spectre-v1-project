@@ -101,8 +101,9 @@ pendiente de confirmación con el profesor (ver [`e2-anexo.md`](e2-anexo.md)).
   Linux activa ese comportamiento mediante un bit de un MSR cuando aplica la
   mitigación de Spectre. Por tanto, el coste de LFENCE puede depender del
   fabricante y de la configuración del sistema, no solo de la microarquitectura.
-  Es un buen punto de discusión sobre compromisos de diseño.
-  **PENDIENTE: añadir referencia exacta de AMD y del kernel Linux.**
+  Es un buen punto de discusión sobre compromisos de diseño. Referencias:
+  AMD, *Software Techniques for Managing Speculation on AMD Processors*, y
+  Linux, `Documentation/admin-guide/hw-vuln/spectre.rst`.
 - ¿Qué genera `-mspeculative-load-hardening` de Clang frente al enmascarado
   manual inspirado en `array_index_nospec`?
 - ¿Qué explica el modelo y qué no puede explicar?

@@ -8,8 +8,8 @@
 - Tarea 4 (estadística, validación y regeneración): commits `3fce127` y
   `6835792`.
 - Tarea 5 (limitaciones, fichas y comparativa extendida): commit `6870d3b`.
-- Campaña real multi-máquina: **parcial**. El Ryzen tiene dos sesiones; faltan
-  2–3 microarquitecturas distintas.
+- Campaña real multi-máquina: **parcial**. El Ryzen tiene cuatro sesiones; A y B
+  son el resultado principal de E3 y faltan 2–3 microarquitecturas distintas.
 - Anexo E2 en hardware: **confirmado como ilustrativo**, subordinado al modelo y
   a la literatura; no es un resultado.
 
@@ -126,7 +126,7 @@ profesor. Se actualiza al final con lo realmente hecho.
   E2, ausencia de comportamiento, diferencias por microcódigo/kernel/compilador.
 - `docs/machines.md`: ficha estructurada; Ryzen rellenado, resto PENDIENTE.
 - `docs/report-guide.md` o documento de discusión: nota AMD LFENCE/MSR con
-  "PENDIENTE: añadir referencia exacta".
+  referencias a AMD y a la documentación del kernel Linux.
 - `analysis/compare_machines.py`: comparativa E1 jerárquico y E3 barrido;
   funciona con una sola máquina y con datos antiguos.
 
@@ -199,8 +199,9 @@ profesor. Se actualiza al final con lo realmente hecho.
 8. **Flags de E2.** El encargo pide `--include-e2-hardware`; se renombra el flag
    actual `--include-e2` y se actualizan tests/Makefile. No se toca
    `src/e2_spectre.c`, `scripts/run_e2.sh` ni `analysis/plot_e2.py`.
-9. **Referencia AMD.** La nota sobre LFENCE/MSR se deja con
-   "PENDIENTE: añadir referencia exacta"; no se inventan URLs ni citas.
+9. **Referencia AMD.** La nota sobre LFENCE/MSR se apoya en el whitepaper de AMD
+   y en `Documentation/admin-guide/hw-vuln/spectre.rst`; no se inventan URLs ni
+   citas.
 10. **Datos de referencia.** No se modifica ningún CSV existente. Las figuras
     antiguas se regeneran solo si sus scripts siguen siendo compatibles; si un
     script nuevo no puede leer un CSV antiguo, lo ignora con aviso.
@@ -252,5 +253,6 @@ Pendiente (no es parte del código de esta tarea):
   omite E2 por defecto, el manual/onboarding no presentan E2 como campaña y
   `make asm` genera desensamblados sin espacios finales.
 - Pendiente la campaña real en 2–3 microarquitecturas distintas (E1 jerárquico,
-  temporizador y barrido E3). El Ryzen ya tiene dos sesiones; no se inventan
-  cifras de otras CPUs. El anexo E2 queda confirmado como ilustrativo.
+  temporizador y barrido E3). El Ryzen ya tiene cuatro sesiones; A y B son el
+  resultado principal de E3. No se inventan cifras de otras CPUs. El anexo E2
+  queda confirmado como ilustrativo.

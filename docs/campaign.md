@@ -191,10 +191,10 @@ Qué debe salir:
 
 - `baseline`: un salto condicional real (`cmp` + `jbe`/`ja`), no un `cmov`.
 - `lfence`: el salto y una instrucción `lfence` antes del acceso.
-- `mask`: `cmp` + `and` (o `sbb`) y **ningún salto condicional** dentro de
-  `victim_function`.
+- `mask`: el salto condicional, `cmp`/`sbb` y `and`, sin `lfence` ni `cmov`
+  dentro de `victim_function`.
 
-Si la máscara se compila a un salto, no uses esos datos: avisa y se corrige.
+Si la máscara pierde el `and` o el salto, no uses esos datos: avisa y se corrige.
 
 ## 5. Genera las figuras
 

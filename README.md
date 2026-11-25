@@ -156,11 +156,12 @@ spectre-v1-project/
 - [x] Anexo E2 confirmado como ilustrativo, subordinado al modelo y a la literatura.
 - [ ] Informe y defensa final.
 
-La campaña de referencia del Ryzen está en `data/ryzen5pro5675u/`, con dos
-sesiones en arranques distintos (`20261124-200944` y `20261125-084943`). Sirve
-para comprobar repetibilidad, no para comparar microarquitecturas.
-`data/ryzen5pro5675u_final/` es **legacy** (metodología antigua) y no se usa en
-la comparación principal. Consulta [`data/README.md`](data/README.md).
+La campaña de referencia del Ryzen está en `data/ryzen5pro5675u/`, con cuatro
+sesiones en arranques distintos (`20261124-200944`, `20261125-084943`,
+`20261125-141147` y `20261125-143804`). Sirve para comprobar repetibilidad, no
+para comparar microarquitecturas. `data/ryzen5pro5675u_final/` es **legacy**
+(metodología antigua) y no se usa en la comparación principal. Consulta
+[`data/README.md`](data/README.md).
 
 ## Resultados de referencia
 
@@ -172,26 +173,28 @@ E1 calibración en el Ryzen 5 PRO 5675U:
 |---|---:|---:|---:|
 | `20261124-200944` | 69 | 322 | 184 |
 | `20261125-084943` | 46 | 276 | 138 |
+| `20261125-141147` (A) | 46 | 299 | 161 |
+| `20261125-143804` (B) | 46 | 276 | 138 |
 
-La diferencia entre arranques es real y se documenta: el umbral debe elegirse
-por sesión, no copiarse. E1 jerárquico (ciclos/carga, mismas sesiones):
+El umbral debe elegirse por sesión, no copiarse. E1 jerárquico (ciclos/carga):
 
-| Nivel | `20261124-200944` | `20261125-084943` |
-|---|---:|---:|
-| L1d | 3,55 | 2,16 |
-| L2 | 10,21 | 6,47 |
-| L3 | 298,29 | 29,35 |
-| Memoria | 361,49 | 284,67 |
+| Nivel | `20261124` | `084943` | A | B |
+|---|---:|---:|---:|---:|
+| L1d | 3,55 | 2,16 | 2,14 | 2,13 |
+| L2 | 10,21 | 6,47 | 6,43 | 6,72 |
+| L3 | 298,29 | 29,35 | 29,87 | 30,26 |
+| Memoria | 361,49 | 284,67 | 269,27 | 274,75 |
 
-La meseta de L3 es la más variable entre arranques; se discute en el informe y
-no se presenta como un valor único.
+La primera sesión se midió a ~2,47 GHz y las otras tres a ~4,2–4,3 GHz. Por eso
+no se agregan: la L3 de la primera es anómala y las otras tres coinciden en
+~29–30 ciclos. No se presenta un valor único de L3.
 
-E3 con el barrido de sensibilidad (128 combinaciones): LFENCE va de ~+10,5 % a
-~+833,8 % de sobrecoste (habitualmente 2–9× más lento, creciendo con el array y
-el trabajo por iteración). La máscara queda entre ~−56,9 % y +34,4 %, muchas
-veces negativa o con IC que cruza cero: en estas combinaciones no muestra un
-sobrecoste estable. Los E3 de un solo bucle (3 y 30 repeticiones) se conservan
-como comprobación cruzada legacy, no como resultado principal.
+E3 con el barrido de sensibilidad de A y B (128 combinaciones, 15 bloques):
+`LFENCE` va de +5,6 % a +488,7 %, con mediana +138,2 % (2,4× más lento) y ningún
+IC que cruce cero. La máscara queda entre −2,2 % y +22,6 %, con mediana +3,5 % y
+19 de 64 IC que cruzan cero: coste pequeño, no una ganancia. Los E3 de un solo
+bucle y las sesiones con la máscara antigua se conservan como comprobación
+histórica, no como resultado principal.
 
 ### E2: modelo conceptual
 

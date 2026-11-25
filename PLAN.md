@@ -17,11 +17,12 @@ Actualizado el 2026-11-24 tras el feedback del profesor.
 - [ ] Campaña multi-máquina de E1/E3 con 2–3 microarquitecturas.
 - [ ] Informe y defensa final.
 
-Los datos de validación están en `data/ryzen5pro5675u/` (1 run en E2) y la
-campaña final de esa misma CPU en `data/ryzen5pro5675u_final/` (50 runs en E2,
-30 reps en E3). No son dos microarquitecturas distintas. El manual de ejecución
-está en [`docs/manual.md`](docs/manual.md), la campaña por máquina en
-[`docs/campaign.md`](docs/campaign.md) y el modelo conceptual en
+Los datos de referencia están en `data/ryzen5pro5675u/`, con cuatro sesiones en
+arranques distintos; A y B son el resultado principal de E3 (15 bloques y
+máscara nueva). La campaña antigua `data/ryzen5pro5675u_final/` es *legacy* y no
+se usa en la comparación principal. No son dos microarquitecturas distintas. El
+manual de ejecución está en [`docs/manual.md`](docs/manual.md), la campaña por
+máquina en [`docs/campaign.md`](docs/campaign.md) y el modelo conceptual en
 [`docs/simulation.md`](docs/simulation.md).
 
 ## 1. Ficha del proyecto

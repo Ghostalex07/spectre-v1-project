@@ -61,15 +61,19 @@ data/
 ## Datos de referencia incluidos
 
 `data/ryzen5pro5675u/` contiene los datos de referencia del Ryzen, incluidos
-los datos antiguos de la raíz y dos sesiones de la metodología nueva:
+los datos antiguos de la raíz y cuatro sesiones de la metodología nueva:
 
 - `20261124-200944`: E1 calibración, E1 jerárquico, temporizador y E3 barrido.
 - `20261125-084943`: la misma campaña, en un arranque distinto.
+- `20261125-141147` (A): la misma campaña, con la máscara nueva y 15 bloques.
+- `20261125-143804` (B): repetición de A en otro arranque.
 
-Las dos sesiones permiten comprobar repetibilidad. El umbral cambió entre
-arranques (184 y 138), así que debe registrarse por sesión y no copiarse de una
-máquina o sesión a otra. Los datos antiguos de la raíz se conservan para no
-romper análisis previos.
+Las cuatro sesiones permiten comprobar repetibilidad. El umbral tomó 184, 138,
+161 y 138 ciclos, así que debe registrarse por sesión y no copiarse de una máquina
+o sesión a otra. Los datos antiguos de la raíz se conservan para no romper
+análisis previos. El resultado principal de E3 usa **A y B**; las variantes
+`mask` de `20261124-200944` y `20261125-084943` están obsoletas porque se
+generaron antes de corregir la máscara aritmética. Sus CSV no se modifican.
 
 `data/ryzen5pro5675u_final/` es **legacy**: se generó con la metodología
 anterior (E2 hardware y E3 de un solo bucle). Se conserva como referencia

@@ -140,7 +140,7 @@ Debe verse:
 
 - baseline: `cmp` + salto condicional (`jbe`/`ja`), no `cmov`;
 - lfence: salto condicional + `lfence` antes del acceso;
-- mask: `cmp` + `and`/`sbb`, sin salto condicional dentro de
+- mask: `cmp` + salto condicional + `sbb` + `and`, sin `lfence` dentro de
   `victim_function`.
 
 Si la máscara se compila a un salto, no uses esos datos: avisa y para.
