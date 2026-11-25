@@ -1,5 +1,9 @@
-machine_id,level,sessions,cycles_per_load,ci_low,ci_high,status
-ryzen5pro5675u,L1d,2,2.857,2.160,3.555,ok
-ryzen5pro5675u,L2,2,8.340,6.467,10.214,ok
-ryzen5pro5675u,L3,2,163.819,29.346,298.292,ok
-ryzen5pro5675u,memoria,2,323.077,284.668,361.486,ok
+level,capacity_bytes,range_low_bytes,range_high_bytes,n_points,n_samples,cycles_per_load,ci_low,ci_high,status,machine_id,session_id,sessions,freq_mhz,note
+L1d,32768,8192,24576,4,120,3.5545695,3.431439,3.690764,ok,ryzen5pro5675u,20261124-200944,1,2470.3,menos de 3 sesiones con frecuencia válida
+L1d,32768,8192,24576,4,120,2.160298,2.1568135,2.163219,ok,ryzen5pro5675u,20261125-084943,1,4292.0,menos de 3 sesiones con frecuencia válida
+L2,524288,131072,393216,4,120,10.213621499999999,9.774034,10.864303,ok,ryzen5pro5675u,20261124-200944,1,2470.3,menos de 3 sesiones con frecuencia válida
+L2,524288,131072,393216,4,120,6.4666455,6.454513,6.4834815,ok,ryzen5pro5675u,20261125-084943,1,4292.0,menos de 3 sesiones con frecuencia válida
+L3,16777216,4194304,12582912,4,120,298.291577,294.5706945,300.732061,ok,ryzen5pro5675u,20261124-200944,1,2470.3,menos de 3 sesiones con frecuencia válida
+L3,16777216,4194304,12582912,4,120,29.3459875,28.962451,31.146761,ok,ryzen5pro5675u,20261125-084943,1,4292.0,menos de 3 sesiones con frecuencia válida
+memoria,,33554432,,7,210,361.486262,358.284064,364.791362,ok,ryzen5pro5675u,20261124-200944,1,2470.3,menos de 3 sesiones con frecuencia válida
+memoria,,33554432,,7,210,284.6675845,281.0297205,287.004741,ok,ryzen5pro5675u,20261125-084943,1,4292.0,menos de 3 sesiones con frecuencia válida

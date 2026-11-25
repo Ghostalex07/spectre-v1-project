@@ -75,7 +75,23 @@ sobreinterpretar los resultados.
   sistema pueden ser del mismo orden. No se deben presentar diferencias de uno
   o dos ciclos como una característica estable de la microarquitectura.
 
-### 4.2 TLB y páginas grandes
+### 4.2 Frecuencia entre sesiones
+
+- En el Ryzen de referencia, la sesión `20261124-200944` se ejecutó a unos
+  **2470 MHz** y la `20261125-084943` a unos **4292 MHz** (según `cpu MHz` de
+  sus fichas). La diferencia supera el 70 %.
+- Las latencias se miden en ciclos de TSC. Si el TSC avanza a frecuencia
+  constante, una sesión a menor frecuencia puede mostrar más ciclos para el
+  mismo trabajo. Por eso las sesiones **no se agregan** si sus frecuencias
+  difieren más del 10 %.
+- La meseta de L3 es anómala: ~298 ciclos/carga en la sesión lenta frente a
+  ~29 en la rápida. No se presenta un valor agregado ni un IC entre sesiones;
+  se muestran los valores por sesión y se investiga como limitación.
+- Con menos de tres sesiones no se calcula un IC entre sesiones. El bootstrap
+  de una sola sesión describe la precisión dentro de esa sesión, no la
+  variabilidad entre arranques.
+
+### 4.3 TLB y páginas grandes
 
 - El pointer chasing recorre una página distinta cada 4 KiB. En working sets
   grandes, parte de la latencia puede venir de **fallos de TLB** (page walks) y

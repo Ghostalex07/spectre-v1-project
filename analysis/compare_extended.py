@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import argparse
 import csv
+import math
+import re
 import statistics
 from collections import defaultdict
 from pathlib import Path
@@ -20,6 +22,44 @@ from common import (
 )
 from plot_e1_hierarchy import _env_for, build_plateaus, load_hierarchy, parse_cache_env
 from plot_e3_sweep import load_sweep, overhead_table
+
+
+def env_frequency_mhz(path: Path | None) -> float:
+    """Frecuencia aproximada registrada en la ficha de entorno."""
+    if path is None:
+        return float("nan")
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except OSError:
+        return float("nan")
+
+    match = re.search(r"^cpu MHz\s*:\s*([0-9.,]+)", text, re.MULTILINE)
+    if match:
+        return float(match.group(1).replace(",", "."))
+
+    values = [
+        float(value) / 1000.0 for value in re.findall(r"cur_freq_khz=(\d+)", text)
+    ]
+    if values:
+        return float(statistics.median(values))
+    return float("nan")
+
+
+def should_aggregate(
+    frequencies: list[float], min_sessions: int = 3, max_spread: float = 0.10
+) -> tuple[bool, str]:
+    """Decide si se pueden agregar sesiones sin mezclar condiciones distintas."""
+    valid = [value for value in frequencies if not math.isnan(value) and value > 0]
+    if len(valid) < min_sessions:
+        return False, f"menos de {min_sessions} sesiones con frecuencia válida"
+    spread = (max(valid) - min(valid)) / max(valid)
+    if spread > max_spread:
+        return (
+            False,
+            f"frecuencia entre sesiones difiere más del {max_spread * 100:.0f} % "
+            f"({min(valid):.0f}–{max(valid):.0f} MHz)",
+        )
+    return True, ""
 
 
 def machine_ids(data_dir: Path = DATA_DIR) -> list[str]:
@@ -59,46 +99,65 @@ def _write_md(path: Path, rows: list[dict], columns: list[str]) -> None:
 
 
 def collect_plateaus(machine_id: str, data_dir: Path = DATA_DIR) -> list[dict]:
-    """Mesetas por nivel, agregando sesiones si existen."""
+    """Mesetas por sesión y, solo si procede, una fila agregada."""
     by_level: dict[str, list[dict]] = defaultdict(list)
+
     for path in e1_hierarchy_paths(machine_id, data_dir=data_dir):
         session_id = path.parent.name if path.parent != data_dir / machine_id else None
         env_path = _env_for(machine_id, data_dir, session_id)
         cache = parse_cache_env(env_path) if env_path else {}
+        frequency = env_frequency_mhz(env_path)
         rows = load_hierarchy(path)
         for plateau in build_plateaus(
             machine_id, rows, cache, n_boot=2_000, seed=12345
         ):
-            plateau["session_id"] = session_id or "root"
-            by_level[plateau["level"]].append(plateau)
+            item = dict(plateau)
+            item["machine_id"] = machine_id
+            item["session_id"] = session_id or "root"
+            item["sessions"] = 1
+            item["freq_mhz"] = "" if math.isnan(frequency) else f"{frequency:.1f}"
+            item["note"] = ""
+            by_level[item["level"]].append(item)
 
-    result = []
-    for level, items in by_level.items():
-        values = [item["cycles_per_load"] for item in items if item["status"] == "ok"]
-        values = [value for value in values if value == value]
+    result: list[dict] = []
+    for level in ("L1d", "L2", "L3", "memoria"):
+        items = by_level.get(level, [])
+        if not items:
+            continue
+
+        frequencies = [
+            float(item["freq_mhz"]) for item in items if item.get("freq_mhz")
+        ]
+        aggregate, reason = should_aggregate(frequencies)
+        for item in items:
+            item["status"] = item.get("status", "ok")
+            item["note"] = "" if aggregate else reason
+        result.extend(items)
+
+        if not aggregate:
+            continue
+
+        values = [
+            item["cycles_per_load"]
+            for item in items
+            if item.get("status") == "ok"
+            and isinstance(item.get("cycles_per_load"), (int, float))
+        ]
         if not values:
-            result.append(
-                {
-                    "machine_id": machine_id,
-                    "level": level,
-                    "sessions": len(items),
-                    "cycles_per_load": "",
-                    "ci_low": "",
-                    "ci_high": "",
-                    "status": "sin-datos",
-                }
-            )
             continue
         low, high = bootstrap_ci(values, n_boot=2_000, seed=12345)
         result.append(
             {
                 "machine_id": machine_id,
+                "session_id": "(agregado)",
                 "level": level,
                 "sessions": len(items),
-                "cycles_per_load": f"{median(values):.3f}",
-                "ci_low": f"{low:.3f}",
-                "ci_high": f"{high:.3f}",
-                "status": "ok",
+                "freq_mhz": "",
+                "cycles_per_load": median(values),
+                "ci_low": low,
+                "ci_high": high,
+                "status": "agregado",
+                "note": "",
             }
         )
     return result
@@ -129,12 +188,15 @@ def build_extended_outputs(
             plateaus,
             [
                 "machine_id",
+                "session_id",
                 "level",
                 "sessions",
+                "freq_mhz",
                 "cycles_per_load",
                 "ci_low",
                 "ci_high",
                 "status",
+                "note",
             ],
         )
     if sweep:
