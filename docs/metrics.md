@@ -95,6 +95,22 @@ La tabla de mesetas se exporta a
 `data/derived/e1_hierarchy_plateaus.csv` y
 `report/e1_hierarchy_plateaus.md`, con IC bootstrap de la mediana.
 
+### Agregación entre sesiones
+
+No se agregan todas las sesiones sin más. Antes se agrupan por **frecuencia
+compatible**: cada sesión se compara con la mediana de su grupo y se admite una
+diferencia menor del 10 %. Un grupo solo se agrega si tiene **3 o más sesiones**;
+el IC se calcula con bootstrap entre las medianas de las sesiones, no con el
+mínimo y el máximo. Las sesiones que quedan fuera se muestran por separado con
+una nota que explica por qué.
+
+El fichero `data/excluded_sessions.txt` permite excluir sesiones de los
+resultados principales con el formato `session_id | motivo`. La sesión
+`20261124-200944` está excluida con el motivo «frecuencia ~2,4 GHz; ejemplo de
+condiciones distintas». Sus datos no se borran: aparecen con `status=excluida`
+en la tabla. La tabla incluye `session_id`, `sessions`, `freq_mhz`, `note` y
+`status` para que cada fila sea trazable.
+
 ## Coste del temporizador
 
 `src/e1_timer.c` mide el **intervalo vacío** entre dos `rdtscp` con las mismas
@@ -380,6 +396,18 @@ machine_id,session_id,timestamp,variant,flags,work_per_iter,predictability_mode,
 - `pinned_cpu`: CPU observada con `sched_getcpu()`.
 
 Los detalles de nombres y carpetas están en [`../data/README.md`](../data/README.md).
+
+### Trazabilidad de las tablas E3
+
+Las tablas derivadas `data/derived/e3_sweep_overhead.csv` y
+`data/derived/e3_sweep_summary.csv` incluyen `session_id`, `sessions` y `scope`.
+Una fila con `scope=session` es el resultado de una sola sesión; una fila con
+`scope=agregado` combina varias y lista en `sessions` solo las que aportan datos
+a esa variante. El bootstrap agregado usa claves `sesión:bloque`, de modo que
+respeta los bloques de cada sesión y no empareja bloques homónimos de sesiones
+distintas. Las sesiones A y B aparecen también por separado (`scope=session`)
+para poder comparar su consistencia. La variante `mask` de las sesiones
+obsoletas no entra en el agregado.
 
 ### Nota sobre `flags` en CSV E3 antiguos
 

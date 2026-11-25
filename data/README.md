@@ -26,6 +26,7 @@ data/
     e3_sweep_<machine_id>_<session_id>.csv   # barrido E3 nuevo
   simulation/
     spectre_model.csv
+  excluded_sessions.txt
   derived/
 ```
 
@@ -50,7 +51,13 @@ data/
   nuevo guarda la semilla y el bloque en cada fila.
 - `simulation/spectre_model.csv`: salida del modelo conceptual de
   `analysis/simulate_spectre.py`; no es una medida de hardware.
+- `excluded_sessions.txt`: sesiones excluidas de los resultados principales,
+  con formato `session_id | motivo` y comentarios con `#`. Se aplica a la
+  agregación de E1 y a las tablas derivadas.
 - `derived/`: tablas agregadas generadas por `analysis/`; no se editan a mano.
+  `compare_machines.csv`, `e1_plateaus.csv` y `e3_sweep_*` incluyen la sesión o
+  sesiones de origen; en E3, `scope=session` separa A y B y `scope=agregado`
+  combina sus bloques.
   `compare_machines.csv` es la tabla comparativa que genera
   `analysis/compare_machines.py`. Incluye `hit_median_low/high`,
   `miss_median_low/high` y `e3_<variant>_median_low/high` con el IC95 bootstrap

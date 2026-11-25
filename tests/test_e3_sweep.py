@@ -191,6 +191,31 @@ class OverheadTableTest(unittest.TestCase):
         self.assertAlmostEqual(by_variant["mask"]["overhead_pct"], 10.0)
         self.assertAlmostEqual(by_variant["mask"]["slowdown"], 1.1)
 
+    def test_multi_session_table_has_sessions_and_aggregate_blocks(self) -> None:
+        rows: list[dict] = []
+        for session in ("s1", "s2"):
+            for block in range(3):
+                for rep in range(2):
+                    base = sweep_row("baseline", block, rep, 10.0)
+                    lf = sweep_row("lfence", block, rep, 20.0)
+                    base["session_id"] = session
+                    lf["session_id"] = session
+                    rows.extend([base, lf])
+
+        table = sweep.overhead_table(rows, n_boot=200, seed=3)
+        sessions = {row["session_id"] for row in table if row["scope"] == "session"}
+        self.assertEqual(sessions, {"s1", "s2"})
+
+        aggregate = [
+            row
+            for row in table
+            if row["scope"] == "agregado" and row["variant"] == "lfence"
+        ][0]
+        self.assertEqual(aggregate["n_blocks"], 6)
+        self.assertIn("s1", aggregate["sessions"])
+        self.assertIn("s2", aggregate["sessions"])
+        self.assertAlmostEqual(aggregate["overhead_pct"], 100.0)
+
 
 class BinarySmokeTest(unittest.TestCase):
     def test_binary_writes_new_header_and_expected_rows(self) -> None:

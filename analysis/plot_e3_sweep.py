@@ -46,6 +46,9 @@ OVERHEAD_MD = REPORT_DIR / "e3_sweep_overhead.md"
 OBSOLETE_MASK_SESSIONS = {"20261124-200944", "20261125-084943"}
 TABLE_FIELDS = [
     "machine_id",
+    "session_id",
+    "sessions",
+    "scope",
     "work_per_iter",
     "predictability_mode",
     "out_of_range_fraction",
@@ -98,8 +101,95 @@ def combo_key(row: dict[str, str]) -> tuple:
     )
 
 
+def _with_session_block(rows):
+    """Clave de bloque única por sesión, para no emparejar bloques homónimos."""
+    return [
+        {
+            **row,
+            "block_id": f"{row.get('session_id', '')}:{row.get('block_id', '')}",
+        }
+        for row in rows
+    ]
+
+
+def _summarize_combo(
+    rows,
+    machine_id,
+    work,
+    mode,
+    array_bytes,
+    session_id,
+    sessions,
+    scope,
+    n_boot,
+    seed,
+):
+    by_variant: dict[str, list[dict[str, str]]] = defaultdict(list)
+    for row in rows:
+        by_variant[row.get("variant", "")].append(row)
+
+    baseline_rows = by_variant.get("baseline", [])
+    if not baseline_rows:
+        return []
+    baseline_blocks = block_statistics(_with_session_block(baseline_rows))
+    if not baseline_blocks:
+        return []
+    oor = median(to_float(row.get("out_of_range_fraction")) for row in rows)
+
+    table: list[dict] = []
+    for variant in sorted(by_variant):
+        if variant == "baseline":
+            continue
+        variant_blocks = block_statistics(_with_session_block(by_variant[variant]))
+        common_blocks = set(baseline_blocks) & set(variant_blocks)
+        if not common_blocks:
+            continue
+        pct, low, high = paired_block_bootstrap(
+            baseline_blocks, variant_blocks, n_boot=n_boot, seed=seed
+        )
+        baseline_cycles = median(baseline_blocks[key] for key in common_blocks)
+        variant_cycles = median(variant_blocks[key] for key in common_blocks)
+        variant_sessions = sorted(
+            {
+                row.get("session_id", "")
+                for row in by_variant[variant]
+                if row.get("session_id", "")
+            }
+        )
+        session_label = (
+            session_id if scope == "session" else ", ".join(variant_sessions)
+        )
+        slowdown = variant_cycles / baseline_cycles if baseline_cycles else float("nan")
+        table.append(
+            {
+                "machine_id": machine_id,
+                "session_id": session_id,
+                "sessions": session_label,
+                "scope": scope,
+                "work_per_iter": work,
+                "predictability_mode": mode,
+                "out_of_range_fraction": oor,
+                "array_bytes": array_bytes,
+                "variant": variant,
+                "n_blocks": len(common_blocks),
+                "baseline_cycles": baseline_cycles,
+                "variant_cycles": variant_cycles,
+                "overhead_pct": pct,
+                "ci_low": low,
+                "ci_high": high,
+                "slowdown": slowdown,
+            }
+        )
+    return table
+
+
 def overhead_table(rows, n_boot: int = 10_000, seed: int = 12345) -> list[dict]:
-    """Tabla de sobrecoste por combinación, máquina y variante."""
+    """Tabla de sobrecoste por combinación, máquina y variante.
+
+    Con varias sesiones se devuelven filas por sesión y una fila agregada. El
+    bootstrap agregado usa claves de bloque ``sesión:bloque`` para respetar la
+    estructura de cada sesión.
+    """
     groups: dict[tuple, list[dict[str, str]]] = defaultdict(list)
     for row in rows:
         groups[combo_key(row)].append(row)
@@ -108,47 +198,63 @@ def overhead_table(rows, n_boot: int = 10_000, seed: int = 12345) -> list[dict]:
     for key in sorted(groups):
         machine_id, work, mode, array_bytes = key
         combo_rows = groups[key]
-        by_variant: dict[str, list[dict[str, str]]] = defaultdict(list)
-        for row in combo_rows:
-            by_variant[row.get("variant", "")].append(row)
-
-        baseline_rows = by_variant.get("baseline", [])
-        if not baseline_rows:
+        session_ids = sorted(
+            {
+                row.get("session_id", "")
+                for row in combo_rows
+                if row.get("session_id", "")
+            }
+        )
+        if len(session_ids) <= 1:
+            label = session_ids[0] if session_ids else "(sin-sesion)"
+            table.extend(
+                _summarize_combo(
+                    combo_rows,
+                    machine_id,
+                    work,
+                    mode,
+                    array_bytes,
+                    label,
+                    label,
+                    "agregado",
+                    n_boot,
+                    seed,
+                )
+            )
             continue
-        baseline_blocks = block_statistics(baseline_rows)
-        if not baseline_blocks:
-            continue
-        baseline_cycles = median(baseline_blocks.values())
-        oor = median(to_float(row.get("out_of_range_fraction")) for row in combo_rows)
 
-        for variant in sorted(by_variant):
-            if variant == "baseline":
-                continue
-            variant_blocks = block_statistics(by_variant[variant])
-            pct, low, high = paired_block_bootstrap(
-                baseline_blocks, variant_blocks, n_boot=n_boot, seed=seed
+        for session_id in session_ids:
+            session_rows = [
+                row for row in combo_rows if row.get("session_id", "") == session_id
+            ]
+            table.extend(
+                _summarize_combo(
+                    session_rows,
+                    machine_id,
+                    work,
+                    mode,
+                    array_bytes,
+                    session_id,
+                    session_id,
+                    "session",
+                    n_boot,
+                    seed,
+                )
             )
-            variant_cycles = median(variant_blocks.values())
-            slowdown = (
-                variant_cycles / baseline_cycles if baseline_cycles else float("nan")
+        table.extend(
+            _summarize_combo(
+                combo_rows,
+                machine_id,
+                work,
+                mode,
+                array_bytes,
+                "(agregado)",
+                ", ".join(session_ids),
+                "agregado",
+                n_boot,
+                seed,
             )
-            table.append(
-                {
-                    "machine_id": machine_id,
-                    "work_per_iter": work,
-                    "predictability_mode": mode,
-                    "out_of_range_fraction": oor,
-                    "array_bytes": array_bytes,
-                    "variant": variant,
-                    "n_blocks": len(set(baseline_blocks) & set(variant_blocks)),
-                    "baseline_cycles": baseline_cycles,
-                    "variant_cycles": variant_cycles,
-                    "overhead_pct": pct,
-                    "ci_low": low,
-                    "ci_high": high,
-                    "slowdown": slowdown,
-                }
-            )
+        )
     return table
 
 
@@ -184,11 +290,14 @@ def write_table(table: list[dict]) -> None:
         "# E3 barrido — sobrecoste por combinación",
         "",
         "Generado por `analysis/plot_e3_sweep.py` desde los CSV nuevos de E3. "
-        "El IC95 remuestrea bloques completos (emparejado).",
+        "El IC95 remuestrea bloques completos (emparejado). Las filas "
+        "`(agregado)` combinan sesiones con claves de bloque `sesión:bloque`; "
+        "las filas de sesión permiten comparar su consistencia.",
         "",
-        "| máquina | W | predictibilidad | fuera rango | array B | variante | "
-        "bloques | base ciclos | var ciclos | sobrecoste % | IC95 | slowdown |",
-        "|---|---:|---|---:|---:|---|---:|---:|---:|---:|---|---:|",
+        "| máquina | sesión | sesiones | ámbito | W | predictibilidad | "
+        "fuera rango | array B | variante | bloques | base ciclos | var ciclos | "
+        "sobrecoste % | IC95 | slowdown |",
+        "|---|---|---|---|---:|---|---:|---:|---|---:|---:|---:|---:|---|---:|",
     ]
     for row in table:
         ci = (
@@ -197,7 +306,8 @@ def write_table(table: list[dict]) -> None:
             else "n/a"
         )
         lines.append(
-            f"| `{row['machine_id']}` | {row['work_per_iter']} | "
+            f"| `{row['machine_id']}` | `{row['session_id']}` | "
+            f"`{row['sessions']}` | `{row['scope']}` | {row['work_per_iter']} | "
             f"`{row['predictability_mode']}` | "
             f"{row['out_of_range_fraction']:.2f} | {row['array_bytes']} | "
             f"`{row['variant']}` | {row['n_blocks']} | "
@@ -217,7 +327,8 @@ def _lookup(table: list[dict], machine_id: str, mode: str, array_bytes: int):
         and row["predictability_mode"] == mode
         and row["array_bytes"] == array_bytes
     ]
-    return selected
+    aggregate = [row for row in selected if row["scope"] == "agregado"]
+    return aggregate or selected
 
 
 def make_figures(
@@ -231,6 +342,9 @@ def make_figures(
 
     for machine_id in machines:
         machine_rows = [row for row in table if row["machine_id"] == machine_id]
+        aggregate_rows = [row for row in machine_rows if row.get("scope") == "agregado"]
+        if aggregate_rows:
+            machine_rows = aggregate_rows
         if not machine_rows:
             continue
         modes = sorted({row["predictability_mode"] for row in machine_rows})

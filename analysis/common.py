@@ -360,13 +360,23 @@ def block_statistics(
     value_key: str = "cycles_per_iter",
     block_key: str = "block_id",
     statistic=statistics.median,
-) -> dict[int, float]:
-    """Resume cada bloque completo a un estadístico (mediana por defecto)."""
-    grouped: dict[int, list[float]] = {}
+) -> dict[int | str, float]:
+    """Resume cada bloque completo a un estadístico (mediana por defecto).
+
+    Las claves numéricas se conservan como enteros. Las claves compuestas
+    (por ejemplo ``sesión:bloque``) se conservan como cadenas.
+    """
+    grouped: dict[int | str, list[float]] = {}
     for row in rows:
-        block = to_int(row.get(block_key), default=-1)
+        raw_block = row.get(block_key)
+        try:
+            block: int | str = int(raw_block)
+        except (TypeError, ValueError):
+            if raw_block in (None, ""):
+                continue
+            block = str(raw_block)
         value = to_float(row.get(value_key))
-        if block < 0 or math.isnan(value):
+        if isinstance(block, int) and block < 0 or math.isnan(value):
             continue
         grouped.setdefault(block, []).append(value)
     return {block: statistic(values) for block, values in grouped.items()}
