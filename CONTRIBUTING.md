@@ -8,6 +8,7 @@ Antes de tocar nada, lee:
 - [`PLAN.md`](PLAN.md): alcance, fases, experimentos y criterios de aceptación.
 - [`docs/onboarding.md`](docs/onboarding.md): primeros pasos y Fase 0.
 - [`docs/campaign.md`](docs/campaign.md): qué ejecuta cada integrante en su máquina.
+- [`docs/ai-prompt.md`](docs/ai-prompt.md): prompt listo para la IA de cada compañero.
 - [`docs/manual.md`](docs/manual.md): manual completo del harness.
 - [`docs/simulation.md`](docs/simulation.md): modelo conceptual de Spectre V1.
 - [`docs/metrics.md`](docs/metrics.md): cómo se mide y cómo se reporta.

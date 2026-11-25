@@ -59,6 +59,7 @@ python3 analysis/simulate_spectre.py --attempts 200 --train 5 \
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Acceso, flujo de trabajo, roles y definición de “hecho” |
 | [`docs/onboarding.md`](docs/onboarding.md) | Primeros pasos y Fase 0 |
 | [`docs/campaign.md`](docs/campaign.md) | Campaña final por máquina: qué hace cada integrante |
+| [`docs/ai-prompt.md`](docs/ai-prompt.md) | Prompt para que la IA de cada compañero ejecute su campaña |
 | [`docs/manual.md`](docs/manual.md) | Manual completo del harness |
 | [`docs/simulation.md`](docs/simulation.md) | Modelo conceptual de E2 y sus límites |
 | [`docs/e2-anexo.md`](docs/e2-anexo.md) | Estado de la PoC de E2 como posible anexo |

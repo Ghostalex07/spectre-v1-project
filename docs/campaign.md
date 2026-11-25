@@ -10,6 +10,10 @@ protocolo y se suben los datos.
 > [`simulation.md`](simulation.md). La PoC en hardware solo podría ir como anexo,
 > pendiente de confirmar con el profesor.
 
+> **Si vas a usar una IA:** copia el prompt de [`ai-prompt.md`](ai-prompt.md) y
+> sustituye `<MACHINE_ID>`. Está pensado para que el agente lea este documento,
+> ejecute la campaña y prepare el PR sin cambiar el alcance.
+
 > **Regla de oro:** el umbral de una máquina no sirve para otra. No copies el 80
 > del Ryzen de referencia. Calibra el tuyo con E1.
 
