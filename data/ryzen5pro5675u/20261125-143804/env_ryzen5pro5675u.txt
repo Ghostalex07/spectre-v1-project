@@ -1,0 +1,158 @@
+# Entorno de medida
+machine_id: ryzen5pro5675u
+session_id: 20261125-143804
+date: 2026-11-25T14:38:15+01:00
+hostname: Granja
+user: vaca
+kernel: Linux 6.8.0-149-generic x86_64 GNU/Linux
+uname: Linux Granja 6.8.0-149-generic #149~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Wed Oct 28 20:58:45 UTC  x86_64 x86_64 x86_64 GNU/Linux
+nproc: 12
+affinity: pid 4627's current affinity list: 0-11
+git_commit: ecb25cff3dd8535296f6883faaf93ed9008e2906
+git_dirty: si
+cflags: -O2 -std=c11 -Wall -Wextra -Wno-unused-parameter
+
+## /proc/cmdline
+BOOT_IMAGE=/boot/vmlinuz-6.8.0-149-generic root=UUID=fe12091e-6e23-4b91-b946-e33fb06aa20b ro quiet splash
+
+## lscpu
+Architecture:                            x86_64
+CPU op-mode(s):                          32-bit, 64-bit
+Address sizes:                           48 bits physical, 48 bits virtual
+Byte Order:                              Little Endian
+CPU(s):                                  12
+On-line CPU(s) list:                     0-11
+Vendor ID:                               AuthenticAMD
+Model name:                              AMD Ryzen 5 PRO 5675U with Radeon Graphics
+CPU family:                              25
+Model:                                   80
+Thread(s) per core:                      2
+Core(s) per socket:                      6
+Socket(s):                               1
+Stepping:                                0
+CPU max MHz:                             4388,0000
+CPU min MHz:                             400,0000
+BogoMIPS:                                4591.31
+Flags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip pku ospke vaes vpclmulqdq rdpid overflow_recov succor smca fsrm debug_swap ibpb_exit_to_user
+Virtualization:                          AMD-V
+L1d cache:                               192 KiB (6 instances)
+L1i cache:                               192 KiB (6 instances)
+L2 cache:                                3 MiB (6 instances)
+L3 cache:                                16 MiB (1 instance)
+NUMA node(s):                            1
+NUMA node0 CPU(s):                       0-11
+Vulnerability Gather data sampling:      Not affected
+Vulnerability Indirect target selection: Not affected
+Vulnerability Itlb multihit:             Not affected
+Vulnerability L1tf:                      Not affected
+Vulnerability Mds:                       Not affected
+Vulnerability Meltdown:                  Not affected
+Vulnerability Mmio stale data:           Not affected
+Vulnerability Reg file data sampling:    Not affected
+Vulnerability Retbleed:                  Not affected
+Vulnerability Spec rstack overflow:      Mitigation; Safe RET
+Vulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:                Mitigation; Retpolines; IBPB conditional; IBRS_FW; STIBP always-on; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected
+Vulnerability Srbds:                     Not affected
+Vulnerability Tsa:                       Mitigation; Clear CPU buffers
+Vulnerability Tsx async abort:           Not affected
+Vulnerability Vmscape:                   Mitigation; IBPB before exit to userspace
+
+## Campos de /proc/cpuinfo
+model name: AMD Ryzen 5 PRO 5675U with Radeon Graphics
+vendor_id: AuthenticAMD
+cpu family: 25
+model: 80
+stepping: 0
+microcode: 0xa500014
+cache size: 512 KB
+cpu MHz: 4225.934
+cpu cores: 6
+siblings: 12
+flags: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip pku ospke vaes vpclmulqdq rdpid overflow_recov succor smca fsrm debug_swap ibpb_exit_to_user
+
+## Compilador
+gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+CFLAGS: -O2 -std=c11 -Wall -Wextra -Wno-unused-parameter
+
+## Virtualización
+none
+
+## Gobernador y frecuencias
+cpu0: governor=powersave
+cpu0: cur_freq_khz=3492417
+cpu0: min_freq_khz=400000
+cpu0: max_freq_khz=4388000
+cpu1: governor=powersave
+cpu1: cur_freq_khz=4339380
+cpu1: min_freq_khz=400000
+cpu1: max_freq_khz=4388000
+cpu10: governor=powersave
+cpu10: cur_freq_khz=3469237
+cpu10: min_freq_khz=400000
+cpu10: max_freq_khz=4388000
+cpu11: governor=powersave
+cpu11: cur_freq_khz=3470448
+cpu11: min_freq_khz=400000
+cpu11: max_freq_khz=4388000
+cpu2: governor=powersave
+cpu2: cur_freq_khz=4341873
+cpu2: min_freq_khz=400000
+cpu2: max_freq_khz=4388000
+cpu3: governor=powersave
+cpu3: cur_freq_khz=4341008
+cpu3: min_freq_khz=400000
+cpu3: max_freq_khz=4388000
+cpu4: governor=powersave
+cpu4: cur_freq_khz=4341749
+cpu4: min_freq_khz=400000
+cpu4: max_freq_khz=4388000
+cpu5: governor=powersave
+cpu5: cur_freq_khz=400000
+cpu5: min_freq_khz=400000
+cpu5: max_freq_khz=4388000
+cpu6: governor=powersave
+cpu6: cur_freq_khz=4341842
+cpu6: min_freq_khz=400000
+cpu6: max_freq_khz=4388000
+cpu7: governor=powersave
+cpu7: cur_freq_khz=4341147
+cpu7: min_freq_khz=400000
+cpu7: max_freq_khz=4388000
+cpu8: governor=powersave
+cpu8: cur_freq_khz=4341708
+cpu8: min_freq_khz=400000
+cpu8: max_freq_khz=4388000
+cpu9: governor=powersave
+cpu9: cur_freq_khz=4332952
+cpu9: min_freq_khz=400000
+cpu9: max_freq_khz=4388000
+
+## Alimentación y perfil de plataforma
+power_supply: AC:online=1;BAT0:status=Not charging
+platform_profile: balanced
+
+## Transparent Huge Pages
+enabled: always [madvise] never
+defrag: always defer defer+madvise [madvise] never
+hpage_pmd_size: 2097152
+
+## Mitigaciones del kernel
+gather_data_sampling: Not affected
+indirect_target_selection: Not affected
+itlb_multihit: Not affected
+l1tf: Not affected
+mds: Not affected
+meltdown: Not affected
+mmio_stale_data: Not affected
+reg_file_data_sampling: Not affected
+retbleed: Not affected
+spec_rstack_overflow: Mitigation: Safe RET
+spec_store_bypass: Mitigation: Speculative Store Bypass disabled via prctl
+spectre_v1: Mitigation: usercopy/swapgs barriers and __user pointer sanitization
+spectre_v2: Mitigation: Retpolines; IBPB: conditional; IBRS_FW; STIBP: always-on; RSB filling; PBRSB-eIBRS: Not affected; BHI: Not affected
+srbds: Not affected
+tsa: Mitigation: Clear CPU buffers
+tsx_async_abort: Not affected
+vmscape: Mitigation: IBPB before exit to userspace

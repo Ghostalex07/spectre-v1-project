@@ -20,7 +20,7 @@
 
 | máquina | umbral (ciclos) | hit mediana [IC95] | miss mediana [IC95] |
 |---|---:|---:|---:|
-| `ryzen5pro5675u` | 161 | 46.00 [46.00, 46.00] | 299.00 [276.00, 299.00] |
+| `ryzen5pro5675u` | 138 | 46.00 [46.00, 46.00] | 276.00 [276.00, 276.00] |
 
 El umbral es el valle entre los dos modos de esta máquina. No se copia de
 otro equipo. El IC95 es el bootstrap de la mediana; p5–p95 queda en el CSV
