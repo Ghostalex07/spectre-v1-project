@@ -18,7 +18,7 @@ Antes de tocar nada, lee:
 
 ## Acceso y clonado
 
-El repositorio es privado. Acepta la invitación de GitHub y clónalo:
+El repositorio se aloja en GitHub; su visibilidad la decide el grupo. Clónalo:
 
 ```bash
 git clone git@github.com:Ghostalex07/spectre-v1-project.git

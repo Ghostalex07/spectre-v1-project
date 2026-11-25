@@ -187,4 +187,5 @@ sobreinterpretar los resultados.
   controlado y sin `sudo`.
 - No se desactivan mitigaciones del sistema ni se ataca infraestructura de
   terceros.
-- El repositorio es privado y el material de referencia es de solo lectura.
+- El repositorio se aloja en GitHub; su visibilidad la decide el grupo. El
+  material de referencia es de solo lectura.
