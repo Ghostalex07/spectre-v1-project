@@ -87,6 +87,18 @@ class CsvDetectionTest(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["variant"], "baseline")
 
+    def test_load_sweep_skips_mask_from_obsolete_sessions(self) -> None:
+        row = sweep_row("mask", 0, 0, 5.0)
+        row["session_id"] = "20261124-200944"
+        write_csv(
+            self.sweep_path,
+            list(common.E3_SWEEP_COLUMNS),
+            [sweep_row("baseline", 0, 0, 3.0), row],
+        )
+        rows = sweep.load_sweep(self.machine, path=self.sweep_path)
+        self.assertFalse(any(item["variant"] == "mask" for item in rows))
+        self.assertTrue(any(item["variant"] == "baseline" for item in rows))
+
     def test_old_e3_csv_is_detected_and_not_parsed_as_sweep(self) -> None:
         old_path = self.data / self.machine / f"e3_{self.machine}_baseline.csv"
         write_csv(

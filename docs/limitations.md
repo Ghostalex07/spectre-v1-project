@@ -42,6 +42,10 @@ sobreinterpretar los resultados.
 - El enmascarado se implementa con una máscara dependiente de datos. Si el
   compilador lo transforma en un salto o lo elimina, la variante deja de ser
   válida; por eso se revisa el ensamblador.
+- En el **E3 legacy** (`src/e3_mitigations.c`, que usa `src/spectre.h`) la
+  variante `mask` no conserva el salto condicional. Eso solo es aceptable
+  porque allí todos los índices están en rango; no se usa para comparar
+  variantes con índices fuera de rango ni se mezcla con el barrido nuevo.
 - El coste medido es el de este bucle microbenchmark, no el de una aplicación
   completa.
 

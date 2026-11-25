@@ -110,8 +110,16 @@ class E3AsmTest(unittest.TestCase):
             f"load_baseline usa cmov: {ops}",
         )
 
-    def test_mask_has_no_lfence(self) -> None:
+    def test_mask_has_conditional_jump_and_no_lfence(self) -> None:
         ops = mnemonics(self.function_body("load_mask"))
+        self.assertTrue(
+            any(op in COND_JUMPS for op in ops),
+            f"load_mask no tiene salto condicional: {ops}",
+        )
+        self.assertFalse(
+            any(op.startswith("cmov") for op in ops),
+            f"load_mask usa cmov: {ops}",
+        )
         self.assertNotIn("lfence", ops)
 
 
@@ -126,6 +134,7 @@ class DocumentedAsmTest(unittest.TestCase):
         self.assertIn("lfence", lfence_ops)
         self.assertTrue(any(op in COND_JUMPS for op in baseline_ops))
         self.assertFalse(any(op.startswith("cmov") for op in baseline_ops))
+        self.assertTrue(any(op in COND_JUMPS for op in mask_ops))
         self.assertNotIn("lfence", mask_ops)
 
 

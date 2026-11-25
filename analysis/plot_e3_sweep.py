@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import csv
 import math
+import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -38,6 +39,11 @@ DERIVED_DIR = DATA_DIR / "derived"
 REPORT_DIR = ROOT / "report"
 OVERHEAD_CSV = DERIVED_DIR / "e3_sweep_overhead.csv"
 OVERHEAD_MD = REPORT_DIR / "e3_sweep_overhead.md"
+
+# Sesiones medidas antes de corregir load_mask: su variante mask no conservaba
+# el salto condicional y no es comparable con baseline/lfence. Los CSV no se
+# modifican; el análisis descarta esa variante y avisa.
+OBSOLETE_MASK_SESSIONS = {"20261124-200944", "20261125-084943"}
 TABLE_FIELDS = [
     "machine_id",
     "work_per_iter",
@@ -67,7 +73,19 @@ def load_sweep(
     for csv_path in paths:
         if not is_e3_sweep_csv(csv_path):
             continue
-        rows.extend(read_rows(csv_path))
+        skipped_mask = False
+        for row in read_rows(csv_path):
+            session = row.get("session_id", "")
+            if row.get("variant") == "mask" and session in OBSOLETE_MASK_SESSIONS:
+                skipped_mask = True
+                continue
+            rows.append(row)
+        if skipped_mask:
+            print(
+                f"aviso: {csv_path}: se excluye mask de la sesión obsoleta "
+                f"{session or '?'} (load_mask anterior sin salto condicional)",
+                file=sys.stderr,
+            )
     return rows
 
 

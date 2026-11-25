@@ -230,9 +230,12 @@ Protocolo:
   bloque y repetición se mide cada variante una vez, en orden aleatorio derivado
   de `seed`. No se mide una variante entera seguida de otra.
 - Antes de cada medida se ejecuta un calentamiento (`--warmup`).
-- La máscara es aritmética, tipo `array_index_nospec`:
-  `mask = (size_t)0 - (size_t)(x < limit); idx = x & mask;`. Si `x` está fuera
-  de rango, `idx = 0`; si está dentro, `idx = x`. No hay salto condicional.
+- La máscara se aplica **dentro** de la comprobación de límites, como
+  `array_index_nospec` en el kernel: si `x >= limit`, la función retorna 0 sin
+  acceder; si `x < limit`, aplica `mask = (size_t)0 - (size_t)(x < limit)` y
+  accede a `array[x & mask]`. Así `baseline`, `lfence` y `mask` conservan el
+  mismo salto condicional y son comparables. El compilador puede eliminar el
+  `and` redundante, pero no el salto; se verifica con `objdump`.
 - Las cargas de cada variante son funciones `noinline` separadas para poder
   revisar el desensamblado.
 
@@ -379,6 +382,15 @@ Los CSV de E3 anteriores a la corrección del Makefile registran en la columna
 los binarios se compilaron con esas dos opciones. No se modifican esos CSV: la
 nota queda aquí para no interpretar mal la columna. Los CSV nuevos de E3
 registran exactamente las flags efectivas.
+
+## CSV de barrido anteriores a la corrección de `load_mask`
+
+Las sesiones `20261124-200944` y `20261125-084943` se midieron con un
+`load_mask` que no conservaba el salto condicional: la variante `mask` no era
+comparable con `baseline` y `lfence`. Los CSV **no se borran ni se modifican**;
+`analysis/plot_e3_sweep.py` excluye la variante `mask` de esas sesiones y emite
+un aviso, y `data/README.md` las marca como obsoletas para `mask`. Las campañas
+nuevas usan el código corregido y sí incluyen `mask`.
 
 ## Repeticiones y estabilidad del sobrecoste
 

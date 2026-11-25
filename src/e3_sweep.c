@@ -274,14 +274,18 @@ static uint8_t load_lfence(const uint8_t *array, size_t x, size_t limit) {
     return 0;
 }
 
-/* array_index_nospec: mask = -(x < limit); idx = x & mask.
- * Si x está fuera de rango, mask = 0 e idx = 0; si está dentro, mask = todos
- * los bits a 1 e idx = x. No hay salto condicional. */
+/* array_index_nospec dentro de la comprobación: si x está fuera de rango no
+ * se accede; si está dentro, mask = todos los bits a 1 e idx = x. Igual que
+ * en el kernel, el enmascarado no sustituye la comprobación de límites: la
+ * variante debe conservar el salto condicional para ser comparable con
+ * baseline y lfence. */
 __attribute__((noinline))
 static uint8_t load_mask(const uint8_t *array, size_t x, size_t limit) {
-    size_t mask = (size_t)0 - (size_t)(x < limit);
-    size_t idx = x & mask;
-    return array[idx];
+    if (x < limit) {
+        size_t mask = (size_t)0 - (size_t)(x < limit);
+        return array[x & mask];
+    }
+    return 0;
 }
 
 static const variant_spec variants[VARIANT_COUNT] = {

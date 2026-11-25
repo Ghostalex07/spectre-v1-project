@@ -164,6 +164,12 @@ El análisis del barrido es `analysis/plot_e3_sweep.py`; `analysis/plot_e3.py`
 sigue leyendo solo el E3 antiguo. Cada script detecta la cabecera y no mezcla
 formatos.
 
+Los CSV de las sesiones `20261124-200944` y `20261125-084943` se generaron con
+un `load_mask` anterior que no conservaba el salto condicional. **No se
+modifican**: se conservan como evidencia histórica. El análisis excluye la
+variante `mask` de esas sesiones y avisa; `baseline` y `lfence` siguen siendo
+válidos. Las campañas nuevas usan el `load_mask` corregido.
+
 ## Nombres
 
 ```text
