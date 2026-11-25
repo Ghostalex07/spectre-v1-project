@@ -121,6 +121,16 @@ class E3AsmTest(unittest.TestCase):
             f"load_mask usa cmov: {ops}",
         )
         self.assertNotIn("lfence", ops)
+        self.assertIn(
+            "sbb",
+            ops,
+            f"load_mask no conserva la máscara aritmética (sbb): {ops}",
+        )
+        self.assertIn(
+            "and",
+            ops,
+            f"load_mask no aplica la máscara al índice (and): {ops}",
+        )
 
 
 class DocumentedAsmTest(unittest.TestCase):
@@ -136,6 +146,8 @@ class DocumentedAsmTest(unittest.TestCase):
         self.assertFalse(any(op.startswith("cmov") for op in baseline_ops))
         self.assertTrue(any(op in COND_JUMPS for op in mask_ops))
         self.assertNotIn("lfence", mask_ops)
+        self.assertIn("sbb", mask_ops)
+        self.assertIn("and", mask_ops)
 
 
 if __name__ == "__main__":

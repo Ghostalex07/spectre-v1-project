@@ -275,14 +275,20 @@ static uint8_t load_lfence(const uint8_t *array, size_t x, size_t limit) {
 }
 
 /* array_index_nospec dentro de la comprobación: si x está fuera de rango no
- * se accede; si está dentro, mask = todos los bits a 1 e idx = x. Igual que
- * en el kernel, el enmascarado no sustituye la comprobación de límites: la
- * variante debe conservar el salto condicional para ser comparable con
- * baseline y lfence. */
+ * se accede; si está dentro, mask = todos los bits a 1 e idx = x. El `cmp` y
+ * el `sbb` van en ensamblador para que el compilador no deduzca que la rama es
+ * verdadera y elimine el `and`; sin esa barrera, `array[x & mask]` se
+ * optimiza a `array[x]` y la mitigación desaparece en la ruta transitoria. */
 __attribute__((noinline))
 static uint8_t load_mask(const uint8_t *array, size_t x, size_t limit) {
     if (x < limit) {
-        size_t mask = (size_t)0 - (size_t)(x < limit);
+        size_t mask;
+        __asm__ __volatile__(
+            "cmp %2, %1\n\t"
+            "sbb %0, %0"
+            : "=r"(mask)
+            : "r"(x), "r"(limit)
+            : "cc");
         return array[x & mask];
     }
     return 0;

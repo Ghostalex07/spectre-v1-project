@@ -232,10 +232,13 @@ Protocolo:
 - Antes de cada medida se ejecuta un calentamiento (`--warmup`).
 - La máscara se aplica **dentro** de la comprobación de límites, como
   `array_index_nospec` en el kernel: si `x >= limit`, la función retorna 0 sin
-  acceder; si `x < limit`, aplica `mask = (size_t)0 - (size_t)(x < limit)` y
-  accede a `array[x & mask]`. Así `baseline`, `lfence` y `mask` conservan el
-  mismo salto condicional y son comparables. El compilador puede eliminar el
-  `and` redundante, pero no el salto; se verifica con `objdump`.
+  acceder; si `x < limit`, calcula la máscara y accede a `array[x & mask]`. El
+  cálculo de la máscara usa `cmp`/`sbb` en ensamblador para que el compilador no
+  deduzca que la rama es verdadera y elimine el `and`: sin esa barrera,
+  `array[x & mask]` se convierte en `array[x]` y la mitigación desaparece en la
+  ruta transitoria. Así `baseline`, `lfence` y `mask` conservan el mismo salto
+  condicional y son comparables, pero `mask` mantiene además la dependencia de
+  datos. Se verifica con `objdump`.
 - Las cargas de cada variante son funciones `noinline` separadas para poder
   revisar el desensamblado.
 
@@ -277,7 +280,8 @@ mezclan en la misma figura ni en el mismo agregado.
 
 - `load_lfence` contiene `lfence`;
 - `load_baseline` contiene un salto condicional y ningún `cmov`;
-- `load_mask` no contiene `lfence`.
+- `load_mask` contiene un salto condicional, `cmp`/`sbb` y `and`, y no contiene
+  `lfence` ni `cmov`.
 
 Si el compilador cambia el código y una comprobación falla, no se usan esos
 datos: se documenta el fallo y se corrige el código o los flags.
