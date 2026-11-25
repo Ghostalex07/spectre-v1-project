@@ -39,6 +39,8 @@ else
 fi
 mkdir -p "$OUT_DIR"
 OUT="$OUT_DIR/e1_hierarchy_${MACHINE_ID}.csv"
+STATE="$OUT_DIR/freq_${MACHINE_ID}_${SESSION_ID:-manual}.log"
+CPU="${PIN_CPU:-$(pick_cpu)}"
 
 need_cmd make
 make -C "$ROOT" all
@@ -61,7 +63,10 @@ if [ "$HUGEPAGE" = "1" ]; then
   ARGS+=(--hugepage)
 fi
 
-echo "[E1-jerarquía] machine_id=$MACHINE_ID session=${SESSION_ID:-manual} profile=$PROFILE sizes=${SIZES:-barrido 4 KiB-256 MiB} hops=$HOPS reps=$REPS node=$NODE_SIZE cpu=${PIN_CPU:-auto}"
-run_pinned "$ROOT/bin/e1_hierarchy" "${ARGS[@]}"
+echo "[E1-jerarquía] machine_id=$MACHINE_ID session=${SESSION_ID:-manual} profile=$PROFILE sizes=${SIZES:-barrido 4 KiB-256 MiB} hops=$HOPS reps=$REPS node=$NODE_SIZE cpu=$CPU"
+record_state "$STATE" before "$CPU"
+PIN_CPU="$CPU" run_pinned "$ROOT/bin/e1_hierarchy" "${ARGS[@]}"
+record_state "$STATE" after "$CPU"
 
 echo "[E1-jerarquía] escrito $OUT"
+echo "[E1-jerarquía] estado: $STATE"

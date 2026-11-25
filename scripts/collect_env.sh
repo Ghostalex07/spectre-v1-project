@@ -98,6 +98,10 @@ CFLAGS_USED="$(make -C "$ROOT" -s print-cflags 2>/dev/null || echo 'no disponibl
     print_file "" "$cpu_dir/cpufreq/cpuinfo_max_freq"
   done
   echo
+  echo "## Alimentación y perfil de plataforma"
+  echo "power_supply: $(read_power_supply)"
+  echo "platform_profile: $(read_platform_profile)"
+  echo
   echo "## Transparent Huge Pages"
   print_file "enabled" /sys/kernel/mm/transparent_hugepage/enabled
   print_file "defrag" /sys/kernel/mm/transparent_hugepage/defrag

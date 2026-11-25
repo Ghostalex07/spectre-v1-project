@@ -33,14 +33,19 @@ case "$MODE" in
     OUT_DIR="${5:-$(machine_dir "$MACHINE_ID")}"
     ensure_machine_dir "$MACHINE_ID"
     OUT="$OUT_DIR/e3_${MACHINE_ID}_${MODE}.csv"
+    STATE="$OUT_DIR/freq_${MACHINE_ID}_${SESSION_ID:-manual}.log"
+    CPU="${PIN_CPU:-$(pick_cpu)}"
 
-    echo "[E3] machine_id=$MACHINE_ID variant=$MODE iterations=$ITERATIONS reps=$REPS cpu=${PIN_CPU:-auto}"
-    run_pinned "$ROOT/bin/e3_${MODE}" \
+    echo "[E3] machine_id=$MACHINE_ID variant=$MODE iterations=$ITERATIONS reps=$REPS cpu=$CPU"
+    record_state "$STATE" before "$CPU"
+    PIN_CPU="$CPU" run_pinned "$ROOT/bin/e3_${MODE}" \
       --machine-id "$MACHINE_ID" \
       --iterations "$ITERATIONS" \
       --reps "$REPS" \
       --out "$OUT"
+    record_state "$STATE" after "$CPU"
     echo "[E3] escrito $OUT"
+    echo "[E3] estado: $STATE"
     ;;
   sweep)
     PROFILE="${PROFILE:-default}"
@@ -72,10 +77,13 @@ case "$MODE" in
     export SESSION_ID="$SESSION"
     OUT_DIR="$(prepare_out_dir "$MACHINE_ID")"
     OUT="${E3_OUT:-$OUT_DIR/e3_sweep_${MACHINE_ID}_${SESSION}.csv}"
+    STATE="$OUT_DIR/freq_${MACHINE_ID}_${SESSION}.log"
+    CPU="${PIN_CPU:-$(pick_cpu)}"
 
     echo "[E3 barrido] machine_id=$MACHINE_ID profile=$PROFILE session=$SESSION"
-    echo "[E3 barrido] W=$WORK pred=$PRED arrays=$ARRAYS iter=$ITER blocks=$BLOCKS reps=$REPS seed=$SEED cpu=${PIN_CPU:-auto}"
-    run_pinned "$ROOT/bin/e3_sweep" \
+    echo "[E3 barrido] W=$WORK pred=$PRED arrays=$ARRAYS iter=$ITER blocks=$BLOCKS reps=$REPS seed=$SEED cpu=$CPU"
+    record_state "$STATE" before "$CPU"
+    PIN_CPU="$CPU" run_pinned "$ROOT/bin/e3_sweep" \
       --machine-id "$MACHINE_ID" \
       --session-id "$SESSION" \
       --work "$WORK" \
@@ -87,8 +95,10 @@ case "$MODE" in
       --warmup "$WARMUP" \
       --seed "$SEED" \
       --out "$OUT"
+    record_state "$STATE" after "$CPU"
 
     echo "[E3 barrido] escrito $OUT"
+    echo "[E3 barrido] estado: $STATE"
     ;;
   *)
     die "modo no válido: $MODE (usa sweep, baseline, lfence o mask)"

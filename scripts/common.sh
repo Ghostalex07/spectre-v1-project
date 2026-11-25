@@ -33,6 +33,54 @@ pick_cpu() {
   fi
 }
 
+# Frecuencia y estado del sistema para el registro antes/después de medir.
+read_cpu_mhz() {
+  awk -F: '/^cpu MHz/{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2; exit}' \
+    /proc/cpuinfo 2>/dev/null || true
+}
+
+read_scaling_freq_khz() {
+  local cpu="$1"
+  cat "/sys/devices/system/cpu/cpu${cpu}/cpufreq/scaling_cur_freq" \
+    2>/dev/null || echo "na"
+}
+
+read_governor() {
+  local cpu="$1"
+  cat "/sys/devices/system/cpu/cpu${cpu}/cpufreq/scaling_governor" \
+    2>/dev/null || echo "na"
+}
+
+read_power_supply() {
+  local out="" path name value
+  for path in /sys/class/power_supply/*; do
+    [ -d "$path" ] || continue
+    name="$(basename "$path")"
+    if [ -r "$path/online" ]; then
+      value="$(cat "$path/online" 2>/dev/null || echo na)"
+      out="${out}${out:+;}${name}:online=${value}"
+    elif [ -r "$path/status" ]; then
+      value="$(cat "$path/status" 2>/dev/null || echo na)"
+      out="${out}${out:+;}${name}:status=${value}"
+    fi
+  done
+  echo "${out:-no disponible}"
+}
+
+read_platform_profile() {
+  cat /sys/firmware/acpi/platform_profile 2>/dev/null || echo "no disponible"
+}
+
+# Añade una línea de estado al registro de la sesión.
+record_state() {
+  local file="$1" phase="$2" cpu="$3"
+  mkdir -p "$(dirname "$file")"
+  printf '%s phase=%s cpu=%s cpu_mhz=%s scaling_cur_freq_khz=%s governor=%s power=%s platform_profile=%s\n' \
+    "$(date -Is)" "$phase" "$cpu" "$(read_cpu_mhz)" \
+    "$(read_scaling_freq_khz "$cpu")" "$(read_governor "$cpu")" \
+    "$(read_power_supply)" "$(read_platform_profile)" >> "$file"
+}
+
 # Ejecuta un comando fijado a un CPU físico. Se puede forzar con PIN_CPU=3.
 run_pinned() {
   local cpu="${PIN_CPU:-$(pick_cpu)}"

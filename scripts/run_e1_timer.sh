@@ -35,6 +35,8 @@ else
 fi
 mkdir -p "$OUT_DIR"
 OUT="$OUT_DIR/e1_timer_${MACHINE_ID}.csv"
+STATE="$OUT_DIR/freq_${MACHINE_ID}_${SESSION_ID:-manual}.log"
+CPU="${PIN_CPU:-$(pick_cpu)}"
 
 need_cmd make
 make -C "$ROOT" all
@@ -50,7 +52,10 @@ if [ -n "${SESSION_ID:-}" ]; then
   ARGS+=(--session-id "$SESSION_ID")
 fi
 
-echo "[E1-temporizador] machine_id=$MACHINE_ID session=${SESSION_ID:-manual} profile=$PROFILE samples=$SAMPLES reps=$REPS cpu=${PIN_CPU:-auto}"
-run_pinned "$ROOT/bin/e1_timer" "${ARGS[@]}"
+echo "[E1-temporizador] machine_id=$MACHINE_ID session=${SESSION_ID:-manual} profile=$PROFILE samples=$SAMPLES reps=$REPS cpu=$CPU"
+record_state "$STATE" before "$CPU"
+PIN_CPU="$CPU" run_pinned "$ROOT/bin/e1_timer" "${ARGS[@]}"
+record_state "$STATE" after "$CPU"
 
 echo "[E1-temporizador] escrito $OUT"
+echo "[E1-temporizador] estado: $STATE"

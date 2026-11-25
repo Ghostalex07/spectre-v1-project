@@ -19,16 +19,21 @@ else
 fi
 mkdir -p "$OUT_DIR"
 OUT="$OUT_DIR/e1_${MACHINE_ID}.csv"
+STATE="$OUT_DIR/freq_${MACHINE_ID}_${SESSION_ID:-manual}.log"
+CPU="${PIN_CPU:-$(pick_cpu)}"
 
 need_cmd make
 make -C "$ROOT" all
 
-echo "[E1] machine_id=$MACHINE_ID samples=$SAMPLES buffer=${BUFFER_MB}MiB cpu=${PIN_CPU:-auto}"
-run_pinned "$ROOT/bin/e1_cache" \
+echo "[E1] machine_id=$MACHINE_ID samples=$SAMPLES buffer=${BUFFER_MB}MiB cpu=$CPU"
+record_state "$STATE" before "$CPU"
+PIN_CPU="$CPU" run_pinned "$ROOT/bin/e1_cache" \
   --machine-id "$MACHINE_ID" \
   --mode both \
   --samples "$SAMPLES" \
   --buffer-mb "$BUFFER_MB" \
   --out "$OUT"
+record_state "$STATE" after "$CPU"
 
 echo "[E1] escrito $OUT"
+echo "[E1] estado: $STATE"
