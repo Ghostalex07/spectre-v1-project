@@ -284,7 +284,7 @@ Parámetros configurables (variables de entorno):
 | `E3_PREDICTABILITY` | `inrange,random_p1,random_p10,random_p50` | Modos |
 | `E3_ARRAY_BYTES` | `4096,67108864` | Tamaños de array |
 | `E3_ITERATIONS` | 200000 | Iteraciones por medida |
-| `E3_BLOCKS` | 5 | Bloques aleatorizados |
+| `E3_BLOCKS` | 15 | Bloques aleatorizados |
 | `E3_REPS` | 3 | Repeticiones por bloque |
 | `E3_WARMUP` | 256 | Llamadas de calentamiento |
 | `E3_SEED` | 20261124 | Semilla de índices y orden |
@@ -364,9 +364,11 @@ del barrido E3 se guardan en `data/<machine_id>/<session_id>/`. Si no defines
 `SESSION_ID`, `run_all.sh` crea una con la fecha UTC. Haz al menos dos sesiones
 en arranques distintos.
 
-Duración orientativa: el perfil `smoke` termina en segundos; el perfil `default`
-puede tardar decenas de minutos por sesión, según la CPU y el número de
-repeticiones.
+Duración orientativa: el perfil `smoke` termina en segundos. El perfil `default`
+puede tardar **30–60 minutos por sesión** en un portátil moderno, según la CPU y
+el número de repeticiones; el barrido E3 con 15 bloques es el bloque más largo.
+No lances la campaña con el portátil desenchufado ni usando el equipo para otras
+tareas.
 
 Perfil rápido de prueba (no es campaña final):
 

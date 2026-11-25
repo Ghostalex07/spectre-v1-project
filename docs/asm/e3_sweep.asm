@@ -305,8 +305,8 @@ Disassembly of section .text:
     13fa:	48 c7 84 24 30 01 00 	mov    QWORD PTR [rsp+0x130],0x30d40
     1401:	00 40 0d 03 00
     1406:	48 89 44 24 30       	mov    QWORD PTR [rsp+0x30],rax
-    140b:	48 c7 84 24 38 01 00 	mov    QWORD PTR [rsp+0x138],0x5
-    1412:	00 05 00 00 00
+    140b:	48 c7 84 24 38 01 00 	mov    QWORD PTR [rsp+0x138],0xf
+    1412:	00 0f 00 00 00
     1417:	48 c7 84 24 40 01 00 	mov    QWORD PTR [rsp+0x140],0x3
     141e:	00 03 00 00 00
     1423:	48 c7 84 24 48 01 00 	mov    QWORD PTR [rsp+0x148],0x1352904
@@ -901,8 +901,8 @@ Disassembly of section .text:
     1e26:	45 31 e4             	xor    r12d,r12d
     1e29:	48 89 44 24 18       	mov    QWORD PTR [rsp+0x18],rax
     1e2e:	48 8d 05 3b 13 00 00 	lea    rax,[rip+0x133b]        # 3170 <_IO_stdin_used+0x170>
-    1e35:	48 c7 84 24 b0 00 00 	mov    QWORD PTR [rsp+0xb0],0x5
-    1e3c:	00 05 00 00 00
+    1e35:	48 c7 84 24 b0 00 00 	mov    QWORD PTR [rsp+0xb0],0xf
+    1e3c:	00 0f 00 00 00
     1e41:	48 89 44 24 08       	mov    QWORD PTR [rsp+0x8],rax
     1e46:	48 c7 44 24 10 00 00 	mov    QWORD PTR [rsp+0x10],0x0
     1e4d:	00 00
@@ -2016,7 +2016,7 @@ Disassembly of section .text:
     2f1d:	68 04 29 35 01       	push   0x1352904
     2f22:	48 8d 15 6f 02 00 00 	lea    rdx,[rip+0x26f]        # 3198 <_IO_stdin_used+0x198>
     2f29:	6a 03                	push   0x3
-    2f2b:	6a 05                	push   0x5
+    2f2b:	6a 0f                	push   0xf
     2f2d:	68 40 0d 03 00       	push   0x30d40
     2f32:	50                   	push   rax
     2f33:	31 c0                	xor    eax,eax

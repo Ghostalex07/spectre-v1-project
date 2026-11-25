@@ -67,7 +67,7 @@ case "$MODE" in
       PRED="${E3_PREDICTABILITY:-inrange,random_p1,random_p10,random_p50}"
       ARRAYS="${E3_ARRAY_BYTES:-4096,67108864}"
       ITER="${E3_ITERATIONS:-${ITERATIONS:-200000}}"
-      BLOCKS="${E3_BLOCKS:-5}"
+      BLOCKS="${E3_BLOCKS:-15}"
       REPS="${E3_REPS:-${REPS:-3}}"
       WARMUP="${E3_WARMUP:-256}"
     fi

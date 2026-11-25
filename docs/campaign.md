@@ -150,10 +150,13 @@ sistema.
 - E1 temporizador: 100.000 muestras × 3 repeticiones.
 - E2: **omitido** por defecto; la PoC no forma parte de la campaña.
 - E3: barrido de sensibilidad con perfil `default` (W, previsibilidad y tamaño
-  de array configurables), variantes `baseline`, `lfence` y `mask` intercaladas
-  por bloques.
+  de array configurables), 15 bloques aleatorizados y variantes `baseline`,
+  `lfence` y `mask` intercaladas por bloques.
 - Warm-up: el binario de E3 ejecuta llamadas de calentamiento antes de medir; no
   se incluyen en los ciclos.
+
+El barrido E3 con 15 bloques es la parte más larga: cuenta **30–60 minutos por
+sesión** en un portátil moderno, además de E1. Programa dos arranques completos.
 
 Los CSV de E1 y E3 del barrido quedan en
 `data/<machine_id>/<session_id>/`. Si quieres un ensayo corto:
