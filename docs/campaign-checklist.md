@@ -5,6 +5,11 @@
 
 ## 0. Antes de medir
 
+- [ ] El portátil está **enchufado a la corriente**.
+- [ ] El perfil de energía está en **rendimiento** si el sistema lo permite sin
+      privilegios.
+- [ ] He cerrado el navegador y los programas que no necesito.
+- [ ] No voy a usar el equipo para otras tareas durante la medición.
 - [ ] He clonado el repositorio y `make`, `make smoke` y `make test` pasan.
 - [ ] Mi `machine_id` es nuevo y descriptivo (`intel_i7_1165g7`,
       `ryzen7_5800h`, …). No uso `ryzen5pro5675u_final`.
