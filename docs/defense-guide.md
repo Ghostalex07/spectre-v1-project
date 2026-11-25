@@ -44,9 +44,8 @@ Una idea por diapositiva, figuras grandes y una demo corta.
 ## Demo
 
 La demo se apoya en E1, E3 y el modelo conceptual. **No necesita ejecutar la
-PoC de hardware**: esa pieza queda fuera de la experimentación y su posible
-anexo está pendiente de confirmar con el profesor (ver
-[`e2-anexo.md`](e2-anexo.md)).
+PoC de hardware**: esa pieza queda fuera de la experimentación y se conserva
+solo como anexo ilustrativo (ver [`e2-anexo.md`](e2-anexo.md)).
 
 Lleva las figuras y los CSV en local por si falla la máquina de la defensa.
 

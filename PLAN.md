@@ -277,7 +277,7 @@ imposibilidad.
   - sobrecoste de E3 por variante y máquina;
   - comparación de sobrecoste entre microarquitecturas;
   - simulación conceptual de E2;
-  - (anexo opcional) observación de E2 en hardware, separada de E3.
+  - anexo ilustrativo de E2 en hardware, separado de E3 y sin valor de resultado.
 - [ ] Calcular intervalos de confianza por bootstrap y cotas superiores para
   resultados `0/N`.
 - [ ] Discutir: ¿se cumple la hipótesis de coste? ¿LFENCE costó más que la
@@ -406,7 +406,7 @@ ensamblador, los intervalos de confianza ni la discusión de limitaciones.
 
 | Riesgo | Mitigación |
 |---|---|
-| Ninguna máquina filtra en E2 hardware | No es bloqueante ni forma parte de los resultados principales: E2 se cubre con modelo y literatura; si se ejecuta, va en anexo |
+| Ninguna máquina filtra en E2 hardware | No es bloqueante ni forma parte de los resultados principales: E2 se cubre con modelo y literatura; la PoC va en un anexo ilustrativo |
 | El sobrecoste cae dentro del ruido | Aumentar repeticiones, aleatorizar el orden, reportar IC bootstrap y no afirmar diferencias que no se distingan del ruido |
 | Solo hay una microarquitectura | Comparar configuraciones/compiladores y declarar la limitación; buscar una máquina prestada |
 | El compilador elimina la vulnerabilidad | `objdump -d`, `-O0` como control, `noinline`, `volatile` |

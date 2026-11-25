@@ -7,8 +7,8 @@ protocolo y se suben los datos.
 > **Foco experimental (feedback del profesor):** E1 (caracterización de caché) y
 > E3 (impacto de mitigaciones en rendimiento) son los experimentos. E2 no forma
 > parte de la campaña: el mecanismo se cubre con análisis documental y
-> [`simulation.md`](simulation.md). La PoC en hardware solo podría ir como anexo,
-> pendiente de confirmar con el profesor.
+> [`simulation.md`](simulation.md). La PoC en hardware se conserva como anexo
+> ilustrativo, subordinado al modelo y a la literatura; no es un resultado.
 
 > **Si vas a usar una IA:** copia el prompt de [`ai-prompt.md`](ai-prompt.md) y
 > sustituye `<MACHINE_ID>`. Está pensado para que el agente lea este documento,
@@ -169,9 +169,9 @@ conserva el bucle antiguo para comparar con los datos históricos.
 ### E2 en hardware: fuera de la campaña
 
 La PoC de E2 **no forma parte de esta campaña** ni de los resultados. Se
-conserva el código del periodo de validación, pero su posible inclusión como
-anexo está pendiente de confirmar con el profesor. No la ejecutes para generar
-datos de campaña; el mecanismo se cubre con el modelo conceptual.
+conserva el código del periodo de validación como **anexo ilustrativo**,
+subordinado al análisis documental y al modelo conceptual. No la ejecutes para
+generar datos de campaña.
 
 ## 4. Revisa el ensamblador
 
@@ -256,6 +256,10 @@ Incluye un resumen con:
 - Figuras y PR: 10 minutos.
 
 ## 9. Checklist final
+
+La lista completa, con casillas para copiar en el PR, está en
+[`campaign-checklist.md`](campaign-checklist.md). El PR debe seguir
+[`.github/pull_request_template.md`](../.github/pull_request_template.md).
 
 - [ ] `make smoke` pasa.
 - [ ] `make test` pasa.

@@ -180,7 +180,9 @@ máquinas.
     git commit -m "data: add campaign for <MACHINE_ID>"
     git push -u origin campaign/<MACHINE_ID>
 
-Abre un PR contra `main`. En el PR incluye:
+Abre un PR contra `main` usando la plantilla
+[`.github/pull_request_template.md`](../.github/pull_request_template.md) y
+repasa [`docs/campaign-checklist.md`](campaign-checklist.md). En el PR incluye:
 
 - CPU, family/model/stepping, microcódigo, kernel, GCC y nativo/VM;
 - umbral elegido y por qué;

@@ -88,8 +88,8 @@ python3 analysis/plot_e3_sweep.py --machine-id <machine_id> --session-id <sessio
 
 `run_all.sh` ejecuta el entorno, E1 (calibración, jerarquía y temporizador) y el
 barrido de E3. E2 en hardware **no forma parte de la campaña**; el mecanismo se
-cubre con el modelo conceptual y la PoC queda como posible anexo pendiente de
-confirmar con el profesor.
+cubre con el modelo conceptual y la PoC queda como anexo ilustrativo,
+subordinado al modelo y a la literatura.
 
 Tarda varios minutos; no lo lances en una VM para los resultados principales.
 
@@ -137,9 +137,9 @@ Ejecuta fijado a un núcleo y guarda la salida:
 taskset -c 0 /tmp/spectre-poc/spectre | tee data/<machine_id>/poc_<machine_id>.txt
 ```
 
-Si recupera el secreto, es evidencia opcional para el anexo de E2; E1 y E3 no
-dependen de ello. Si no lo recupera, documenta el resultado: no es bloqueante y
-no fuerces el PoC.
+Si recupera el secreto, es una observación cualitativa para el anexo ilustrativo
+de E2; E1 y E3 no dependen de ello. Si no lo recupera, documenta el resultado:
+no es bloqueante y no fuerces el PoC.
 
 ## 5. E1: latencia de caché
 
@@ -248,8 +248,8 @@ para juzgar el peso del montaje en los tamaños pequeños.
 
 La PoC de E2 en hardware no forma parte de la experimentación principal. El
 mecanismo se cubre con el análisis documental y el modelo conceptual de
-[`simulation.md`](simulation.md); la posible inclusión de la PoC como anexo está
-pendiente de confirmar con el profesor.
+[`simulation.md`](simulation.md). La PoC se conserva como **anexo ilustrativo**,
+subordinado al modelo y a la literatura; no es un resultado.
 
 No hay instrucciones de campaña de E2 en este manual. Para el estado del
 anexo, consulta [`e2-anexo.md`](e2-anexo.md).
@@ -529,8 +529,8 @@ lfence:    0/40 bytes correctos (modelo)
 mask:      0/40 bytes correctos (modelo)
 ```
 
-La PoC de E2 en hardware no forma parte de los resultados principales. Su
-posible inclusión como anexo está pendiente de confirmar con el profesor; ver
+La PoC de E2 en hardware no forma parte de los resultados principales. Se
+conserva como anexo ilustrativo, subordinado al modelo y a la literatura; ver
 [`e2-anexo.md`](e2-anexo.md).
 
 E3 (1M iteraciones, 3 reps):

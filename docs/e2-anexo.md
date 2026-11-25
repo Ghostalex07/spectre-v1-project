@@ -1,15 +1,20 @@
-# Anexo E2 — PoC en hardware
+# Anexo E2 — PoC en hardware (ilustrativo)
 
 Durante la fase de validación del proyecto se desarrolló una prueba de concepto
 de Spectre V1 en hardware, dentro de un único proceso y en máquinas propias.
 
-Siguiendo la indicación del profesor, **E2 no forma parte de la experimentación
-práctica del proyecto**. El mecanismo de explotación se aborda desde el análisis
-documental y la simulación conceptual; E1 y E3 son los experimentos empíricos.
+Siguiendo la indicación del profesor, **E2 no es un experimento ni un resultado
+del trabajo**. El mecanismo de explotación se aborda en el cuerpo principal
+únicamente desde:
 
-La posible inclusión de la PoC de hardware como anexo del informe o de la
-defensa está **PENDIENTE DE CONFIRMAR CON EL PROFESOR**.
+- el análisis documental (Kocher et al. y el ensamblador del ejemplo);
+- la simulación conceptual (`analysis/simulate_spectre.py`).
 
-Este documento no presenta resultados, cifras ni instrucciones de uso. El
-código y los datos de validación se conservan únicamente como material
-histórico y no se usan en las conclusiones del trabajo.
+La PoC en hardware **se conserva como anexo ilustrativo**: sirve solo para
+mostrar que lo que describe el modelo coincide cualitativamente con lo que
+ocurre en un procesador real. Está subordinada al análisis documental y al
+modelo; no se usa para medir eficacia, no produce resultados principales y no
+se cita como evidencia cuantitativa.
+
+Este documento no presenta cifras ni instrucciones de uso. El código y los datos
+de validación se conservan únicamente como material histórico.

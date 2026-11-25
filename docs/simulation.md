@@ -14,7 +14,7 @@ El feedback del profesor pide centrar la experimentación práctica en:
 
 El mecanismo de explotación (E2) se aborda con **análisis documental y
 simulación conceptual**. La validación con la PoC en hardware se conserva como
-anexo opcional, no como condición del proyecto.
+anexo ilustrativo, no como condición del proyecto ni como resultado.
 
 ## Qué modela
 

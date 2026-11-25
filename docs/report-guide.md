@@ -32,8 +32,9 @@ como anexo.
    observable.
 10. **Conclusiones y trabajo futuro** (1–2 páginas).
 11. **Referencias**.
-12. **Anexos**: código, datos crudos, fichas de equipos y comandos. El posible
-    anexo de la PoC E2 en hardware queda pendiente de confirmar con el profesor.
+12. **Anexos**: código, datos crudos, fichas de equipos y comandos. El anexo de
+    la PoC E2 en hardware es **ilustrativo**: está subordinado al análisis
+    documental y al modelo, y no se presenta como resultado.
 
 ## Figuras y tablas mínimas
 
@@ -105,7 +106,7 @@ pendiente de confirmación con el profesor (ver [`e2-anexo.md`](e2-anexo.md)).
 - ¿Qué genera `-mspeculative-load-hardening` de Clang frente al enmascarado
   manual inspirado en `array_index_nospec`?
 - ¿Qué explica el modelo y qué no puede explicar?
-- ¿Se incluye finalmente el anexo E2 en hardware o se deja fuera?
+- ¿Por qué la PoC de hardware queda como anexo ilustrativo y no como resultado?
 - ¿Qué limitaciones tiene el experimento? (mismo proceso, secreto sintético,
   umbral por máquina, ruido, VM, número de equipos, modelo simplificado). La
   lista cerrada está en [`docs/limitations.md`](limitations.md).

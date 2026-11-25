@@ -332,12 +332,13 @@ machine_id,session_id,timestamp,repetition,sample,cpu_pinned,cycles
 - `cycles`: ciclos del intervalo vacío `lfence;rdtscp;lfence;rdtscp`.
 - No se usa para restar; se analiza como distribución independiente.
 
-### E2 (anexo opcional)
+### E2 (anexo ilustrativo)
 
 E2 no es un experimento principal y no se usa para calcular la eficacia de E3.
 Los CSV de la PoC histórica se conservan para trazabilidad, pero no entran en la
-campaña ni en las figuras principales. Su posible inclusión como anexo está
-pendiente de confirmar con el profesor; ver [`e2-anexo.md`](e2-anexo.md).
+campaña ni en las figuras principales. La PoC se conserva como anexo
+ilustrativo, subordinado al modelo y a la literatura; ver
+[`e2-anexo.md`](e2-anexo.md).
 
 ### E3 — sobrecoste
 

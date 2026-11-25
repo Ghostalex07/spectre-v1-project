@@ -59,10 +59,11 @@ python3 analysis/simulate_spectre.py --attempts 200 --train 5 \
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Acceso, flujo de trabajo, roles y definición de “hecho” |
 | [`docs/onboarding.md`](docs/onboarding.md) | Primeros pasos y Fase 0 |
 | [`docs/campaign.md`](docs/campaign.md) | Campaña final por máquina: qué hace cada integrante |
+| [`docs/campaign-checklist.md`](docs/campaign-checklist.md) | Checklist para cerrar la campaña y abrir el PR |
 | [`docs/ai-prompt.md`](docs/ai-prompt.md) | Prompt para que la IA de cada compañero ejecute su campaña |
 | [`docs/manual.md`](docs/manual.md) | Manual completo del harness |
 | [`docs/simulation.md`](docs/simulation.md) | Modelo conceptual de E2 y sus límites |
-| [`docs/e2-anexo.md`](docs/e2-anexo.md) | Estado de la PoC de E2 como posible anexo |
+| [`docs/e2-anexo.md`](docs/e2-anexo.md) | PoC de E2 como anexo ilustrativo (no es resultado) |
 | [`docs/plan-cambios.md`](docs/plan-cambios.md) | Plan y decisiones de la reorientación |
 | [`docs/asm/`](docs/asm/) | Desensamblado de las variantes de E3 |
 | [`docs/metrics.md`](docs/metrics.md) | Métricas, IC y esquemas CSV |
@@ -70,6 +71,7 @@ python3 analysis/simulate_spectre.py --attempts 200 --train 5 \
 | [`docs/machines.md`](docs/machines.md) | Ficha de cada equipo |
 | [`docs/troubleshooting.md`](docs/troubleshooting.md) | Errores típicos |
 | [`docs/glossary.md`](docs/glossary.md) | Glosario |
+| [`report/report.md`](report/report.md) | Esqueleto del informe con los resultados actuales |
 | [`docs/report-guide.md`](docs/report-guide.md) | Guía del informe |
 | [`docs/defense-guide.md`](docs/defense-guide.md) | Guía de la defensa y demo |
 | [`docs/limitations.md`](docs/limitations.md) | Alcance, límites y qué no se puede afirmar |
@@ -147,10 +149,11 @@ spectre-v1-project/
 - [x] Modelo conceptual de E2 (`analysis/simulate_spectre.py`).
 - [x] Enfoque reorientado: E1/E3 empíricos; E2 documental y simulación.
 - [x] Resumen de resultados con IC bootstrap (`make summary`).
-- [x] E1 jerárquico y coste del temporizador implementados (campaña PENDIENTE).
+- [x] E1 jerárquico y coste del temporizador implementados; campaña de referencia hecha en el Ryzen.
 - [x] E3 con barrido de sensibilidad y verificación del ensamblador.
+- [x] Esqueleto del informe con resultados actuales.
 - [ ] Campaña multi-máquina de E1 jerárquico y del barrido de E3.
-- [ ] Confirmar con el profesor el anexo de E2.
+- [x] Anexo E2 confirmado como ilustrativo, subordinado al modelo y a la literatura.
 - [ ] Informe y defensa final.
 
 La campaña de referencia del Ryzen está en `data/ryzen5pro5675u/`, con dos
@@ -202,8 +205,8 @@ mask      0/40 bytes correctos (modelo)
 ```
 
 La PoC en hardware del periodo de validación no forma parte de la
-experimentación. Su posible inclusión como anexo está pendiente de confirmar con
-el profesor: [`docs/e2-anexo.md`](docs/e2-anexo.md).
+experimentación. Se conserva como anexo ilustrativo, subordinado al análisis
+documental y al modelo conceptual: [`docs/e2-anexo.md`](docs/e2-anexo.md).
 
 Es la misma microarquitectura, no una CPU distinta. Los detalles y las figuras
 se regeneran con `make figures`.

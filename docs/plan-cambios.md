@@ -8,9 +8,10 @@
 - Tarea 4 (estadística, validación y regeneración): commits `3fce127` y
   `6835792`.
 - Tarea 5 (limitaciones, fichas y comparativa extendida): commit `6870d3b`.
-- Campaña real multi-máquina: **PENDIENTE**. No hay cifras nuevas de campaña
-  inventadas en la documentación.
-- Anexo E2 en hardware: **PENDIENTE DE CONFIRMAR CON EL PROFESOR**.
+- Campaña real multi-máquina: **parcial**. El Ryzen tiene dos sesiones; faltan
+  2–3 microarquitecturas distintas.
+- Anexo E2 en hardware: **confirmado como ilustrativo**, subordinado al modelo y
+  a la literatura; no es un resultado.
 
 
 Documento de trabajo para reorientar el repositorio según el feedback del
@@ -70,7 +71,7 @@ profesor. Se actualiza al final con lo realmente hecho.
   por defecto; renombrar textos y tests.
 - `Makefile`: `summary-e2` pasa a `--include-e2-hardware`.
 - `docs/report-guide.md` y `docs/defense-guide.md`: demo y resultados basados
-  en E1, E3 y modelo; E2 hardware solo anexo pendiente de confirmar.
+  en E1, E3 y modelo; E2 hardware solo anexo ilustrativo.
 - `docs/e2-anexo.md`: nuevo, sin cifras ni instrucciones.
 - `docs/simulation.md`: revisar y completar solo si falta la aclaración
   "qué demuestra / qué no demuestra".
@@ -250,6 +251,6 @@ Pendiente (no es parte del código de esta tarea):
 - Correcciones finales aplicadas: E3 registra sus flags efectivas, `make smoke`
   omite E2 por defecto, el manual/onboarding no presentan E2 como campaña y
   `make asm` genera desensamblados sin espacios finales.
-- Pendiente solo la campaña real multi-máquina (E1 jerárquico, temporizador y
-  barrido E3) y confirmar con el profesor si el anexo E2 se incluye. Hasta
-  entonces, las cifras de campaña quedan **PENDIENTES**; no se inventan.
+- Pendiente la campaña real en 2–3 microarquitecturas distintas (E1 jerárquico,
+  temporizador y barrido E3). El Ryzen ya tiene dos sesiones; no se inventan
+  cifras de otras CPUs. El anexo E2 queda confirmado como ilustrativo.
