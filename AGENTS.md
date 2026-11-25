@@ -117,7 +117,7 @@ Referencia del ensamblador esperado:
 
 - `baseline`: `cmp` + salto condicional (`jbe`), no `cmov`.
 - `lfence`: `cmp` + salto condicional + `lfence`.
-- `mask`: `cmp` + `and`, **sin salto condicional** en `victim_function`.
+- `mask`: `cmp` + salto condicional + `sbb` + `and`, **sin `lfence`** en `victim_function`.
 
 ## 7. Dónde está cada cosa
 
