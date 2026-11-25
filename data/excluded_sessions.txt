@@ -1,0 +1,3 @@
+# Sesiones excluidas de los resultados principales.
+# Formato: session_id | motivo
+20261124-200944 | frecuencia ~2,4 GHz; ejemplo de condiciones distintas

@@ -47,6 +47,37 @@ class AggregationTest(unittest.TestCase):
         ok, reason = ce.should_aggregate([4200.0, 4290.0, 4250.0])
         self.assertTrue(ok, reason)
 
+    def test_cluster_sessions_groups_near_frequencies(self) -> None:
+        groups = ce.cluster_sessions(
+            [
+                ("slow", 2470.0),
+                ("a", 4291.8),
+                ("b", 4225.9),
+                ("c", 4292.0),
+            ]
+        )
+        sizes = sorted(len(group) for group in groups)
+        self.assertEqual(sizes, [1, 3])
+        slow = next(group for group in groups if any(sid == "slow" for sid, _ in group))
+        self.assertEqual([sid for sid, _ in slow], ["slow"])
+
+    def test_read_exclusions_accepts_pipe_and_comments(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "excluded_sessions.txt"
+            path.write_text(
+                "# session_id | motivo\nslow | frecuencia baja\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                ce.read_exclusions(path),
+                {"slow": "frecuencia baja"},
+            )
+
+    def test_repository_excludes_slow_ryzen_session(self) -> None:
+        excluded = ce.read_exclusions()
+        self.assertIn("20261124-200944", excluded)
+        self.assertIn("2,4 GHz", excluded["20261124-200944"])
+
 
 if __name__ == "__main__":
     unittest.main()
